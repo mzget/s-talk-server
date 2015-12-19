@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <SchemaVersion>2.0</SchemaVersion>
+        <ProjectGuid>{81c27f25-b7da-4f29-9760-050317477de8}</ProjectGuid>
+        <ProjectHome />
+        <ProjectView>ShowAllFiles</ProjectView>
+        <StartupFile>app.ts</StartupFile>
+        <WorkingDirectory>.</WorkingDirectory>
+        <OutputPath>.</OutputPath>
+        <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+        <TypeScriptSourceMap>true</TypeScriptSourceMap>
+        <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
+        <EnableTypeScript>true</EnableTypeScript>
+        <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+        <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+    <ItemGroup>
+        <Content Include="package.json" />
+        <Content Include="tsconfig.json" />
+        <Content Include="tsd.json" />
+        <Content Include="README.md" />
+        <TypeScriptCompile Include="app.ts" />
+        <Compile Include="app.js" />
+        <Content Include="config\adminUser.json" />
+        <Content Include="config\chatConfig.json" />
+        <Content Include="config\log4js.json" />
+        <Content Include="config\master.json" />
+        <Content Include="config\servers.json" />
+        <Content Include="config\session.json" />
+        <Content Include="config\webConfig.json" />
+        <TypeScriptCompile Include="config\WebConfig.ts" />
+        <Compile Include="config\WebConfig.js" />
+        <TypeScriptCompile Include="shared\Code.ts" />
+        <Compile Include="shared\Code.js" />
+        <TypeScriptCompile Include="typings\tsd.d.ts" />
+        <TypeScriptCompile Include="app\controller\AuthenManager.ts" />
+        <TypeScriptCompile Include="app\controller\ChatRoomManager.ts" />
+        <TypeScriptCompile Include="app\controller\CompanyManager.ts" />
+        <TypeScriptCompile Include="app\controller\UserManager.ts" />
+        <Compile Include="app\controller\AuthenManager.js" />
+        <Compile Include="app\controller\ChatRoomManager.js" />
+        <Compile Include="app\controller\CompanyManager.js" />
+        <Compile Include="app\controller\UserManager.js" />
+        <TypeScriptCompile Include="app\dal\userDataAccess.ts" />
+        <Compile Include="app\dal\userDataAccess.js" />
+        <TypeScriptCompile Include="app\db\dbClient.ts" />
+        <Compile Include="app\db\dbClient.js" />
+        <Compile Include="app\db\fileDbClient.js" />
+        <TypeScriptCompile Include="app\model\Company.ts" />
+        <TypeScriptCompile Include="app\model\IChatRoom.ts" />
+        <TypeScriptCompile Include="app\model\IProfile.ts" />
+        <TypeScriptCompile Include="app\model\JobLevel.ts" />
+        <TypeScriptCompile Include="app\model\Message.ts" />
+        <TypeScriptCompile Include="app\model\Room.ts" />
+        <TypeScriptCompile Include="app\model\RoomAccessData.ts" />
+        <TypeScriptCompile Include="app\model\User.ts" />
+        <TypeScriptCompile Include="app\model\UserRole.ts" />
+        <Compile Include="app\model\Company.js" />
+        <Compile Include="app\model\IChatRoom.js" />
+        <Compile Include="app\model\IProfile.js" />
+        <Compile Include="app\model\JobLevel.js" />
+        <Compile Include="app\model\MemberRole.js" />
+        <Compile Include="app\model\Message.js" />
+        <Compile Include="app\model\Room.js" />
+        <Compile Include="app\model\RoomAccessData.js" />
+        <Compile Include="app\model\User.js" />
+        <Compile Include="app\model\UserRole.js" />
+        <Compile Include="app\model\userService.js" />
+        <TypeScriptCompile Include="app\services\chatService.ts" />
+        <TypeScriptCompile Include="app\services\ParsePushService.ts" />
+        <TypeScriptCompile Include="app\services\tokenService.ts" />
+        <Compile Include="app\services\chatService.js" />
+        <Compile Include="app\services\ParsePushService.js" />
+        <Compile Include="app\services\tokenService.js" />
+        <TypeScriptCompile Include="app\util\collections.ts" />
+        <TypeScriptCompile Include="app\util\httpServer.ts" />
+        <TypeScriptCompile Include="app\util\netServer.ts" />
+        <Compile Include="app\util\collections.js" />
+        <Compile Include="app\util\dispatcher.js" />
+        <Compile Include="app\util\httpServer.js" />
+        <Compile Include="app\util\netServer.js" />
+        <Compile Include="app\util\routeUtil.js" />
+        <TypeScriptCompile Include="app\servers\auth\handler\profileHandler.ts" />
+        <Compile Include="app\servers\auth\handler\profileHandler.js" />
+        <TypeScriptCompile Include="app\servers\auth\remote\authRemote.ts" />
+        <Compile Include="app\servers\auth\remote\authRemote.js" />
+        <TypeScriptCompile Include="app\servers\chat\handler\chatHandler.ts" />
+        <TypeScriptCompile Include="app\servers\chat\handler\chatRoomHandler.ts" />
+        <Compile Include="app\servers\chat\handler\chatHandler.js" />
+        <Compile Include="app\servers\chat\handler\chatRoomHandler.js" />
+        <TypeScriptCompile Include="app\servers\chat\remote\chatRemote.ts" />
+        <TypeScriptCompile Include="app\servers\chat\remote\chatRoomRemote.ts" />
+        <Compile Include="app\servers\chat\remote\chatRemote.js" />
+        <Compile Include="app\servers\chat\remote\chatRoomRemote.js" />
+        <TypeScriptCompile Include="app\servers\connector\handler\entryHandler.ts" />
+        <Compile Include="app\servers\connector\handler\entryHandler.js" />
+        <TypeScriptCompile Include="app\servers\gate\handler\gateHandler.ts" />
+        <Compile Include="app\servers\gate\handler\gateHandler.js" />
+        <Content Include="shared\config\clientMsg.json" />
+        <Content Include="shared\config\mysql.json" />
+        <Content Include="shared\config\session.json" />
+        <TypeScriptCompile Include="typings\async\async.d.ts" />
+        <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
+        <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
+        <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
+        <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
+        <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
+        <TypeScriptCompile Include="typings\node\node.d.ts" />
+        <TypeScriptCompile Include="typings\parse\parse.d.ts" />
+        <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="app" />
+        <Folder Include="app\controller" />
+        <Folder Include="app\dal" />
+        <Folder Include="app\db" />
+        <Folder Include="app\model" />
+        <Folder Include="app\servers" />
+        <Folder Include="app\servers\auth" />
+        <Folder Include="app\servers\auth\handler" />
+        <Folder Include="app\servers\auth\remote" />
+        <Folder Include="app\servers\chat" />
+        <Folder Include="app\servers\chat\handler" />
+        <Folder Include="app\servers\chat\remote" />
+        <Folder Include="app\servers\connector" />
+        <Folder Include="app\servers\connector\handler" />
+        <Folder Include="app\servers\gate" />
+        <Folder Include="app\servers\gate\handler" />
+        <Folder Include="app\services" />
+        <Folder Include="app\util" />
+        <Folder Include="config" />
+        <Folder Include="shared" />
+        <Folder Include="shared\config" />
+        <Folder Include="typings" />
+        <Folder Include="typings\async" />
+        <Folder Include="typings\es6-promise" />
+        <Folder Include="typings\jquery" />
+        <Folder Include="typings\jsonwebtoken" />
+        <Folder Include="typings\mongodb" />
+        <Folder Include="typings\mongoose" />
+        <Folder Include="typings\node" />
+        <Folder Include="typings\parse" />
+        <Folder Include="typings\underscore" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->
+    <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
+    <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
+    <ProjectExtensions>
+        <VisualStudio>
+          <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+            <WebProjectProperties>
+              <UseIIS>False</UseIIS>
+              <AutoAssignPort>True</AutoAssignPort>
+              <DevelopmentServerPort>0</DevelopmentServerPort>
+              <DevelopmentServerVPath>/</DevelopmentServerVPath>
+              <IISUrl>http://localhost:48022/</IISUrl>
+              <NTLMAuthentication>False</NTLMAuthentication>
+              <UseCustomServer>True</UseCustomServer>
+              <CustomServerUrl>http://localhost:1337</CustomServerUrl>
+              <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+            </WebProjectProperties>
+          </FlavorProperties>
+          <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+            <WebProjectProperties>
+              <StartPageUrl>
+              </StartPageUrl>
+              <StartAction>CurrentPage</StartAction>
+              <AspNetDebugging>True</AspNetDebugging>
+              <SilverlightDebugging>False</SilverlightDebugging>
+              <NativeDebugging>False</NativeDebugging>
+              <SQLDebugging>False</SQLDebugging>
+              <ExternalProgram>
+              </ExternalProgram>
+              <StartExternalURL>
+              </StartExternalURL>
+              <StartCmdLineArguments>
+              </StartCmdLineArguments>
+              <StartWorkingDirectory>
+              </StartWorkingDirectory>
+              <EnableENC>False</EnableENC>
+              <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+            </WebProjectProperties>
+          </FlavorProperties>
+        </VisualStudio>
+    </ProjectExtensions>
+</Project>
