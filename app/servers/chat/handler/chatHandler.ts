@@ -225,20 +225,20 @@ handler.uploadImageFinished = function (msg, session, next) {
 handler.getChatHistory = function (msg, session, next) {
     var self = this;
     var rid = msg.rid;
-    var lastAccessTime = msg.lastAccessTime;
+    var lastMessageTime = msg.lastAccessTime;
     if (!rid) {
         next(null, { code: Code.FAIL, message: "room_id field is in valid." });
         return;
     }
 
-    if (!lastAccessTime) {
+    if (!lastMessageTime) {
         next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
         return;
     }
     
-    var utc : string = new Date(lastAccessTime).toString();
+    var utc : string = new Date(lastMessageTime).toString();
     
-    chatRoomManager.GetChatHistoryOfRoom(rid, utc, function (error, result) {
+    chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
         if (result !== null) {
             var chatrecords = JSON.parse(JSON.stringify(result));

@@ -116,8 +116,8 @@ module Controller {
         *@roomId for query chat record in room.
         *@lastAccessTime for query only message who newer than lastAccessTime.
         */
-        public GetChatHistoryOfRoom(roomId: string, isoDate: string, callback: (err, res) => void) {
-            this.roomDAL.getChatHistoryRecords(roomId, isoDate, callback);
+        public getNewerMessageOfChatRoom(roomId: string, isoDate: string, callback: (err, res) => void) {
+            this.roomDAL.getNewerMessageRecords(roomId, isoDate, callback);
         }
 
         public updateChatRecordContent(messageId: string, content: string, callback: (err, res) => void) {
@@ -311,14 +311,14 @@ module Controller {
             });
         }
 
-        public getChatHistoryRecords(rid: string, isoDate: string, callback: (err, res) => void) {
+        public getNewerMessageRecords(rid: string, isoDate: string, callback: (err, res) => void) {
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) { return console.dir(err); }
 
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: rid, createTime: { $gt: new Date(isoDate) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
+                collection.find({ rid: rid, createTime: { $gt: new Date(isoDate) } }).limit(100).sort({ createTime: 1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), docs);
