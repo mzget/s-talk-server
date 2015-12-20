@@ -193,6 +193,7 @@ handler.getChatHistory = function (msg, session, next) {
     var self = this;
     var rid = msg.rid;
     var lastMessageTime = msg.lastAccessTime;
+    console.error(msg);
     if (!rid) {
         next(null, { code: Code.FAIL, message: "room_id field is in valid." });
         return;
@@ -202,8 +203,8 @@ handler.getChatHistory = function (msg, session, next) {
         return;
     }
     var utc = new Date(lastMessageTime);
-    console.log(lastMessageTime);
-    console.log(utc);
+    console.log("lastMessageTime", lastMessageTime);
+    console.log("utc", utc);
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
         if (result !== null) {
