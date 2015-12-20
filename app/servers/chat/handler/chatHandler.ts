@@ -235,8 +235,8 @@ handler.getChatHistory = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
         return;
     }
-    
-    var utc : string = new Date(lastMessageTime).toString();
+
+    var utc: string = new Date(lastMessageTime).toISOString();
     
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
