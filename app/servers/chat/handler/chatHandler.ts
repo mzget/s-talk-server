@@ -237,6 +237,8 @@ handler.getChatHistory = function (msg, session, next) {
     }
 
     let utc = new Date(lastMessageTime);
+    console.error(lastMessageTime);
+    console.warn(utc);
     
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
