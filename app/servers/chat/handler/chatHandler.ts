@@ -223,10 +223,10 @@ handler.uploadImageFinished = function (msg, session, next) {
  * @param  {Function} next next stemp callback that return records of message_id.
 */
 handler.getChatHistory = function (msg, session, next) {
-    var self = this;
-    var rid = msg.rid;
-    var lastMessageTime = msg.lastAccessTime;
-    console.error(msg);
+    let self = this;
+    let rid = msg.rid;
+    let lastMessageTime = msg.lastAccessTime;
+  
     if (!rid) {
         next(null, { code: Code.FAIL, message: "room_id field is in valid." });
         return;
@@ -238,8 +238,6 @@ handler.getChatHistory = function (msg, session, next) {
     }
 
     let utc = new Date(lastMessageTime);
-    console.log("lastMessageTime", lastMessageTime);
-    console.log("utc", utc);
     
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
