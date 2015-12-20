@@ -62,7 +62,6 @@
     <Compile Include="app\model\IChatRoom.js" />
     <Compile Include="app\model\IProfile.js" />
     <Compile Include="app\model\JobLevel.js" />
-    <Compile Include="app\model\MemberRole.js" />
     <Compile Include="app\model\Message.js" />
     <Compile Include="app\model\Room.js" />
     <Compile Include="app\model\RoomAccessData.js" />
