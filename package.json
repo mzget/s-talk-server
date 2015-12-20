@@ -8,7 +8,7 @@
     "crc": "0.2.0",
     "form-data": "^0.2.0",
     "jsonwebtoken": "^5.0.5",
-    "mongodb": "~2.0.49",
+    "mongodb": "2.0.52",
     "parse": "^1.6.3",
     "pomelo": "~1.2.0",
     "promise":  "~7.0.4"
