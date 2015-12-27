@@ -451,13 +451,11 @@ handler.enterRoom = function (msg, session, next) {
 var addChatUser = function (app, session, user, sid, rid, next) {
     //put user into channel
     app.rpc.chat.chatRemote.add(session, user, sid, rid, true, function (result) {
-        if (result.code == code.OK) {
-            next({ code: code.OK, rid: rid });
+        if (!!result) {
+            next({ code: code.OK, data: result });
         }
         else {
-            next({
-                code: result.code, message: result.message
-            });
+            next({ code: code.FAIL, message: result.message });
         }
     });
 };
