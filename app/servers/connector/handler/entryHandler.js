@@ -412,16 +412,6 @@ handler.getMyPrivateGroupChat = function (msg, session, next) {
 handler.enterRoom = function (msg, session, next) {
     var self = this;
     var token = msg.token;
-    /* no check token.
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, res);
-        }
-        else {
-        }
-    });
-    */
     var rid = msg.rid;
     var uname = msg.username;
     var uid = session.uid;

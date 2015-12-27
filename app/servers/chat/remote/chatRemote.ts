@@ -137,7 +137,7 @@ chatRemote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
     }
 
 //    var users = this.getUsers(rid, flag);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, {_id:1}, function (result) {
+    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, {status:1}, function (result) {
         if (result !== null) {
             cb({ code: Code.OK });
         }
