@@ -481,17 +481,6 @@ handler.enterRoom = function (msg, session, next) {
 	var self = this;
 	var token = msg.token;
 
-	/* no check token.
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, res);
-		}
-		else {
-		}
-	});
-	*/
-
 	var rid = msg.rid;
 	var uname = msg.username;
 	var uid = session.uid;
@@ -537,13 +526,11 @@ handler.enterRoom = function (msg, session, next) {
 var addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next) {
 	//put user into channel
 	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, function (result) {
-		if (result.code == code.OK) {
-			next({ code: code.OK, rid: rid });
+		if (!!result) {
+			next({ code: code.OK, data: result });
 		}
 		else {
-			next({
-				code: result.code, message: result.message
-			});
+			next({ code: code.FAIL, message: result.message });
 		}
 	});
 }

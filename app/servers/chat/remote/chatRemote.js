@@ -111,13 +111,8 @@ chatRemote.add = function (user, sid, rid, flag, cb) {
         channel.add(uid, sid);
     }
     //    var users = this.getUsers(rid, flag);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, { _id: 1 }, function (result) {
-        if (result !== null) {
-            cb({ code: Code.OK });
-        }
-        else {
-            cb({ code: Code.FAIL, message: "have no a chatroom info." });
-        }
+    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, { status: 1 }, function (result) {
+        cb(result);
     });
 };
 /**
