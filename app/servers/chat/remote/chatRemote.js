@@ -48,7 +48,9 @@ chatRemote.addUserTransaction = function (userTransac, cb) {
 };
 chatRemote.updateRoomMembers = function (data, cb) {
     chatService.addRoom(data);
-    cb();
+    if (!!cb) {
+        cb();
+    }
 };
 /**
 * UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.

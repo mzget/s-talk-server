@@ -7,6 +7,8 @@ var userDAL = require('../../../dal/userDataAccess');
 var TokenService = require('../../../services/tokenService');
 var MUser = require('../../../controller/UserManager');
 var async = require('async');
+var mongodb = require('mongodb');
+var ObjectID = mongodb.ObjectID;
 var http = require('http');
 var tokenService = new TokenService();
 var companyManager = CompanyController.CompanyManager.getInstance();
@@ -427,25 +429,28 @@ handler.enterRoom = function (msg, session, next) {
         });
         return;
     }
-    self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-        console.log("checkedCanAccessRoom: ", res);
-        if (err || res === false) {
-            next(null, { code: code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-        }
-        else {
-            session.set('rid', rid);
-            session.push('rid', function (err) {
-                if (err) {
-                    console.error('set rid for session service failed! error is : %j', err.stack);
-                }
-            });
-            var onlineUser = new User.OnlineUser();
-            onlineUser.username = uname;
-            onlineUser.uid = uid;
-            addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function (result) {
-                next(null, result);
-            });
-        }
+    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
+        self.app.rpc.chat.chatRemote.updateRoomMembers(result, null);
+        self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
+            console.log("checkedCanAccessRoom: ", res);
+            if (err || res === false) {
+                next(null, { code: code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+            }
+            else {
+                session.set('rid', rid);
+                session.push('rid', function (err) {
+                    if (err) {
+                        console.error('set rid for session service failed! error is : %j', err.stack);
+                    }
+                });
+                var onlineUser = new User.OnlineUser();
+                onlineUser.username = uname;
+                onlineUser.uid = uid;
+                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function (result) {
+                    next(null, result);
+                });
+            }
+        });
     });
 };
 var addChatUser = function (app, session, user, sid, rid, next) {
