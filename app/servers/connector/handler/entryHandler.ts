@@ -203,7 +203,7 @@ handler.getMe = function (msg, session, next) {
 				//for (var i in usersDict) {
 				//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
 				//}
-				console.log("New onlineUsers %s : ", onlineUser.username, onlineUser.registrationIds[0]);
+				console.log("New onlineUsers %s : ", onlineUser);
 				
 				self.app.rpc.chat.chatRemote.addOnlineUser(session, onlineUser, null);
 				self.app.rpc.chat.chatRemote.addUserTransaction(session, userTransaction, null);
@@ -501,7 +501,7 @@ handler.enterRoom = function (msg, session, next) {
 	}
     
     chatRoomManager.GetChatRoomInfo({_id : new ObjectID(rid)}, null, function(result) {
-        self.app.rpc.chat.chatRemote.updateRoomMembers(result, null);
+        self.app.rpc.chat.chatRemote.updateRoomMembers(session, result, null);
         
         self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
             console.log("checkedCanAccessRoom: ", res);
