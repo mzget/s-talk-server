@@ -440,7 +440,12 @@ prototype.getRoomInfo = function (msg, session, next) {
         }
         else {
             chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (res) {
-                next(null, { code: Code.OK, data: res });
+                if (!!res) {
+                    next(null, { code: Code.OK, data: res });
+                }
+                else {
+                    next(null, { code: Code.FAIL, message: "Your request roomInfo is no longer." });
+                }
             });
         }
     });

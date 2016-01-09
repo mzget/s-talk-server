@@ -61,7 +61,9 @@ chatRemote.addUserTransaction = function (userTransac: User.UserTransaction, cb)
 chatRemote.updateRoomMembers = function (data, cb) {
     chatService.addRoom(data);
 
-    cb();
+    if(!!cb) {
+        cb();
+    }
 }
 
 /**
