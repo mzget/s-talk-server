@@ -25,6 +25,13 @@ app.configure('production|development', function () {
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
     app.filter(pomelo.filters.timeout(webConfig.timeout));
+
+    //<!-- require by pomelo2x.
+    app.set('monitorConfig',
+        {
+            monitor: pomelo.monitors.zookeepermonitor,
+            servers: "127.0.0.1:2181"
+        });
 });
 
 // Configure for auth server
