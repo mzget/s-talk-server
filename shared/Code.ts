@@ -27,6 +27,7 @@
         onMessageRead: "onMessageRead",
         onUserUpdateImgProfile: "onUserUpdateImgProfile",
         onUserUpdateProfile: "onUserUpdateProfile",
+        onUserLogin: "onUserLogin",
 
         onChat: "onChat",
 

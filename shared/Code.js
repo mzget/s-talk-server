@@ -24,6 +24,7 @@ var Code = (function () {
         onMessageRead: "onMessageRead",
         onUserUpdateImgProfile: "onUserUpdateImgProfile",
         onUserUpdateProfile: "onUserUpdateProfile",
+        onUserLogin: "onUserLogin",
         onChat: "onChat",
         onAccessRooms: "onAccessRooms",
         onUpdatedLastAccessTime: "onUpdatedLastAccessTime",

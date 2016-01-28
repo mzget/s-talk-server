@@ -92,13 +92,21 @@ handler.login = function (msg, session, next) {
 
 	self.app.rpc.chat.chatRemote.getChatService(session, (onlineUsers) => {
 		self.app.rpc.auth.authRemote.auth(session, msg.username, msg.password, onlineUsers, function (result) {
-			if (result.code === code.OK) {
+            if (result.code === code.OK) {
+            //@ Signing success.
 				session.bind(result.uid);
 				session.on('closed', onUserLeave.bind(null, self.app));
 
 				if (!!registrationId) {
 					userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-				}
+                }
+                
+                var param = {
+                    route: code.sharedEvents.onUserLogin,
+                    data: { _id: result.uid }
+                };
+
+                channelService.broadcast("connector", param.route, param.data);
 			}
 			else if(result.code === code.DuplicatedLogin) {
 				// session.__sessionService__.kick()
