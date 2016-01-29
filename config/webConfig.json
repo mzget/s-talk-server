@@ -1,5 +1,5 @@
 {
-  "chatDB": "mongodb://127.0.0.1:27017/chatDB",
+  "chatDB": "mongodb://203.113.25.44:27017/chatDB",
   "port": 80,
   "timeout": 10000,
   "webserver": "http://203.113.25.44",
