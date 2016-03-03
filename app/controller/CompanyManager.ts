@@ -4,7 +4,6 @@ import room = require('../model/Room');
 import mongodb = require('mongodb');
 import assert = require('assert');
 var MongoClient = mongodb.MongoClient;
-var Cursor = mongodb.Cursor;
 var DbClient = Mdb.DbController.DbClient.GetInstance();
 
 module Controller {
@@ -52,7 +51,7 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
-                collection.find({}, projection).toArray(function (err, result) {
+                collection.find({}).project(projection).toArray(function (err, result) {
                     assert.equal(null, err);
                     
                     if (err) {

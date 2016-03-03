@@ -253,6 +253,31 @@ handler.getChatHistory = function (msg, session, next) {
     });     
 }
 
+/**
+* Get older message for chat room.
+*/
+handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void) {
+    let self = this;
+    let rid = msg.rid;
+    let topEdgeMessageTime = msg.topEdgeMessageTime;
+
+    if (!rid || !topEdgeMessageTime) {
+        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        return;
+    } 
+
+    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
+        console.info('getOlderMessageChunk:', res.length);
+
+        if (!!res) {
+            next(null, { code: Code.OK, data: res });
+        }
+        else {
+            next(null, { code: Code.FAIL });
+        }
+    });
+}
+
 /* 
 * Get last limit query messages of specific user and room then return messages info. 
 * Require: 
@@ -509,9 +534,9 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
 
             async.eachSeries(offlineMembers, function iterrator(item, callback) {
 //                console.warn("offline member _id: ", item);
-                userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, res) => {
+                userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
                     //<!-- if result is contain in unsubscribe list. we ignore this member.
-                    if (!err && res !== null) {
+                    if (!err && results !== null) {
                         // console.log("checkUnsubscribeRoom");
                     }
                     else {

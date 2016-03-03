@@ -1436,3 +1436,7 @@ app/controller/ChatRoomManager.js.map
 app/controller/UserManager.js.map
 *.map
 obj/
+.vs/stalk-node-server/v14/.suo
+packages/RequireJS.2.1.20/RequireJS.2.1.20.nupkg
+packages/RequireJS.2.1.20/content/Scripts/r.js
+packages/RequireJS.2.1.20/content/Scripts/require.js
