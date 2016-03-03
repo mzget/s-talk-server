@@ -579,4 +579,3 @@ function pushMemberInfoToAllMembersOfRoom(roomInfo, editedMember) {
         channelService.pushMessageByUids(params.route, params.data, pushTargets);
     });
 }
-//# sourceMappingURL=chatRoomHandler.js.map

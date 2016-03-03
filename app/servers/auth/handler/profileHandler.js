@@ -226,4 +226,3 @@ profileHandler.updateClosedNoticeGroups = function (msg, session, next) {
         }
     });
 };
-//# sourceMappingURL=profileHandler.js.map

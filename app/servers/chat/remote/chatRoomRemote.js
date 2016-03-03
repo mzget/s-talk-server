@@ -28,4 +28,3 @@ remote.checkedRoomType = function (roomId, cb) {
         }
     });
 };
-//# sourceMappingURL=chatRoomRemote.js.map

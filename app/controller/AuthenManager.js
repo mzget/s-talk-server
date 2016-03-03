@@ -23,4 +23,3 @@ var Controller;
     })();
     Controller.AuthenManager = AuthenManager;
 })(Controller = exports.Controller || (exports.Controller = {}));
-//# sourceMappingURL=AuthenManager.js.map

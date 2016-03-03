@@ -5,4 +5,3 @@ var RoomAccessData = (function () {
 })();
 exports.RoomAccessData = RoomAccessData;
 ;
-//# sourceMappingURL=RoomAccessData.js.map

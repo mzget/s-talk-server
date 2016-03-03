@@ -88,4 +88,3 @@ var onAuthentication = function (_password, userInfo, callback) {
         });
     }
 };
-//# sourceMappingURL=authRemote.js.map

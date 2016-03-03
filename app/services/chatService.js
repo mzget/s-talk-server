@@ -248,4 +248,3 @@ var ChatService = (function () {
     return ChatService;
 })();
 exports.ChatService = ChatService;
-//# sourceMappingURL=chatService.js.map

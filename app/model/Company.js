@@ -4,4 +4,3 @@ var Company = (function () {
     return Company;
 })();
 exports.Company = Company;
-//# sourceMappingURL=Company.js.map

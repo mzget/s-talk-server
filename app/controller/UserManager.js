@@ -309,14 +309,14 @@ var Controller;
                 assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
-                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).toArray(function (err, result) {
+                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray(function (err, docs) {
                     if (err) {
                         console.error("getRoomAccessOfRoom: ", err);
                         callback(err, null);
                     }
                     else {
-                        console.log("getRoomAccessOfRoom", result);
-                        callback(null, result);
+                        console.log("getRoomAccessOfRoom", docs);
+                        callback(null, docs[0]);
                     }
                     db.close();
                 });
@@ -522,4 +522,3 @@ var Controller;
     })();
     Controller.UserDataAccessService = UserDataAccessService;
 })(Controller = exports.Controller || (exports.Controller = {}));
-//# sourceMappingURL=UserManager.js.map

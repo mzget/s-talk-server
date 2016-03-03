@@ -8,4 +8,3 @@ var IProfile;
     IProfile.Profile = Profile;
 })(IProfile || (IProfile = {}));
 module.exports = IProfile;
-//# sourceMappingURL=IProfile.js.map

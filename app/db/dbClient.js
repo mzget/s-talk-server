@@ -228,4 +228,3 @@ var DbController;
     DbController.DbClient = DbClient;
 })(DbController = exports.DbController || (exports.DbController = {}));
 ;
-//# sourceMappingURL=dbClient.js.map

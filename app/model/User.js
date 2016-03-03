@@ -24,4 +24,3 @@ var User = (function () {
 })();
 exports.User = User;
 ;
-//# sourceMappingURL=User.js.map

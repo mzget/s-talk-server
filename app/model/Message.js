@@ -20,4 +20,3 @@ var Message = (function () {
     return Message;
 })();
 exports.Message = Message;
-//# sourceMappingURL=Message.js.map

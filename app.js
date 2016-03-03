@@ -40,4 +40,3 @@ process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
 app.start();
-//# sourceMappingURL=app.js.map

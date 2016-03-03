@@ -209,4 +209,3 @@ chatRemote.checkedCanAccessRoom = function (roomId, userId, callback) {
         }
     });
 };
-//# sourceMappingURL=chatRemote.js.map

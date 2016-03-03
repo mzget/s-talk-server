@@ -361,14 +361,14 @@ export module Controller {
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
 
-                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).toArray((err, result) => {
+                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray((err, docs) => {
                     if (err) {
                         console.error("getRoomAccessOfRoom: ", err);
                         callback(err, null);
                     }
                     else {
-                        console.log("getRoomAccessOfRoom", result);
-                        callback(null, result);
+                        console.log("getRoomAccessOfRoom", docs);
+                        callback(null, docs[0]);
                     }
                     db.close();
                 });

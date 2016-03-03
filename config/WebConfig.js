@@ -4,4 +4,3 @@ var WebConfig = (function () {
     return WebConfig;
 })();
 exports.WebConfig = WebConfig;
-//# sourceMappingURL=WebConfig.js.map

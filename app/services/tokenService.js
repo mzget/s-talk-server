@@ -44,4 +44,3 @@ var TokenService = (function () {
     return TokenService;
 })();
 module.exports = TokenService;
-//# sourceMappingURL=tokenService.js.map

@@ -705,4 +705,3 @@ var updateRoomsPairMembersCollection = function (app, session, roomsData) {
     var rooms = JSON.parse(JSON.stringify(roomsData));
     app.rpc.chat.chatRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
 };
-//# sourceMappingURL=entryHandler.js.map

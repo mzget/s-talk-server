@@ -561,4 +561,3 @@ function callPushNotification(room, sender, offlineMembers) {
         }
     });
 }
-//# sourceMappingURL=chatHandler.js.map

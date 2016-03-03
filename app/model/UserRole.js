@@ -7,4 +7,3 @@
 })(exports.UserRole || (exports.UserRole = {}));
 var UserRole = exports.UserRole;
 ;
-//# sourceMappingURL=UserRole.js.map

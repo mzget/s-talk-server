@@ -485,4 +485,3 @@ var Controller;
     })();
 })(Controller || (Controller = {}));
 module.exports = Controller;
-//# sourceMappingURL=ChatRoomManager.js.map

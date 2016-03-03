@@ -53,4 +53,3 @@ handler.authenGateway = function (msg, session, next) {
         }
     });
 };
-//# sourceMappingURL=gateHandler.js.map
