@@ -194,12 +194,12 @@ export module Controller {
                     // Get the documents collection
                     var user = db.collection(Mdb.DbController.userColl);
 
-                    user.findOne({ _id: new ObjectID(userId), closedNoticeGroups: roomId }, (err, result) => {
-                        if (err || result === null) {
+                    user.find({ _id: new ObjectID(userId), closedNoticeGroups: roomId }).limit(1).toArray(function(err, results) {
+                        if (err || results === null) {
                             callback(err, null);
                         }
                         else {
-                            callback(null, result);
+                            callback(null, results);
                         }
 
                         db.close();
@@ -216,12 +216,12 @@ export module Controller {
                     // Get the documents collection
                     var user = db.collection(Mdb.DbController.userColl);
 
-                    user.findOne({ _id: new ObjectID(userId), closedNoticeUsers: roomId }, (err, result) => {
-                        if (err || result === null) {
+                    user.find({ _id: new ObjectID(userId), closedNoticeUsers: roomId }).limit(1).toArray((err, docs) => {
+                        if (err || docs === null) {
                             callback(err, null);
                         }
                         else {
-                            callback(null, result);
+                            callback(null, docs);
                         }
 
                         db.close();
@@ -295,7 +295,7 @@ export module Controller {
                 var collection = db.collection(Mdb.DbController.userColl);
 
                 // Peform a simple find and return all the documents
-                collection.find({ _id: new ObjectID(uid) }, { roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
+                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
                     var printR = (docs) ? docs : null;
                     console.log("find roomAccessInfo of uid: %s match with rid: %s :: ", uid, rid, printR);
 
@@ -327,7 +327,7 @@ export module Controller {
                             }
                         }, { _id: new ObjectID(uid), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": date } }, { w: 1 });
                     }
-                    
+
                     db.close();
                 });
             });
@@ -360,8 +360,8 @@ export module Controller {
 
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
-                
-                collection.findOne({ _id: new ObjectID(uid) }, { roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }, (err, result) => {
+
+                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).toArray((err, result) => {
                     if (err) {
                         console.error("getRoomAccessOfRoom: ", err);
                         callback(err, null);
@@ -383,12 +383,12 @@ export module Controller {
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
-                collection.findOne(query, projection, (err, result) => {
+                collection.find(query).project(projection).limit(1).toArray((err, results) => {
                     if (err) {
                         callback(err, null);
                     }
                     else {
-                        callback(null, result);
+                        callback(null, results);
                     }
 
                     db.close();
@@ -406,12 +406,12 @@ export module Controller {
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
-                collection.findOne({ _id: new ObjectID(creator) }, { role: 1 }, (err, result) => {
-                    if (err || result === null) {
+                collection.find({ _id: new ObjectID(creator) }).project({ role: 1 }).limit(1).toArray((err, results) => {
+                    if (err || results === null) {
                         callback(err, null);
                     }
                     else {
-                        callback(null, result);
+                        callback(null, results);
                     }
 
                     db.close();
