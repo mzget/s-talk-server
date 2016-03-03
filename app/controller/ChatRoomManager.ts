@@ -129,7 +129,7 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: 1 }).toArray(function (err, docs) {
+                collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), docs);
