@@ -1,3 +1,4 @@
+"use strict";
 var dispatcher = require('../../../util/dispatcher');
 var Code = require('../../../../shared/Code');
 var TokenService = require('../../../services/tokenService');

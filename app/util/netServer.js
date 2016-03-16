@@ -1,4 +1,5 @@
 /// <reference path='../../typings/node/node.d.ts' />
+"use strict";
 var net = require('net');
 var fs = require('fs');
 var Db = require('mongodb').Db, MongoClient = require('mongodb').MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, ObjectID = require('mongodb').ObjectID, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').BSON, assert = require('assert');
@@ -45,5 +46,5 @@ var NetServer = (function () {
         server.listen(port, '127.0.0.1');
     };
     return NetServer;
-})();
+}());
 exports.NetServer = NetServer;

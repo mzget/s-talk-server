@@ -1,3 +1,4 @@
+"use strict";
 /// <reference path="../../typings/tsd.d.ts" />
 var mongodb = require('mongodb');
 var async = require('async');
@@ -131,13 +132,13 @@ var Controller;
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: roomId, sender: userId }).project({ readers: 1 }).limit(20).sort({ createTime: -1 }).toArray(function (err, docs) {
+                collection.find({ rid: roomId, sender: userId }).project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     if (!docs) {
                         callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
                     }
                     else {
-                        console.log("getMessagesInfoOfUserXInRoomY found the following records", docs);
+                        console.log("getMessagesReaders found the following records", docs.length);
                         callback(null, docs);
                     }
                     db.close();
@@ -183,7 +184,7 @@ var Controller;
         };
         ChatRoomManager._Instance = null;
         return ChatRoomManager;
-    })();
+    }());
     Controller.ChatRoomManager = ChatRoomManager;
     var RoomDataAccess = (function () {
         function RoomDataAccess() {
@@ -482,6 +483,6 @@ var Controller;
             }, { _id: new ObjectID(messageId) }, { sender: 1, readers: 1 });
         };
         return RoomDataAccess;
-    })();
+    }());
 })(Controller || (Controller = {}));
 module.exports = Controller;

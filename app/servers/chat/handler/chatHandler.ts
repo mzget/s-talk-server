@@ -23,6 +23,7 @@ var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
 
 console.info("instanctiate ChatHandler.");
+
 module.exports = function (app) {
     return new Handler(app);
 }
@@ -309,17 +310,17 @@ handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => vo
 { data: [ messageId, readers ] }
 */
 handler.getMessagesReaders = function (msg, session, next) {
-    var uid = session.uid;
-    var rid = session.get('rid');
+    let uid = session.uid;
+    let rid = session.get('rid');
 
-    var errMsg = "uid or rid is invalid.";
+    let errMsg = "uid or rid is invalid.";
     if (!uid || !rid) {
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
 
         return;
     }
-    var channel = channelService.getChannel(rid, false);
+    let channel = channelService.getChannel(rid, false);
 
     chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, function (err, res) {
         if (!err) {
@@ -474,7 +475,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     next(null, { code: Code.OK });
 }
 
-    //<!-- Push who read message to sender.
+ //<!-- Push who read message to sender.
 function getWhoReadMessages(messages: Array<string>, channel) {
     async.eachSeries(messages, function iterator(item, cb) {
         chatRoomManager.getWhoReadMessage(item, function (err, res) {
