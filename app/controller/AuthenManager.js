@@ -1,4 +1,3 @@
-"use strict";
 var MDbController = require('../db/dbClient');
 var DbClient = MDbController.DbController.DbClient.GetInstance();
 var Controller;
@@ -21,6 +20,6 @@ var Controller;
         };
         AuthenManager._instance = null;
         return AuthenManager;
-    }());
+    })();
     Controller.AuthenManager = AuthenManager;
 })(Controller = exports.Controller || (exports.Controller = {}));

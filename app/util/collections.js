@@ -3,7 +3,6 @@
 // Licensed under MIT open source license http://opensource.org/licenses/MIT
 //
 // Orginal javascript code was by Mauricio Santos
-"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -692,7 +691,7 @@ var collections;
             };
         };
         return LinkedList;
-    }());
+    })();
     collections.LinkedList = LinkedList; // End of linked list 
     var Dictionary = (function () {
         /**
@@ -865,7 +864,7 @@ var collections;
             return toret + "\n}";
         };
         return Dictionary;
-    }());
+    })();
     collections.Dictionary = Dictionary; // End of dictionary
     /**
      * This class is used by the LinkedDictionary Internally
@@ -882,7 +881,7 @@ var collections;
             this.next.prev = this.prev;
         };
         return LinkedDictionaryPair;
-    }());
+    })();
     var LinkedDictionary = (function (_super) {
         __extends(LinkedDictionary, _super);
         function LinkedDictionary(toStrFunction) {
@@ -1055,7 +1054,7 @@ var collections;
             }
         };
         return LinkedDictionary;
-    }(Dictionary));
+    })(Dictionary);
     collections.LinkedDictionary = LinkedDictionary; // End of LinkedDictionary
     // /**
     //  * Returns true if this dictionary is equal to the given dictionary.
@@ -1235,7 +1234,7 @@ var collections;
             return this.dict.isEmpty();
         };
         return MultiDictionary;
-    }());
+    })();
     collections.MultiDictionary = MultiDictionary; // end of multi dictionary 
     var Heap = (function () {
         /**
@@ -1457,7 +1456,7 @@ var collections;
             collections.arrays.forEach(this.data, callback);
         };
         return Heap;
-    }());
+    })();
     collections.Heap = Heap;
     var Stack = (function () {
         /**
@@ -1556,7 +1555,7 @@ var collections;
             this.list.forEach(callback);
         };
         return Stack;
-    }());
+    })();
     collections.Stack = Stack; // End of stack 
     var Queue = (function () {
         /**
@@ -1660,7 +1659,7 @@ var collections;
             this.list.forEach(callback);
         };
         return Queue;
-    }());
+    })();
     collections.Queue = Queue; // End of queue
     var PriorityQueue = (function () {
         /**
@@ -1767,7 +1766,7 @@ var collections;
             this.heap.forEach(callback);
         };
         return PriorityQueue;
-    }());
+    })();
     collections.PriorityQueue = PriorityQueue; // end of priority queue
     var Set = (function () {
         /**
@@ -1930,7 +1929,7 @@ var collections;
             return collections.arrays.toString(this.toArray());
         };
         return Set;
-    }());
+    })();
     collections.Set = Set; // end of Set
     var Bag = (function () {
         /**
@@ -2110,7 +2109,7 @@ var collections;
             this.dictionary.clear();
         };
         return Bag;
-    }());
+    })();
     collections.Bag = Bag; // End of bag 
     var BSTree = (function () {
         /**
@@ -2505,6 +2504,6 @@ var collections;
             };
         };
         return BSTree;
-    }());
+    })();
     collections.BSTree = BSTree; // end of BSTree
 })(collections = exports.collections || (exports.collections = {})); // End of module 

@@ -1,4 +1,3 @@
-"use strict";
 /// <reference path="../../typings/mongodb/mongodb.d.ts" />
 var Mdb = require('../db/dbClient');
 var room = require('../model/Room');
@@ -35,7 +34,7 @@ var Controller;
         };
         CompanyManager._instance = null;
         return CompanyManager;
-    }());
+    })();
     Controller.CompanyManager = CompanyManager;
     var MemberDataAccessService = (function () {
         function MemberDataAccessService() {
@@ -62,6 +61,6 @@ var Controller;
             });
         };
         return MemberDataAccessService;
-    }());
+    })();
 })(Controller || (Controller = {}));
 module.exports = Controller;

@@ -1,4 +1,3 @@
-"use strict";
 var Code = require('../../shared/Code');
 var dispatcher = require('../util/dispatcher');
 var ChatService = (function () {
@@ -247,5 +246,5 @@ var ChatService = (function () {
         //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
     };
     return ChatService;
-}());
+})();
 exports.ChatService = ChatService;

@@ -1,5 +1,4 @@
 /// <reference path="../../typings/tsd.d.ts" />
-"use strict";
 var https = require('https');
 var MWebConfig = require('../../config/WebConfig');
 var webConfig = new MWebConfig.WebConfig();
@@ -164,5 +163,5 @@ var ParsePushService = (function () {
         request.end();
     };
     return ParsePushService;
-}());
+})();
 exports.ParsePushService = ParsePushService;

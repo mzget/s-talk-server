@@ -312,9 +312,10 @@ handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => vo
 handler.getMessagesReaders = function (msg, session, next) {
     let uid = session.uid;
     let rid = session.get('rid');
+    let topEdgeMessageTime = msg.topEdgeMessageTime;
 
-    let errMsg = "uid or rid is invalid.";
-    if (!uid || !rid) {
+    let errMsg = "uid or rid is invalid. or may be some params i missing.";
+    if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
 
@@ -322,7 +323,7 @@ handler.getMessagesReaders = function (msg, session, next) {
     }
     let channel = channelService.getChannel(rid, false);
 
-    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, function (err, res) {
+    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, topEdgeMessageTime,function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
@@ -342,7 +343,7 @@ handler.getMessagesReaders = function (msg, session, next) {
         }
     });
 
-    next(null, { code: Code.OK, message: "getMessagesInfo"});
+    next(null, { code: Code.OK });
 }
 
 /**

@@ -1,5 +1,4 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
-"use strict";
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var MUserManager = require("../../../controller/UserManager");
 var Code = require("../../../../shared/Code");

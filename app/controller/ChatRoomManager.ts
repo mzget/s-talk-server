@@ -155,7 +155,9 @@ module Controller {
         /*
         * Get last limit query messages of specific user and room then return messages info. 
         */
-        public getMessagesReadersOfUserXInRoomY(userId: string, roomId: string, callback: (err, res) => void) {
+        public getMessagesReadersOfUserXInRoomY(userId: string, roomId: string, topEdgeMessageTime: string, callback: (err, res) => void) {
+           let utc = new Date(topEdgeMessageTime);
+           
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
@@ -163,7 +165,8 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: roomId, sender: userId }).project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
+                collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) }  })
+                .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     if (!docs) {
                         callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);

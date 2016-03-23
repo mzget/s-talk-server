@@ -1,5 +1,4 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
-"use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
@@ -266,14 +265,15 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
 handler.getMessagesReaders = function (msg, session, next) {
     var uid = session.uid;
     var rid = session.get('rid');
-    var errMsg = "uid or rid is invalid.";
-    if (!uid || !rid) {
+    var topEdgeMessageTime = msg.topEdgeMessageTime;
+    var errMsg = "uid or rid is invalid. or may be some params i missing.";
+    if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
-    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, function (err, res) {
+    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
@@ -291,7 +291,7 @@ handler.getMessagesReaders = function (msg, session, next) {
             }
         }
     });
-    next(null, { code: Code.OK, message: "getMessagesInfo" });
+    next(null, { code: Code.OK });
 };
 /**
 * get log message content by message_id.

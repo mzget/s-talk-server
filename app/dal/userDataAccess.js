@@ -1,4 +1,3 @@
-"use strict";
 var mongodb = require('mongodb');
 var assert = require('assert');
 var Mdb = require('../db/dbClient');
@@ -88,5 +87,5 @@ var UserDataAccess = (function () {
         });
     };
     return UserDataAccess;
-}());
+})();
 module.exports = UserDataAccess;

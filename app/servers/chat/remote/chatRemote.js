@@ -1,4 +1,3 @@
-"use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUser = require('../../../controller/UserManager');
 var Code = require('../../../../shared/Code');

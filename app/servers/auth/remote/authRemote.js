@@ -1,4 +1,3 @@
-"use strict";
 var Code = require('../../../../shared/Code');
 var TokenService = require('../../../services/tokenService');
 var MAuthen = require('../../../controller/AuthenManager');
