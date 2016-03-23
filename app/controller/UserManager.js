@@ -1,4 +1,5 @@
 /// <reference path="../../typings/tsd.d.ts" />
+"use strict";
 var User = require('../model/User');
 var Room = require('../model/Room');
 var RoomAccess = require('../model/RoomAccessData');
@@ -195,7 +196,7 @@ var Controller;
         };
         UserManager._instance = null;
         return UserManager;
-    })();
+    }());
     Controller.UserManager = UserManager;
     var UserDataAccessService = (function () {
         function UserDataAccessService() {
@@ -519,6 +520,6 @@ var Controller;
             });
         };
         return UserDataAccessService;
-    })();
+    }());
     Controller.UserDataAccessService = UserDataAccessService;
 })(Controller = exports.Controller || (exports.Controller = {}));

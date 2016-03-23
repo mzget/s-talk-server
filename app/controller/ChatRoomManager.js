@@ -1,3 +1,4 @@
+"use strict";
 /// <reference path="../../typings/tsd.d.ts" />
 var mongodb = require('mongodb');
 var async = require('async');
@@ -122,7 +123,7 @@ var Controller;
         /*
         * Get last limit query messages of specific user and room then return messages info.
         */
-        ChatRoomManager.prototype.getMessagesReadersOfUserXInRoomY = function (userId, roomId, topEdgeMessageTime, callback) {
+        ChatRoomManager.prototype.getMessagesReaders = function (userId, roomId, topEdgeMessageTime, callback) {
             var utc = new Date(topEdgeMessageTime);
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -185,7 +186,7 @@ var Controller;
         };
         ChatRoomManager._Instance = null;
         return ChatRoomManager;
-    })();
+    }());
     Controller.ChatRoomManager = ChatRoomManager;
     var RoomDataAccess = (function () {
         function RoomDataAccess() {
@@ -484,6 +485,6 @@ var Controller;
             }, { _id: new ObjectID(messageId) }, { sender: 1, readers: 1 });
         };
         return RoomDataAccess;
-    })();
+    }());
 })(Controller || (Controller = {}));
 module.exports = Controller;

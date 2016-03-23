@@ -321,9 +321,10 @@ handler.getMessagesReaders = function (msg, session, next) {
 
         return;
     }
+    
     let channel = channelService.getChannel(rid, false);
 
-    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, topEdgeMessageTime,function (err, res) {
+    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime,function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,

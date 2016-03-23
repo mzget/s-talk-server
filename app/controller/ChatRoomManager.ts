@@ -155,7 +155,7 @@ module Controller {
         /*
         * Get last limit query messages of specific user and room then return messages info. 
         */
-        public getMessagesReadersOfUserXInRoomY(userId: string, roomId: string, topEdgeMessageTime: string, callback: (err, res) => void) {
+        public getMessagesReaders(userId: string, roomId: string, topEdgeMessageTime: string, callback: (err, res) => void) {
            let utc = new Date(topEdgeMessageTime);
            
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {

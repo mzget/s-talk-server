@@ -1,4 +1,5 @@
 /// <reference path="./typings/tsd.d.ts" />
+"use strict";
 var pomelo = require('pomelo');
 var routeUtil = require('./app/util/routeUtil');
 var MChatService = require('./app/services/chatService');

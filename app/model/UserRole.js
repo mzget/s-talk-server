@@ -1,3 +1,4 @@
+"use strict";
 (function (UserRole) {
     UserRole[UserRole["personnel"] = 0] = "personnel";
     UserRole[UserRole["section_chief"] = 1] = "section_chief";

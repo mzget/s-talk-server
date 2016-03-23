@@ -1,4 +1,5 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
+"use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
@@ -273,7 +274,7 @@ handler.getMessagesReaders = function (msg, session, next) {
         return;
     }
     var channel = channelService.getChannel(rid, false);
-    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, topEdgeMessageTime, function (err, res) {
+    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
