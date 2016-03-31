@@ -79,7 +79,7 @@ handler.login = function (msg, session, next) {
         next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
     self.app.rpc.chat.chatRemote.getChatService(session, function (onlineUsers) {
-        self.app.rpc.auth.authRemote.auth(session, msg.username, msg.password, onlineUsers, function (result) {
+        self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
             if (result.code === code.OK) {
                 //@ Signing success.
                 session.bind(result.uid);
