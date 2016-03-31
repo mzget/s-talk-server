@@ -1,5 +1,5 @@
 {
-  "chatDB": "mongodb://203.113.25.44:27017/chatDB",
+  "chatDB": "mongodb://git.animation-genius.com:27017/chatDB",
   "port": 80,
   "timeout": 10000,
   "webserver": "http://203.113.25.44",
