@@ -10,7 +10,7 @@
     "jsonwebtoken": "*",
     "mongodb": "*",
     "parse": "^*",
-    "promise": "*",
-    "pomelo": "*"
+    "pomelo": "^1.2.2",
+    "promise": "*"
   }
 }

@@ -21,10 +21,23 @@ app.configure('production|development', function () {
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
     app.filter(pomelo.filters.timeout(webConfig.timeout));
+    app.set('connectorConfig', {
+        connector: pomelo.connectors.hybridconnector,
+        // connector : pomelo.connectors.sioconnector,
+        //websocket, polling
+        transports: ['websocket'],
+        heartbeatTimeout: 60,
+        heartbeatInterval: 25
+    });
+    //@ require monitor in pomelo@2x
+    //   app.set('monitorConfig',
+    //     {
+    //       monitor : pomelo.monitors.zookeepermonitor,
+    //       servers: "git.animation-genius.com:2181"
+    //     });
 });
 // Configure for auth server
-app.configure('production|development', 'auth', function () {
-});
+// app.configure('production|development', 'auth', function () {});
 app.configure('production|development', 'chat', function () {
     app.set('chatService', new MChatService.ChatService(app));
 });
