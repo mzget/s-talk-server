@@ -34,6 +34,10 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
     var self = this;
+    if (!msg || !msg.email || !msg.password || !msg.registrationId) {
+        next(null, { code: code.FAIL, message: "Missing some params.." });
+        return;
+    }
     var registrationId = msg.registrationId;
     var email = msg.email.toLowerCase();
     var password = msg.password;
