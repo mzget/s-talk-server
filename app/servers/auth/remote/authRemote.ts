@@ -58,11 +58,11 @@ authenRemote.me = function (msg, cb) {
     }, {roomAccess : 0 });
 }
 
-authenRemote.auth = function (username, password, onlineUsers, callback) {
+authenRemote.auth = function (email, password, onlineUsers, callback) {
     onlineUserCollection = onlineUsers;
-    authenManager.GetUsername({ username: username }, function (res) {
+    authenManager.GetUsername({ email: email }, function (res) {
         onAuthentication(password, res, callback);
-    }, { username: 1, password: 1 });
+    }, { email: 1, password: 1 });
 }
 
 var onAuthentication = function (_password, userInfo, callback) {
