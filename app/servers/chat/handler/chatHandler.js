@@ -1,4 +1,5 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
+"use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
@@ -215,6 +216,45 @@ handler.getChatHistory = function (msg, session, next) {
         }
     });
 };
+/**
+* Get older message for chat room.
+*/
+handler.getOlderMessageChunk = function (msg, session, next) {
+    var self = this;
+    var rid = msg.rid;
+    var topEdgeMessageTime = msg.topEdgeMessageTime;
+    if (!rid || !topEdgeMessageTime) {
+        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        return;
+    }
+    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
+        console.info('getOlderMessageChunk:', res.length);
+        if (!!res) {
+            next(null, { code: Code.OK, data: res });
+        }
+        else {
+            next(null, { code: Code.FAIL });
+        }
+    });
+};
+handler.checkOlderMessagesCount = function (msg, session, next) {
+    var self = this;
+    var rid = msg.rid;
+    var topEdgeMessageTime = msg.topEdgeMessageTime;
+    if (!rid || !topEdgeMessageTime) {
+        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        return;
+    }
+    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
+        console.info('getOlderMessageChunk:', res.length);
+        if (!!res) {
+            next(null, { code: Code.OK, data: res.length });
+        }
+        else {
+            next(null, { code: Code.FAIL });
+        }
+    });
+};
 /*
 * Get last limit query messages of specific user and room then return messages info.
 * Require:
@@ -226,14 +266,15 @@ handler.getChatHistory = function (msg, session, next) {
 handler.getMessagesReaders = function (msg, session, next) {
     var uid = session.uid;
     var rid = session.get('rid');
-    var errMsg = "uid or rid is invalid.";
-    if (!uid || !rid) {
+    var topEdgeMessageTime = msg.topEdgeMessageTime;
+    var errMsg = "uid or rid is invalid. or may be some params i missing.";
+    if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
-    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, function (err, res) {
+    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
@@ -251,7 +292,7 @@ handler.getMessagesReaders = function (msg, session, next) {
             }
         }
     });
-    next(null, { code: Code.OK, message: "getMessagesInfo" });
+    next(null, { code: Code.OK });
 };
 /**
 * get log message content by message_id.
@@ -450,9 +491,9 @@ function callPushNotification(room, sender, offlineMembers) {
                 var roomType = JSON.parse(JSON.stringify(arg1));
                 async.eachSeries(offlineMembers, function iterrator(item, callback) {
                     //                console.warn("offline member _id: ", item);
-                    userManager.checkUnsubscribeRoom(item, roomType, room._id, function (err, res) {
+                    userManager.checkUnsubscribeRoom(item, roomType, room._id, function (err, results) {
                         //<!-- if result is contain in unsubscribe list. we ignore this member.
-                        if (!err && res !== null) {
+                        if (!err && results !== null) {
                         }
                         else {
                             var objId = new ObjectID(item);
@@ -522,4 +563,3 @@ function callPushNotification(room, sender, offlineMembers) {
         }
     });
 }
-//# sourceMappingURL=chatHandler.js.map

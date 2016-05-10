@@ -1,3 +1,4 @@
+"use strict";
 (function (MemberRole) {
     MemberRole[MemberRole["member"] = 0] = "member";
     MemberRole[MemberRole["admin"] = 1] = "admin";
@@ -8,7 +9,7 @@ var Member = (function () {
     function Member() {
     }
     return Member;
-})();
+}());
 exports.Member = Member;
 (function (RoomType) {
     RoomType[RoomType["organizationGroup"] = 0] = "organizationGroup";
@@ -29,6 +30,5 @@ var Room = (function () {
     function Room() {
     }
     return Room;
-})();
+}());
 exports.Room = Room;
-//# sourceMappingURL=Room.js.map

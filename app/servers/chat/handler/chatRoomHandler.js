@@ -1,4 +1,5 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
+"use strict";
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var MUserManager = require("../../../controller/UserManager");
 var Code = require("../../../../shared/Code");
@@ -579,4 +580,3 @@ function pushMemberInfoToAllMembersOfRoom(roomInfo, editedMember) {
         channelService.pushMessageByUids(params.route, params.data, pushTargets);
     });
 }
-//# sourceMappingURL=chatRoomHandler.js.map

@@ -46,7 +46,7 @@ authenRemote.me = function (msg, cb) {
     var password = msg.password;
     var bearerToken = msg.token;
 
-    authenManager.GetUsername({ username: username }, function (user) {
+    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
         if (user === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);

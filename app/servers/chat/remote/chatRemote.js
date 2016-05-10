@@ -1,3 +1,4 @@
+"use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUser = require('../../../controller/UserManager');
 var Code = require('../../../../shared/Code');
@@ -209,4 +210,3 @@ chatRemote.checkedCanAccessRoom = function (roomId, userId, callback) {
         }
     });
 };
-//# sourceMappingURL=chatRemote.js.map

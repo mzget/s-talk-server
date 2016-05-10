@@ -1,10 +1,10 @@
+"use strict";
 /// <reference path="../../typings/mongodb/mongodb.d.ts" />
 var Mdb = require('../db/dbClient');
 var room = require('../model/Room');
 var mongodb = require('mongodb');
 var assert = require('assert');
 var MongoClient = mongodb.MongoClient;
-var Cursor = mongodb.Cursor;
 var DbClient = Mdb.DbController.DbClient.GetInstance();
 var Controller;
 (function (Controller) {
@@ -35,7 +35,7 @@ var Controller;
         };
         CompanyManager._instance = null;
         return CompanyManager;
-    })();
+    }());
     Controller.CompanyManager = CompanyManager;
     var MemberDataAccessService = (function () {
         function MemberDataAccessService() {
@@ -49,7 +49,7 @@ var Controller;
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
-                collection.find({}, projection).toArray(function (err, result) {
+                collection.find({}).project(projection).toArray(function (err, result) {
                     assert.equal(null, err);
                     if (err) {
                         callback(new Error("find members is no response."), err);
@@ -62,7 +62,6 @@ var Controller;
             });
         };
         return MemberDataAccessService;
-    })();
+    }());
 })(Controller || (Controller = {}));
 module.exports = Controller;
-//# sourceMappingURL=CompanyManager.js.map

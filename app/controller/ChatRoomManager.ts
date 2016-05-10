@@ -120,6 +120,28 @@ module Controller {
             this.roomDAL.getNewerMessageRecords(roomId, isoDate, callback);
         }
 
+        public getOlderMessageChunkOfRid(rid: string, topEdgeMessageTime: string, callback: (err, res) => void) {
+            let utc = new Date(topEdgeMessageTime);
+
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+                if (err) { return console.dir(err); }
+
+                // Get the documents collection
+                var collection = db.collection(MDb.DbController.messageColl);
+                // Find some documents
+                collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
+                    assert.equal(null, err);
+                    if (err) {
+                        callback(new Error(err.message), docs);
+                    }
+                    else {
+                        callback(null, docs);
+                    }
+                    db.close();
+                });
+            });
+        }
+
         public updateChatRecordContent(messageId: string, content: string, callback: (err, res) => void) {
             dbClient.UpdateDocument(MDb.DbController.messageColl, (res) => {
                 callback(null, res);
@@ -133,7 +155,9 @@ module Controller {
         /*
         * Get last limit query messages of specific user and room then return messages info. 
         */
-        public getMessagesReadersOfUserXInRoomY(userId: string, roomId: string, callback: (err, res) => void) {
+        public getMessagesReaders(userId: string, roomId: string, topEdgeMessageTime: string, callback: (err, res) => void) {
+           let utc = new Date(topEdgeMessageTime);
+           
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
@@ -141,13 +165,14 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: roomId, sender: userId }, { readers: 1 }).limit(20).sort({ createTime: -1 }).toArray(function (err, docs) {
+                collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) }  })
+                .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     if (!docs) {
                         callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
                     }
                     else {
-                        console.log("getMessagesInfoOfUserXInRoomY found the following records", docs);
+                        console.log("getMessagesReaders found the following records", docs.length);
                         callback(null, docs);
                     }
                     db.close();
@@ -278,7 +303,7 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }, { _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
+                collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }).project({ _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     console.log("findUnreadMsgInRoom found the following records", docs);
                     if (!docs) {

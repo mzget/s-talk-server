@@ -1,3 +1,4 @@
+"use strict";
 var Code = (function () {
     function Code() {
         this.ENTRY = {
@@ -47,7 +48,6 @@ var Code = (function () {
         onUpdateMemberInfoInProjectBase: "onUpdateMemberInfoInProjectBase"
     };
     return Code;
-})();
+}());
 ;
 module.exports = Code;
-//# sourceMappingURL=Code.js.map

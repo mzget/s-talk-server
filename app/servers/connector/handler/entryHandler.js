@@ -1,4 +1,5 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
+"use strict";
 var CompanyController = require("../../../controller/CompanyManager");
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var code = require('../../../../shared/Code');
@@ -78,7 +79,7 @@ handler.login = function (msg, session, next) {
         next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
     self.app.rpc.chat.chatRemote.getChatService(session, function (onlineUsers) {
-        self.app.rpc.auth.authRemote.auth(session, msg.username, msg.password, onlineUsers, function (result) {
+        self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
             if (result.code === code.OK) {
                 //@ Signing success.
                 session.bind(result.uid);
@@ -705,4 +706,3 @@ var updateRoomsPairMembersCollection = function (app, session, roomsData) {
     var rooms = JSON.parse(JSON.stringify(roomsData));
     app.rpc.chat.chatRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
 };
-//# sourceMappingURL=entryHandler.js.map

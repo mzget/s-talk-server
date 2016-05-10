@@ -1,4 +1,5 @@
 /// <reference path="../../typings/tsd.d.ts" />
+"use strict";
 var User = require('../model/User');
 var Room = require('../model/Room');
 var RoomAccess = require('../model/RoomAccessData');
@@ -162,12 +163,12 @@ var Controller;
                     assert.equal(null, err);
                     // Get the documents collection
                     var user = db.collection(Mdb.DbController.userColl);
-                    user.findOne({ _id: new ObjectID(userId), closedNoticeGroups: roomId }, function (err, result) {
-                        if (err || result === null) {
+                    user.find({ _id: new ObjectID(userId), closedNoticeGroups: roomId }).limit(1).toArray(function (err, results) {
+                        if (err || results === null) {
                             callback(err, null);
                         }
                         else {
-                            callback(null, result);
+                            callback(null, results);
                         }
                         db.close();
                     });
@@ -181,12 +182,12 @@ var Controller;
                     assert.equal(null, err);
                     // Get the documents collection
                     var user = db.collection(Mdb.DbController.userColl);
-                    user.findOne({ _id: new ObjectID(userId), closedNoticeUsers: roomId }, function (err, result) {
-                        if (err || result === null) {
+                    user.find({ _id: new ObjectID(userId), closedNoticeUsers: roomId }).limit(1).toArray(function (err, docs) {
+                        if (err || docs === null) {
                             callback(err, null);
                         }
                         else {
-                            callback(null, result);
+                            callback(null, docs);
                         }
                         db.close();
                     });
@@ -195,7 +196,7 @@ var Controller;
         };
         UserManager._instance = null;
         return UserManager;
-    })();
+    }());
     Controller.UserManager = UserManager;
     var UserDataAccessService = (function () {
         function UserDataAccessService() {
@@ -206,7 +207,7 @@ var Controller;
                 MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
                     var collection = db.collection(Mdb.DbController.userColl);
                     // Peform a simple find and return all the documents
-                    collection.find({ _id: new ObjectID(uid) }, { roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
+                    collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
                         var printR = (docs) ? docs : null;
                         console.log("find roomAccessInfo of uid: %s match with rid: %s :: ", uid, rid, printR);
                         if (!docs || !docs[0].roomAccess) {
@@ -309,14 +310,14 @@ var Controller;
                 assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
-                collection.findOne({ _id: new ObjectID(uid) }, { roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }, function (err, result) {
+                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray(function (err, docs) {
                     if (err) {
                         console.error("getRoomAccessOfRoom: ", err);
                         callback(err, null);
                     }
                     else {
-                        console.log("getRoomAccessOfRoom", result);
-                        callback(null, result);
+                        console.log("getRoomAccessOfRoom", docs);
+                        callback(null, docs[0]);
                     }
                     db.close();
                 });
@@ -331,12 +332,12 @@ var Controller;
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
-                collection.findOne(query, projection, function (err, result) {
+                collection.find(query).project(projection).limit(1).toArray(function (err, results) {
                     if (err) {
                         callback(err, null);
                     }
                     else {
-                        callback(null, result);
+                        callback(null, results);
                     }
                     db.close();
                 });
@@ -351,12 +352,12 @@ var Controller;
                 // Get the documents collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
-                collection.findOne({ _id: new ObjectID(creator) }, { role: 1 }, function (err, result) {
-                    if (err || result === null) {
+                collection.find({ _id: new ObjectID(creator) }).project({ role: 1 }).limit(1).toArray(function (err, results) {
+                    if (err || results === null) {
                         callback(err, null);
                     }
                     else {
-                        callback(null, result);
+                        callback(null, results);
                     }
                     db.close();
                 });
@@ -519,7 +520,6 @@ var Controller;
             });
         };
         return UserDataAccessService;
-    })();
+    }());
     Controller.UserDataAccessService = UserDataAccessService;
 })(Controller = exports.Controller || (exports.Controller = {}));
-//# sourceMappingURL=UserManager.js.map

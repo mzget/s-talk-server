@@ -7,4 +7,3 @@ var JobLevel;
     JobLevel[JobLevel["directors"] = 3] = "directors";
     JobLevel[JobLevel["vice_president"] = 4] = "vice_president"; //Vice President,
 })(JobLevel || (JobLevel = {}));
-//# sourceMappingURL=JobLevel.js.map

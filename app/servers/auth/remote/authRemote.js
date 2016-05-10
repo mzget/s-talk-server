@@ -1,3 +1,4 @@
+"use strict";
 var Code = require('../../../../shared/Code');
 var TokenService = require('../../../services/tokenService');
 var MAuthen = require('../../../controller/AuthenManager');
@@ -32,7 +33,7 @@ authenRemote.me = function (msg, cb) {
     var username = msg.username;
     var password = msg.password;
     var bearerToken = msg.token;
-    authenManager.GetUsername({ username: username }, function (user) {
+    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
         if (user === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
@@ -88,4 +89,3 @@ var onAuthentication = function (_password, userInfo, callback) {
         });
     }
 };
-//# sourceMappingURL=authRemote.js.map

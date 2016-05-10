@@ -1,3 +1,4 @@
+"use strict";
 var mongodb = require('mongodb');
 var assert = require('assert');
 var Mdb = require('../db/dbClient');
@@ -15,12 +16,12 @@ var UserDataAccess = (function () {
             // Get the documents collection
             var collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
-            collection.find({ _id: { $in: members } }, { deviceTokens: 1, _id: 0 }).toArray(function (err, result) {
-                if (err || result === null) {
+            collection.find({ _id: { $in: members } }).project({ deviceTokens: 1, _id: 0 }).toArray(function (err, results) {
+                if (err || results === null) {
                     callback(err, null);
                 }
                 else {
-                    callback(null, result);
+                    callback(null, results);
                 }
                 db.close();
             });
@@ -87,6 +88,5 @@ var UserDataAccess = (function () {
         });
     };
     return UserDataAccess;
-})();
+}());
 module.exports = UserDataAccess;
-//# sourceMappingURL=userDataAccess.js.map

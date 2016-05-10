@@ -1,3 +1,4 @@
+"use strict";
 var MessageType;
 (function (MessageType) {
     MessageType[MessageType["Text"] = 0] = "Text";
@@ -12,12 +13,11 @@ var MessageMeta = (function () {
     function MessageMeta() {
     }
     return MessageMeta;
-})();
+}());
 exports.MessageMeta = MessageMeta;
 var Message = (function () {
     function Message() {
     }
     return Message;
-})();
+}());
 exports.Message = Message;
-//# sourceMappingURL=Message.js.map

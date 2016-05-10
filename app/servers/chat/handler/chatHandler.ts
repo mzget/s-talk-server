@@ -23,6 +23,7 @@ var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
 
 console.info("instanctiate ChatHandler.");
+
 module.exports = function (app) {
     return new Handler(app);
 }
@@ -253,6 +254,53 @@ handler.getChatHistory = function (msg, session, next) {
     });     
 }
 
+/**
+* Get older message for chat room.
+*/
+handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void) {
+    let self = this;
+    let rid = msg.rid;
+    let topEdgeMessageTime = msg.topEdgeMessageTime;
+
+    if (!rid || !topEdgeMessageTime) {
+        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        return;
+    } 
+
+    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
+        console.info('getOlderMessageChunk:', res.length);
+
+        if (!!res) {
+            next(null, { code: Code.OK, data: res });
+        }
+        else {
+            next(null, { code: Code.FAIL });
+        }
+    });
+}
+
+handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => void) {
+    let self = this;
+    let rid = msg.rid;
+    let topEdgeMessageTime = msg.topEdgeMessageTime;
+
+    if (!rid || !topEdgeMessageTime) {
+        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        return;
+    }
+
+    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
+        console.info('getOlderMessageChunk:', res.length);
+
+        if (!!res) {
+            next(null, { code: Code.OK, data: res.length });
+        }
+        else {
+            next(null, { code: Code.FAIL });
+        }
+    });
+}
+
 /* 
 * Get last limit query messages of specific user and room then return messages info. 
 * Require: 
@@ -262,19 +310,21 @@ handler.getChatHistory = function (msg, session, next) {
 { data: [ messageId, readers ] }
 */
 handler.getMessagesReaders = function (msg, session, next) {
-    var uid = session.uid;
-    var rid = session.get('rid');
+    let uid = session.uid;
+    let rid = session.get('rid');
+    let topEdgeMessageTime = msg.topEdgeMessageTime;
 
-    var errMsg = "uid or rid is invalid.";
-    if (!uid || !rid) {
+    let errMsg = "uid or rid is invalid. or may be some params i missing.";
+    if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
 
         return;
     }
-    var channel = channelService.getChannel(rid, false);
+    
+    let channel = channelService.getChannel(rid, false);
 
-    chatRoomManager.getMessagesReadersOfUserXInRoomY(uid, rid, function (err, res) {
+    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime,function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
@@ -294,7 +344,7 @@ handler.getMessagesReaders = function (msg, session, next) {
         }
     });
 
-    next(null, { code: Code.OK, message: "getMessagesInfo"});
+    next(null, { code: Code.OK });
 }
 
 /**
@@ -427,7 +477,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     next(null, { code: Code.OK });
 }
 
-    //<!-- Push who read message to sender.
+ //<!-- Push who read message to sender.
 function getWhoReadMessages(messages: Array<string>, channel) {
     async.eachSeries(messages, function iterator(item, cb) {
         chatRoomManager.getWhoReadMessage(item, function (err, res) {
@@ -509,9 +559,9 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
 
             async.eachSeries(offlineMembers, function iterrator(item, callback) {
 //                console.warn("offline member _id: ", item);
-                userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, res) => {
+                userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
                     //<!-- if result is contain in unsubscribe list. we ignore this member.
-                    if (!err && res !== null) {
+                    if (!err && results !== null) {
                         // console.log("checkUnsubscribeRoom");
                     }
                     else {

@@ -1,3 +1,4 @@
+"use strict";
 /// <reference path="../../typings/tsd.d.ts" />
 var mongodb = require('mongodb');
 var async = require('async');
@@ -90,6 +91,27 @@ var Controller;
         ChatRoomManager.prototype.getNewerMessageOfChatRoom = function (roomId, isoDate, callback) {
             this.roomDAL.getNewerMessageRecords(roomId, isoDate, callback);
         };
+        ChatRoomManager.prototype.getOlderMessageChunkOfRid = function (rid, topEdgeMessageTime, callback) {
+            var utc = new Date(topEdgeMessageTime);
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+                if (err) {
+                    return console.dir(err);
+                }
+                // Get the documents collection
+                var collection = db.collection(MDb.DbController.messageColl);
+                // Find some documents
+                collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
+                    assert.equal(null, err);
+                    if (err) {
+                        callback(new Error(err.message), docs);
+                    }
+                    else {
+                        callback(null, docs);
+                    }
+                    db.close();
+                });
+            });
+        };
         ChatRoomManager.prototype.updateChatRecordContent = function (messageId, content, callback) {
             dbClient.UpdateDocument(MDb.DbController.messageColl, function (res) {
                 callback(null, res);
@@ -101,7 +123,8 @@ var Controller;
         /*
         * Get last limit query messages of specific user and room then return messages info.
         */
-        ChatRoomManager.prototype.getMessagesReadersOfUserXInRoomY = function (userId, roomId, callback) {
+        ChatRoomManager.prototype.getMessagesReaders = function (userId, roomId, topEdgeMessageTime, callback) {
+            var utc = new Date(topEdgeMessageTime);
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
                     return console.dir(err);
@@ -110,13 +133,14 @@ var Controller;
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: roomId, sender: userId }, { readers: 1 }).limit(20).sort({ createTime: -1 }).toArray(function (err, docs) {
+                collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) } })
+                    .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     if (!docs) {
                         callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
                     }
                     else {
-                        console.log("getMessagesInfoOfUserXInRoomY found the following records", docs);
+                        console.log("getMessagesReaders found the following records", docs.length);
                         callback(null, docs);
                     }
                     db.close();
@@ -162,7 +186,7 @@ var Controller;
         };
         ChatRoomManager._Instance = null;
         return ChatRoomManager;
-    })();
+    }());
     Controller.ChatRoomManager = ChatRoomManager;
     var RoomDataAccess = (function () {
         function RoomDataAccess() {
@@ -241,7 +265,7 @@ var Controller;
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }, { _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
+                collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }).project({ _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
                     console.log("findUnreadMsgInRoom found the following records", docs);
                     if (!docs) {
@@ -461,7 +485,6 @@ var Controller;
             }, { _id: new ObjectID(messageId) }, { sender: 1, readers: 1 });
         };
         return RoomDataAccess;
-    })();
+    }());
 })(Controller || (Controller = {}));
 module.exports = Controller;
-//# sourceMappingURL=ChatRoomManager.js.map

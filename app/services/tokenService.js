@@ -1,3 +1,4 @@
+"use strict";
 /// <reference path="../../typings/jsonwebtoken/jsonwebtoken.d.ts" />
 var jwt = require('jsonwebtoken');
 var sessionConfig = require('../../config/session.json');
@@ -42,6 +43,5 @@ var TokenService = (function () {
         }
     };
     return TokenService;
-})();
+}());
 module.exports = TokenService;
-//# sourceMappingURL=tokenService.js.map

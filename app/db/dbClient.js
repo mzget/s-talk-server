@@ -1,4 +1,5 @@
 /// <reference path="../../typings/tsd.d.ts" />
+"use strict";
 var mongodb = require('mongodb');
 var Db = mongodb.Db, MongoClient = require('mongodb').MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, ObjectID = mongodb.ObjectID, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
 var webConfig = require('../../config/webConfig.json');
@@ -224,8 +225,7 @@ var DbController;
             //});
         };
         return DbClient;
-    })();
+    }());
     DbController.DbClient = DbClient;
 })(DbController = exports.DbController || (exports.DbController = {}));
 ;
-//# sourceMappingURL=dbClient.js.map
