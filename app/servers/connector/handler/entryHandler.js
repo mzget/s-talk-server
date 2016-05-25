@@ -34,15 +34,15 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
     var self = this;
-    // let body = JSON.parse(msg);
-    // if(!msg || !msg.email || !msg.password || !msg.registrationId) {
-    // 	next(null, { code: code.FAIL, message: "Missing some params.." });
-    // 	return;
-    // }
+    var body = JSON.parse(JSON.stringify(msg));
+    console.log('login', body.email, body.password, body.registrationId);
+    if (!body || !body.email || !body.password || !body.registrationId) {
+        next(null, { code: code.FAIL, message: "Missing some params.." });
+        return;
+    }
     var email = msg.email.toLowerCase();
     var password = msg.password;
     var registrationId = msg.registrationId;
-    console.log('login', email, password, registrationId);
     /*
     var url: string = this.webServer + "/?api/login";
     console.log("login", url);
