@@ -35,14 +35,13 @@ var handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     var self = this;
     var body = JSON.parse(JSON.stringify(msg));
-    console.log('login', body.email, body.password, body.registrationId);
-    if (!body || !body.email || !body.password || !body.registrationId) {
+    if (!body || !body.email || !body.password) {
         next(null, { code: code.FAIL, message: "Missing some params.." });
         return;
     }
-    var email = msg.email.toLowerCase();
-    var password = msg.password;
-    var registrationId = msg.registrationId;
+    var email = body.email.toLowerCase();
+    var password = body.password;
+    var registrationId = body.registrationId;
     /*
     var url: string = this.webServer + "/?api/login";
     console.log("login", url);
