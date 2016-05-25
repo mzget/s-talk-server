@@ -52,18 +52,28 @@ authenRemote.auth = function (email, password, onlineUsers, callback) {
 var onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
-        var obj = JSON.parse(JSON.stringify(userInfo));
-        if (obj.password === _password) {
-            var user = onlineUserCollection[obj._id];
+        var obj_1 = JSON.parse(JSON.stringify(userInfo));
+        if (obj_1.password === _password) {
+            var user = onlineUserCollection[obj_1._id];
             if (!user) {
                 // if user is found and password is right
                 // create a token
-                var token = tokenService.signToken(obj);
-                callback({
-                    code: Code.OK,
-                    uid: obj._id,
-                    message: "Authenticate success!",
-                    token: token
+                tokenService.signToken(obj_1, function (err, encode) {
+                    if (err) {
+                        callback({
+                            code: Code.FAIL,
+                            uid: obj_1._id,
+                            message: err,
+                        });
+                    }
+                    else {
+                        callback({
+                            code: Code.OK,
+                            uid: obj_1._id,
+                            message: "Authenticate success!",
+                            token: encode
+                        });
+                    }
                 });
             }
             else {
@@ -71,14 +81,14 @@ var onAuthentication = function (_password, userInfo, callback) {
                 callback({
                     code: Code.DuplicatedLogin,
                     message: "duplicate log in.",
-                    uid: obj._id,
+                    uid: obj_1._id,
                 });
             }
         }
         else {
             callback({
                 code: Code.FAIL,
-                message: "Authentication failed. User not found."
+                message: "Authentication failed."
             });
         }
     }
