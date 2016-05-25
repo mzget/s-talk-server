@@ -42,7 +42,7 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
 	let self = this;
-	let body = JSON.parse(msg);
+	// let body = JSON.parse(msg);
 	// if(!msg || !msg.email || !msg.password || !msg.registrationId) {
 	// 	next(null, { code: code.FAIL, message: "Missing some params.." });
 	// 	return;
