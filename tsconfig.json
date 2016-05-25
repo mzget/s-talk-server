@@ -4,5 +4,8 @@
     "target": "es5",
     "module": "commonjs",
     "allowJs": true
-  }
+  },
+  "exclude": [
+    "./typings"
+  ]
 }
