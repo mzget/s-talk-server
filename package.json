@@ -1,5 +1,5 @@
 {
-  "name": "stalk",
+  "name": "bol-smelink-chat",
   "main": "app.js",
   "version": "0.0.1",
   "private": false,
@@ -10,7 +10,7 @@
     "jsonwebtoken": "*",
     "mongodb": "*",
     "parse": "^*",
-    "promise": "*",
-    "pomelo": "*"
+    "pomelo": "^1.2.2",
+    "promise": "*"
   }
 }

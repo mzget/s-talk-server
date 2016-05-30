@@ -41,8 +41,16 @@ var handler = Handler.prototype;
 * Return back token bearer.
 */
 handler.login = function (msg, session, next) {
-	var self = this;
-	var registrationId: string = msg.registrationId;
+	let self = this;
+	let body = JSON.parse(JSON.stringify(msg));
+	if(!body || !body.email || !body.password) {
+		next(null, { code: code.FAIL, message: "Missing some params.." });
+		return;
+	}
+	
+	let email : string = body.email.toLowerCase();
+	let password : string = body.password;
+	let registrationId: string = body.registrationId;
 
 	/*
 	var url: string = this.webServer + "/?api/login";
@@ -91,7 +99,7 @@ handler.login = function (msg, session, next) {
     }, webConfig.timeout);
  
 	self.app.rpc.chat.chatRemote.getChatService(session, (onlineUsers) => {
-        self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
+        self.app.rpc.auth.authRemote.auth(session, email, password, onlineUsers, function (result) {
             if (result.code === code.OK) {
             //@ Signing success.
 				session.bind(result.uid);

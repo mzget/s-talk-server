@@ -1,6 +1,11 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs"
-  }
+    "module": "commonjs",
+    "allowJs": true
+  },
+  "exclude": [
+    "./typings"
+  ]
 }
