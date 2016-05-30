@@ -22,28 +22,32 @@ export interface IOnlineUser {
 };
 
 export class User {
-    id: string;
-    displayname: string;
-    username: string;
+    _id: string;
     password : string;
-    firstname: string;
-    lastname: string;
-    tel: string;
-    mail: string;
-    image: string; //!-- mean image url.
-    role: UserRole.UserRole;
-    department: string;
-    jobLevel: JobLevel;
-    jobPosition: string;
-    status: string;
-    roomAccess: MAccess.RoomAccessData[];
-    memberOfRooms: string[];
-    lastEditProfile: Date;
+    first_name: string;
+    last_name: string;
+    mobile: string;
+    gender: string;
+    birthday: string;
+    occupation: string;
+    facebookId: string;
+    email: string;
+    avatar: string; //!-- mean image url.    
     favoriteUsers: string[]; // user_id
     favoriteGroups: string[]; // room_id
     closedNoticeUsers: string[]; // user_id
     closedNoticeGroups: string[]; // room_id
-    deviceTokens: string[];
+    devicesToken: string;
+    registerDate: string;
+    linkeds: string[];
+    follower: string[];
+    sharedBy: string[];
+    companies: string[];
+    link_requests: string[];
+    trash_link_requests; string[];
+
+    roomAccess: MAccess.RoomAccessData[];
+    memberOfRooms: string[];
     
     toString() {
         return generic.collections.makeString(this);

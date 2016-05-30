@@ -4,13 +4,13 @@
   "version": "0.0.1",
   "private": false,
   "dependencies": {
-    "async": "*",
+    "async": "1.5.2",
     "crc": "0.2.0",
-    "form-data": "*",
-    "jsonwebtoken": "*",
-    "mongodb": "*",
-    "parse": "^*",
-    "pomelo": "^1.2.2",
-    "promise": "*"
+    "form-data": "0.2.0",
+    "jsonwebtoken": "^7.0.0",
+    "mongodb": "^2.1.20",
+    "parse": "^1.8.5",
+    "pomelo": "^1.2.3",
+    "promise": "^7.1.1"
   }
 }

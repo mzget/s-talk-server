@@ -49,9 +49,9 @@ profileHandler.profileUpdate = function (msg, session, next) {
     //if (msg.lastname && msg.lastname !== "")
     //    updateParams.lastname = msg.lastname;
     if (msg.mail && msg.mail !== "") //updateParams = { mail: msg.mail, lastEditProfile: new Date() };
-        updateParams.mail = msg.mail;
+        updateParams.email = msg.mail;
     if (msg.tel && msg.tel !== "") //updateParams = { tel: msg.tel, lastEditProfile: new Date() };
-        updateParams.tel = msg.tel;
+        updateParams.mobile = msg.tel;
     if (msg.status && msg.status !== "") // updateParams = { status: msg.status, lastEditProfile: new Date() };
         updateParams.status = msg.status;
     

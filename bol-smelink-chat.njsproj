@@ -15,6 +15,7 @@
     <EnableTypeScript>true</EnableTypeScript>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <Name>bol-smelink-chat</Name>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -32,10 +33,25 @@
     <Content Include="config\servers.json" />
     <Content Include="config\session.json" />
     <Content Include="config\webConfig.json" />
+    <TypeScriptCompile Include="app\controller\friendManager.ts" />
+    <TypeScriptCompile Include="app\servers\user\handler\userHandler.ts" />
+    <TypeScriptCompile Include="app\servers\user\remote\userRemote.ts" />
     <TypeScriptCompile Include="config\WebConfig.ts" />
+    <Compile Include="app\servers\user\handler\userHandler.js" />
+    <Compile Include="app\servers\user\remote\userRemote.js" />
     <Compile Include="config\WebConfig.js" />
     <TypeScriptCompile Include="shared\Code.ts" />
     <Compile Include="shared\Code.js" />
+    <TypeScriptCompile Include="typings\async\async.d.ts" />
+    <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
+    <TypeScriptCompile Include="typings\index.d.ts" />
+    <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
+    <TypeScriptCompile Include="typings\modules\jsonwebtoken\index.d.ts" />
+    <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
+    <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="app\controller\AuthenManager.ts" />
     <TypeScriptCompile Include="app\controller\ChatRoomManager.ts" />
@@ -109,6 +125,8 @@
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
     <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -128,6 +146,9 @@
     <Folder Include="app\servers\connector\handler" />
     <Folder Include="app\servers\gate" />
     <Folder Include="app\servers\gate\handler" />
+    <Folder Include="app\servers\user\" />
+    <Folder Include="app\servers\user\handler\" />
+    <Folder Include="app\servers\user\remote\" />
     <Folder Include="app\services" />
     <Folder Include="app\util" />
     <Folder Include="config" />
@@ -138,6 +159,8 @@
     <Folder Include="typings\es6-promise" />
     <Folder Include="typings\jquery" />
     <Folder Include="typings\jsonwebtoken" />
+    <Folder Include="typings\modules\" />
+    <Folder Include="typings\modules\jsonwebtoken\" />
     <Folder Include="typings\mongodb" />
     <Folder Include="typings\mongoose" />
     <Folder Include="typings\node" />

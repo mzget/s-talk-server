@@ -55,5 +55,9 @@
 
         onUpdateMemberInfoInProjectBase: "onUpdateMemberInfoInProjectBase"
     }
+
+    public static friendEvents = {
+        addFriendEvent : "addFriendEvent"
+    }
 };
 export = Code;
