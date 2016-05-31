@@ -36,6 +36,9 @@ chatRemote.removeOnlineUser = function (userId, cb) {
 chatRemote.getOnlineUser = function (userId, callback) {
     chatService.getOnlineUser(userId, callback);
 };
+chatRemote.getOnlineUsers = function (callback) {
+    callback(null, chatService.OnlineUsers);
+};
 chatRemote.addUserTransaction = function (userTransac, cb) {
     if (chatService.userTransaction !== null) {
         if (!chatService.userTransaction[userTransac.uid]) {

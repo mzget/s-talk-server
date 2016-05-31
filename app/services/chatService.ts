@@ -1,8 +1,9 @@
 ﻿import Code = require('../../shared/Code');
-var dispatcher = require('../util/dispatcher');
 import Collection = require('../util/collections');
 import User = require('../model/User');
 import Room = require('../model/Room');
+
+const dispatcher = require('../util/dispatcher');
 
 interface IRoomsMap {
     [rid: string]: Room.Room;

@@ -18,7 +18,6 @@ module.exports = function (app) {
 var UserHandler = function (app) {
     this.app = app;
     channelService = app.get('channelService');
-    chatService = app.get('chatService');
 };
 var handler = UserHandler.prototype;
 /**
@@ -27,6 +26,7 @@ var handler = UserHandler.prototype;
  * @myUid
  */
 handler.addFriend = function (msg, session, next) {
+    var self = this;
     var token = msg.token;
     var targetUid = msg.targetUid;
     var myUid = session.uid;
@@ -47,7 +47,7 @@ handler.addFriend = function (msg, session, next) {
                 data: res
             };
             var pushGroup_1 = new Array();
-            chatService.getOnlineUser(targetUid, function (err, user) {
+            self.app.rpc.chat.chatRemote.getOnlineUser(session, targetUid, function (err, user) {
                 if (!err) {
                     var item = { uid: user.uid, sid: user.serverId };
                     pushGroup_1.push(item);
