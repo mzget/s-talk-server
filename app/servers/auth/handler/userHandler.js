@@ -6,9 +6,10 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
 var Mdb = require('../../../db/dbClient');
 var code = require('../../../../shared/Code');
+var friendManager_1 = require("../../../controller/friendManager");
 var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
-var friendManager_1 = require("../../../controller/friendManager");
+var webConfig = require('../../../../config/webConfig.json');
 var channelService;
 var chatService;
 module.exports = function (app) {
@@ -35,12 +36,19 @@ handler.addFriend = function (msg, session, next) {
         next(null, { code: code.FAIL, message: _errMsg });
         return;
     }
+    var id = setTimeout(function () {
+        next(null, { code: code.RequestTimeout, message: "request timeout..." });
+    }, webConfig.timeout);
     var friendManager = new friendManager_1.default();
     friendManager.addFriends(myUid, targetUid, function (err, res) {
         if (err) {
-            console.log('add friend: fail!', err);
+            var log = 'add friend: fail!' + err;
+            clearTimeout(id);
+            next(null, { code: code.FAIL, message: log });
         }
         else {
+            clearTimeout(id);
+            next(null, { code: code.OK, message: res });
             //@ Push a link_request_list to target user.
             var param = {
                 route: code.friendEvents.addFriendEvent,
@@ -56,5 +64,4 @@ handler.addFriend = function (msg, session, next) {
             });
         }
     });
-    next(null, { code: code.OK });
 };

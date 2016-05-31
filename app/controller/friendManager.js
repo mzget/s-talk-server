@@ -30,6 +30,15 @@ var FriendManager = (function () {
                         var linkRequests = user.link_requests;
                         if (!linkRequests)
                             linkRequests = [];
+                        var _hasMyLinkRequest = linkRequests.some(function (val, id, arr) {
+                            if (val === myUid)
+                                return true;
+                        });
+                        if (_hasMyLinkRequest) {
+                            next(new Error("Target user already have your request."), docs);
+                            db.close();
+                            return;
+                        }
                         linkRequests.push(myUid);
                         userCollection.updateOne({ _id: new ObjectID(user._id) }, { $set: { link_requests: linkRequests } }, { upsert: true })
                             .then(function (r) {
@@ -41,7 +50,7 @@ var FriendManager = (function () {
                         });
                     }
                     else {
-                        next(null, docs);
+                        next(new Error("No have target user."), null);
                         db.close();
                     }
                 }

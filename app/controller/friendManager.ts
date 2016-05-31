@@ -45,9 +45,21 @@ export default class FriendManager {
                         if (!linkRequests)
                             linkRequests = [];
 
+                        let _hasMyLinkRequest = linkRequests.some((val, id, arr) => {
+                            if (val === myUid)
+                                return true;
+                        });
+                        if (_hasMyLinkRequest) {
+                            next(new Error("Target user already have your request."), docs);
+                            db.close();
+                            return;
+                        }
+
                         linkRequests.push(myUid);
 
-                        userCollection.updateOne({ _id: new ObjectID(user._id) }, { $set: { link_requests: linkRequests } }, { upsert: true })
+                        userCollection.updateOne({ _id: new ObjectID(user._id) },
+                            { $set: { link_requests: linkRequests } },
+                            { upsert: true })
                             .then(function (r) {
                                 next(null, r);
                                 db.close();
@@ -57,7 +69,7 @@ export default class FriendManager {
                             });
                     }
                     else {
-                        next(null, docs);
+                        next(new Error("No have target user."), null);
                         db.close();
                     }
                 }

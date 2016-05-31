@@ -13,8 +13,8 @@ var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
 var userManager = MUser.Controller.UserManager.getInstance();
 var channelService;
-console.info("instanctiate profileHandler.");
 module.exports = function (app) {
+    console.info("instanctiate profileHandler.");
     return new ProfileHandler(app);
 };
 var ProfileHandler = function (app) {
@@ -42,9 +42,9 @@ profileHandler.profileUpdate = function (msg, session, next) {
     //if (msg.lastname && msg.lastname !== "")
     //    updateParams.lastname = msg.lastname;
     if (msg.mail && msg.mail !== "")
-        updateParams.mail = msg.mail;
+        updateParams.email = msg.mail;
     if (msg.tel && msg.tel !== "")
-        updateParams.tel = msg.tel;
+        updateParams.mobile = msg.tel;
     if (msg.status && msg.status !== "")
         updateParams.status = msg.status;
     if (!updateParams) {
