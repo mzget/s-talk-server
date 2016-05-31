@@ -28,6 +28,8 @@ var FriendManager = (function () {
                     if (docs.length != 0) {
                         var user = JSON.parse(JSON.stringify(docs[0]));
                         var linkRequests = user.link_requests;
+                        if (!linkRequests)
+                            linkRequests = [];
                         linkRequests.push(myUid);
                         userCollection.updateOne({ _id: new ObjectID(user._id) }, { $set: { link_requests: linkRequests } }, { upsert: true })
                             .then(function (r) {

@@ -42,6 +42,9 @@ export default class FriendManager {
                     if (docs.length != 0) {
                         let user: User.User = JSON.parse(JSON.stringify(docs[0]));
                         let linkRequests = user.link_requests;
+                        if (!linkRequests)
+                            linkRequests = [];
+
                         linkRequests.push(myUid);
 
                         userCollection.updateOne({ _id: new ObjectID(user._id) }, { $set: { link_requests: linkRequests } }, { upsert: true })
