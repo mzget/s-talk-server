@@ -38,7 +38,7 @@ var handler = UserHandler.prototype;
  */
 handler.addFriend = function (msg, session, next) {
     let token = msg.token;
-    let targetUid: string = msg.targetUid;
+    let targetUid = msg.targetUid;
     let myUid = session.uid;
 
     if (!targetUid || !myUid || !token) {
