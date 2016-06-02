@@ -205,7 +205,7 @@ export module DbController {
                 assert.equal(null, err);
 
                 // Get the documents collection
-                var collection = db.collection(table);
+                let collection = db.collection(table);
 
                 if (query === undefined || query === null) {
                     collection.findOne(function (err, doc) {

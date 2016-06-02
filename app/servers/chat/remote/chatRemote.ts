@@ -5,9 +5,9 @@ import MChatService = require('../../../services/chatService');
 import generic = require('../../../util/collections');
 import Code = require('../../../../shared/Code');
 import Room = require('../../../model/Room');
-var ObjectID = require('mongodb').ObjectID;
-var userManager = MUser.Controller.UserManager.getInstance();
-var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+const ObjectID = require('mongodb').ObjectID;
+const userManager = MUser.Controller.UserManager.getInstance();
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var chatService: MChatService.ChatService;
 var channelService;
 
@@ -43,6 +43,9 @@ chatRemote.removeOnlineUser = function (userId, cb) {
 }
 chatRemote.getOnlineUser = function (userId: string, callback: (err, user: User.OnlineUser) => void) {
     chatService.getOnlineUser(userId, callback);
+}
+chatRemote.getOnlineUsers = function (callback: (err, user: User.IOnlineUser) => void) {
+    callback(null, chatService.OnlineUsers);
 }
 
 chatRemote.addUserTransaction = function (userTransac: User.UserTransaction, cb) {
@@ -98,6 +101,7 @@ chatRemote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room.Room>,
 } 
 
 chatRemote.getChatService = function (cb: (users: User.IOnlineUser) => void) {
+    console.warn("getChatService is deprecated fuction.");
    cb(chatService.OnlineUsers);
 }
  
@@ -122,13 +126,13 @@ var initServer = function():void {
 * @param {boolean} flag channel parameter
 */
 chatRemote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
-    var channel = channelService.getChannel(rid, flag);
-    var username = user.username;
-    var uid = user.uid;
+    let channel = channelService.getChannel(rid, flag);
+    let username = user.username;
+    let uid = user.uid;
 
     console.log("chatRemote.add : user %s to room %s", user.username, rid);
 
-    var param = {
+    let param = {
         route: 'onAdd',
         user: user
     };
@@ -138,10 +142,9 @@ chatRemote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
         channel.add(uid, sid);
     }
 
+    if (!!cb) cb();
+
 //    var users = this.getUsers(rid, flag);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, {status:1}, function (result) {
-        cb(result)
-    });
 };
 
 /**
@@ -177,12 +180,12 @@ chatRemote.getUsers = function (name, flag) {
 * @param {String} name channel name
 */
 chatRemote.kick = function (user: User.OnlineUser, sid, rid, cb) {
+    let self = this;
     cb();
     if (!rid) {
         return;
     }
 
-    var self = this;
     
     userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
         var printR = (accessInfo) ? accessInfo.result : null;
@@ -234,18 +237,15 @@ chatRemote.updateRoomAccess = function (uid: string, rid: string, date: Date, cb
 
 chatRemote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
     chatService.getRoom(roomId, (err, room) => {
-        console.log("getRoomMembers rid is %s result is", roomId, room);
-
         var result: boolean = false;
 
-        if (err || room === null) {
+        if (err || !room) {
             callback(null, result);
         }
         else {
-            room.members.forEach(value => {
+            result = room.members.some(value => {
                 if (value.id === userId) {
-                    result = true;
-                    return;
+                    return true;
                 }
             });
 

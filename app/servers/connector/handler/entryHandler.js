@@ -17,8 +17,8 @@ var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUser.Controller.UserManager.getInstance();
 var webConfig = require('../../../../config/webConfig.json');
 var channelService;
-console.info("instanctiate connector handler.");
 module.exports = function (app) {
+    console.info("instanctiate connector handler.");
     return new Handler(app);
 };
 var Handler = function (app) {
@@ -78,7 +78,7 @@ handler.login = function (msg, session, next) {
     var id = setTimeout(function () {
         next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
-    self.app.rpc.chat.chatRemote.getChatService(session, function (onlineUsers) {
+    self.app.rpc.chat.chatRemote.getOnlineUsers(session, function (onlineUsers) {
         self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
             if (result.code === code.OK) {
                 //@ Signing success.
@@ -123,6 +123,10 @@ var logOut = function (app, session, next) {
         next();
 };
 handler.kickMe = function (msg, session, next) {
+    if (session.uid !== msg.uid) {
+        next(null, { code: code.FAIL, message: "cannot kick session when session.uid != msg.uid" });
+        return;
+    }
     session.__sessionService__.kick(msg.uid, "kick by logout all session", next);
     //!-- log user out.
     this.app.rpc.chat.chatRemote.removeOnlineUser(session, session.uid, null);
@@ -134,7 +138,6 @@ handler.kickMe = function (msg, session, next) {
 * This Function Call Onec When login Success.
 */
 handler.getMe = function (msg, session, next) {
-    console.log("Connector.getme", msg);
     var self = this;
     var token = msg.token;
     if (!token) {
@@ -425,22 +428,24 @@ handler.enterRoom = function (msg, session, next) {
     var uname = msg.username;
     var uid = session.uid;
     if (!uid) {
-        var errMsg = "session or uid is empty or null.!";
-        console.warn(errMsg);
+        var errMsg = "session.uid is empty or null.!";
         next(null, { code: code.FAIL, message: errMsg });
         return;
     }
-    if (rid === null || msg.username === null) {
-        next(null, {
-            code: code.FAIL, message: "rid or username is null."
-        });
+    if (!rid || !msg.username) {
+        next(null, { code: code.FAIL, message: "rid or username is null." });
         return;
     }
+    var timeOut_id = setTimeout(function () {
+        next(null, { code: code.RequestTimeout, message: "enterRoom timeout" });
+        return;
+    }, webConfig.timeout);
     chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
         self.app.rpc.chat.chatRemote.updateRoomMembers(session, result, null);
         self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
             console.log("checkedCanAccessRoom: ", res);
             if (err || res === false) {
+                clearTimeout(timeOut_id);
                 next(null, { code: code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
             }
             else {
@@ -453,7 +458,8 @@ handler.enterRoom = function (msg, session, next) {
                 var onlineUser = new User.OnlineUser();
                 onlineUser.username = uname;
                 onlineUser.uid = uid;
-                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function (result) {
+                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+                    clearTimeout(timeOut_id);
                     next(null, result);
                 });
             }
@@ -462,14 +468,7 @@ handler.enterRoom = function (msg, session, next) {
 };
 var addChatUser = function (app, session, user, sid, rid, next) {
     //put user into channel
-    app.rpc.chat.chatRemote.add(session, user, sid, rid, true, function (result) {
-        if (!!result) {
-            next({ code: code.OK, data: result });
-        }
-        else {
-            next({ code: code.FAIL, message: result.message });
-        }
-    });
+    app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 };
 /**
  * leaveRoom.
@@ -483,30 +482,20 @@ handler.leaveRoom = function (msg, session, next) {
     var rid = msg.rid;
     var uid = session.uid;
     var sid = self.app.get('serverId');
-    if (rid === null || msg.username === null) {
-        next(null, {
-            code: code.FAIL, message: "rid or username is null."
-        });
+    if (!rid || !msg.username) {
+        next(null, { code: code.FAIL, message: "rid or username is null." });
         return;
     }
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+    var onlineUser = new User.OnlineUser();
+    onlineUser.username = msg.username;
+    onlineUser.uid = uid;
+    onlineUser.serverId = sid;
+    self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
         if (err) {
-            console.log(err);
-            next(err, res);
+            next(null, { code: code.FAIL, message: "leaveRoom with error." });
         }
         else {
-            var onlineUser = new User.OnlineUser();
-            onlineUser.username = msg.username;
-            onlineUser.uid = uid;
-            onlineUser.serverId = sid;
-            self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, session.get('rid'), function (err, res) {
-                if (err) {
-                    next(null, { code: code.FAIL, message: "leaveRoom with error." });
-                }
-                else {
-                    next(null, { code: code.OK });
-                }
-            });
+            next(null, { code: code.OK });
         }
     });
 };

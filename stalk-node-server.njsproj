@@ -15,6 +15,7 @@
     <EnableTypeScript>true</EnableTypeScript>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <StartWebBrowser>False</StartWebBrowser>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -36,6 +37,22 @@
     <Compile Include="config\WebConfig.js" />
     <TypeScriptCompile Include="shared\Code.ts" />
     <Compile Include="shared\Code.js" />
+    <TypeScriptCompile Include="typings\async\async.d.ts" />
+    <TypeScriptCompile Include="typings\async\async.d.ts" />
+    <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
+    <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
+    <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
+    <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
+    <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
+    <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
+    <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
+    <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\parse\parse.d.ts" />
+    <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="app\controller\AuthenManager.ts" />
     <TypeScriptCompile Include="app\controller\ChatRoomManager.ts" />
@@ -109,6 +126,10 @@
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
+    <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
     <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +167,19 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <TypeScriptTarget>Unknown</TypeScriptTarget>
+    <TypeScriptJSXEmit>-1</TypeScriptJSXEmit>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>False</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+  </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
   <ProjectExtensions>

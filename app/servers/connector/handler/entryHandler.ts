@@ -12,17 +12,17 @@ import MUser = require('../../../controller/UserManager');
 import async = require('async');
 import mongodb = require('mongodb');
 
-var ObjectID = mongodb.ObjectID;
-var http = require('http');
-var tokenService: TokenService = new TokenService();
-var companyManager = CompanyController.CompanyManager.getInstance();
-var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUser.Controller.UserManager.getInstance();
-var webConfig = require('../../../../config/webConfig.json');
+const ObjectID = mongodb.ObjectID;
+const http = require('http');
+const tokenService: TokenService = new TokenService();
+const companyManager = CompanyController.CompanyManager.getInstance();
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+const userManager = MUser.Controller.UserManager.getInstance();
+const webConfig = require('../../../../config/webConfig.json');
 var channelService;
 
-console.info("instanctiate connector handler.");
 module.exports = function (app) {
+    console.info("instanctiate connector handler.");
 	return new Handler(app);
 };
 
@@ -41,8 +41,8 @@ var handler = Handler.prototype;
 * Return back token bearer.
 */
 handler.login = function (msg, session, next) {
-	var self = this;
-	var registrationId: string = msg.registrationId;
+	let self = this;
+	let registrationId: string = msg.registrationId;
 
 	/*
 	var url: string = this.webServer + "/?api/login";
@@ -86,11 +86,11 @@ handler.login = function (msg, session, next) {
 	*/
 
 
-	var id = setTimeout(function () {
+	let id = setTimeout(function () {
 		next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
  
-	self.app.rpc.chat.chatRemote.getChatService(session, (onlineUsers) => {
+    self.app.rpc.chat.chatRemote.getOnlineUsers(session, (onlineUsers) => {
         self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
             if (result.code === code.OK) {
             //@ Signing success.
@@ -119,7 +119,8 @@ handler.login = function (msg, session, next) {
 }
 
 handler.logout = function (msg, session, next) {
-	console.log("logout", msg);
+    console.log("logout", msg);
+
 	let username = msg.username;
 	let registrationId = msg.registrationId;
 	let self = this;
@@ -144,7 +145,12 @@ var logOut = function (app, session, next) {
 		next();
 }
 
-handler.kickMe = function(msg, session, next) {
+handler.kickMe = function (msg, session, next) {
+    if (session.uid !== msg.uid) {
+        next(null, { code: code.FAIL, message: "cannot kick session when session.uid != msg.uid" });
+        return;
+    }
+
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", next);
 	
 	//!-- log user out.
@@ -158,9 +164,8 @@ handler.kickMe = function(msg, session, next) {
 * This Function Call Onec When login Success.
 */
 handler.getMe = function (msg, session, next) {
-	console.log("Connector.getme", msg);
-	var self = this;
-	var token = msg.token;
+	let self = this;
+	let token = msg.token;
 	if (!token) {
 		var errMsg = 'invalid entry request: empty token';
 		next(new Error(errMsg), { code: code.FAIL, message: errMsg });
@@ -488,26 +493,27 @@ handler.getMyPrivateGroupChat = function (msg, session, next) {
  * @return {Void}
  */
 handler.enterRoom = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-
-	var rid = msg.rid;
-	var uname = msg.username;
-	var uid = session.uid;
+	let self = this;
+	let token = msg.token;
+	let rid = msg.rid;
+	let uname = msg.username;
+	let uid = session.uid;
 	if (!uid) {
-		var errMsg = "session or uid is empty or null.!";
-		console.warn(errMsg);
+        let errMsg = "session.uid is empty or null.!";
 		next(null, { code: code.FAIL, message: errMsg });
 		return;
 	}
 
-	if (rid === null || msg.username === null) {
-		next(null, {
-			code: code.FAIL, message: "rid or username is null."
-		});
+	if (!rid || !msg.username) {
+        next(null, { code: code.FAIL, message: "rid or username is null." });
 		return;
 	}
-    
+
+    let timeOut_id = setTimeout(() => {
+        next(null, { code: code.RequestTimeout, message: "enterRoom timeout" });
+        return;
+    }, webConfig.timeout);
+
     chatRoomManager.GetChatRoomInfo({_id : new ObjectID(rid)}, null, function(result) {
         self.app.rpc.chat.chatRemote.updateRoomMembers(session, result, null);
         
@@ -515,6 +521,7 @@ handler.enterRoom = function (msg, session, next) {
             console.log("checkedCanAccessRoom: ", res);
 
             if (err || res === false) {
+                clearTimeout(timeOut_id);
                 next(null, { code: code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!"});
             }
             else {
@@ -525,11 +532,12 @@ handler.enterRoom = function (msg, session, next) {
                     }
                 });
 
-                var onlineUser = new User.OnlineUser();
+                let onlineUser = new User.OnlineUser();
                 onlineUser.username = uname;
                 onlineUser.uid = uid;
 
-                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function (result) {
+                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+                    clearTimeout(timeOut_id);
                     next(null, result);
                 });
             }
@@ -537,16 +545,9 @@ handler.enterRoom = function (msg, session, next) {
     });
 };
 
-var addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next) {
-	//put user into channel
-	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, function (result) {
-		if (!!result) {
-			next({ code: code.OK, data: result });
-		}
-		else {
-			next({ code: code.FAIL, message: result.message });
-		}
-	});
+const addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next) {
+    //put user into channel
+    app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 }
 
 /**
@@ -556,40 +557,30 @@ var addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next)
  * Return: lastRoomAccess of roomId.
  */
 handler.leaveRoom = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	var rid = msg.rid;
-	var uid = session.uid;
-	var sid = self.app.get('serverId');
+	let self = this;
+	let token = msg.token;
+	let rid = msg.rid;
+	let uid = session.uid;
+	let sid = self.app.get('serverId');
 
-	if (rid === null || msg.username === null) {
-		next(null, {
-			code: code.FAIL, message: "rid or username is null."
-		});
+	if (!rid || !msg.username) {
+        next(null, { code: code.FAIL, message: "rid or username is null." });
 		return;
-	}
+    }
 
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, res);
-		}
-		else {
-			var onlineUser = new User.OnlineUser();
-			onlineUser.username = msg.username;
-			onlineUser.uid = uid;
-			onlineUser.serverId = sid;
+    var onlineUser = new User.OnlineUser();
+    onlineUser.username = msg.username;
+    onlineUser.uid = uid;
+    onlineUser.serverId = sid;
 
-			self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, session.get('rid'), function (err, res) {
-				if (err) {
-					next(null, { code: code.FAIL, message: "leaveRoom with error." });
-				}
-				else {
-					next(null, { code: code.OK });
-				}
-			});
-		}
-	});
+    self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+        if (err) {
+            next(null, { code: code.FAIL, message: "leaveRoom with error." });
+        }
+        else {
+            next(null, { code: code.OK });
+        }
+    });
 }
 
 /**

@@ -63,15 +63,6 @@ var ChatService = (function () {
         this.nameMap = {};
         this.channelMap = {};
     }
-    /*
-    * @ Deprecated no one want this func.
-    */
-    ChatService.prototype.setOnlineUsers = function (userdata, callback) {
-        if (!this.onlineUsers)
-            this.onlineUsers = {};
-        this.onlineUsers = userdata;
-        callback();
-    };
     Object.defineProperty(ChatService.prototype, "OnlineUsers", {
         get: function () {
             if (!this.onlineUsers)
@@ -93,7 +84,7 @@ var ChatService = (function () {
         cb(null, user);
     };
     ChatService.prototype.addOnlineUser = function (user, callback) {
-        console.error("chatService.addOnlineUser");
+        console.log("chatService.addOnlineUser");
         if (!this.onlineUsers)
             this.onlineUsers = {};
         if (!this.onlineUsers[user.uid]) {
