@@ -12,6 +12,7 @@ import Room = require('../../../model/Room');
 import UserRole = require('../../../model/UserRole');
 import async = require('async');
 
+const webConfig = require('../../../../config/webConfig.json');
 var ObjectID = mongodb.ObjectID;
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
@@ -63,13 +64,13 @@ prototype.requestCreateProjectBase = function (msg, session, next) {
             if (res.role !== UserRole.UserRole.personnel) {
                 chatRoomManager.createProjectBaseGroup(groupName, members, function (err, result) {
                     console.info("createProjectBaseGroup response: ", result);
-                    
+
                     var room: Room.Room = JSON.parse(JSON.stringify(result[0]));
                     next(null, { code: Code.OK, data: room });
-                    
+
                     //<!-- Update list of roomsMember mapping.
                     chatService.addRoom(result[0]);
-                    
+
                     var memberIds = new Array<string>();
                     room.members.forEach(value => {
                         memberIds.push(value.id);
@@ -113,7 +114,7 @@ prototype.requestCreateProjectBase = function (msg, session, next) {
                             }
                         });
                     });
-                    
+
                     channelService.pushMessageByUids(param.route, param.data, pushGroup);
                 });
             }
@@ -128,14 +129,14 @@ prototype.editMemberInfoInProjectBase = function (msg, session, next) {
     var roomId: string = msg.roomId;
     var roomType: string = msg.roomType;
     var member: Room.Member = JSON.parse(msg.member);
-    
+
     if (!roomId || !member || !roomType) {
         var message: string = "Some require parameters is missing or invalid.";
         console.error(message);
         next(null, { code: Code.FAIL, message: message });
         return;
     }
-    
+
     //<!-- First checking room type for edit members permission.
     if (roomType !== Room.RoomType[Room.RoomType.projectBaseGroup]) {
         var message: string = "Room type is invalid this cannot edit groups.";
@@ -176,7 +177,7 @@ prototype.editMemberInfoInProjectBase = function (msg, session, next) {
     */
 prototype.userCreateGroupChat = function (msg, session, next) {
     var groupName: string = msg.groupName;
-    var memberIds : string[] =  JSON.parse(msg.memberIds);
+    var memberIds: string[] = JSON.parse(msg.memberIds);
 
     if (!groupName || !memberIds) {
         var errMessage: string = "cannot create group may be you missing some variable.";
@@ -188,20 +189,20 @@ prototype.userCreateGroupChat = function (msg, session, next) {
     chatRoomManager.createPrivateGroup(groupName, memberIds, function (err, result) {
         if (result !== null) {
             console.info("CreateGroupChatRoom response: ", result);
-        
+
             var room: Room.Room = JSON.parse(JSON.stringify(result[0]));
             next(null, { code: Code.OK, data: room });
-            
+
             //<!-- Update list of roomsMember mapping.
             chatService.addRoom(result[0]);
-            
+
             pushNewRoomAccessToNewMembers(room._id, room.members);
-            
+
             var memberIds = new Array<string>();
             room.members.forEach(value => {
                 memberIds.push(value.id);
             });
-            
+
             //<!-- Notice all member of new room to know they have a new room.   
             var param = {
                 route: Code.sharedEvents.onCreateGroupSuccess,
@@ -210,13 +211,13 @@ prototype.userCreateGroupChat = function (msg, session, next) {
             var pushGroup = new Array();
             memberIds.forEach(element => {
                 chatService.getOnlineUser(element, (err, user) => {
-                    if(!err) {
+                    if (!err) {
                         var item = { uid: user.uid, sid: user.serverId };
-                        pushGroup.push(item);   
+                        pushGroup.push(item);
                     }
                 });
             });
-            
+
             channelService.pushMessageByUids(param.route, param.data, pushGroup);
         }
         else {
@@ -238,9 +239,9 @@ prototype.updateGroupImage = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: "groupId or pathUrl is empty or invalid." });
         return;
     }
-    
+
     var objId = new ObjectID(rid);
-    if(!objId) {
+    if (!objId) {
         next(null, { code: Code.FAIL, message: "groupId is invalid." });
         return;
     }
@@ -274,7 +275,7 @@ prototype.editGroupMembers = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: message });
         return;
     }
-    
+
     //<!-- First checking room type for edit members permission.
     if (roomType === Room.RoomType[Room.RoomType.organizationGroup] || roomType === Room.RoomType[Room.RoomType.privateChat]) {
         var message: string = "Room type is invalid this group cannot edit.";
@@ -296,16 +297,16 @@ prototype.editGroupMembers = function (msg, session, next) {
         }
         else {
             console.log("editGroupMembers : type %s : result is", editType, res.result);
-            
+
             chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (res) {
                 if (res !== null) {
                     pushRoomInfoToAllMember(res, editType, editedMembers);
-                    if(editType === "add") {
+                    if (editType === "add") {
                         pushNewRoomAccessToNewMembers(res._id, editedMembers);
                     }
                     var roomObj = { _id: res._id, members: res.members };
                     chatService.addRoom(roomObj);
-                }    
+                }
             });
         }
     });
@@ -331,17 +332,17 @@ function pushNewRoomAccessToNewMembers(rid: string, targetMembers: Array<Room.Me
                                 route: Code.sharedEvents.onAddRoomAccess,
                                 data: roomAccess
                             }
-    
+
                             var pushTarget = new Array();
                             var target = { uid: user.uid, sid: user.serverId };
                             pushTarget.push(target);
-    
+
                             channelService.pushMessageByUids(param.route, param.data, pushTarget);
                         });
                     }
                 });
             });
-        }); 
+        });
     });
 }
 
@@ -400,19 +401,25 @@ prototype.getUnreadRoomMessage = function (msg, session, next) {
         return;
     }
 
-    this.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, roomId, uid, function (err, res) {
-        console.log("checkedCanAccessRoom: ", res);
+    let _timeOut = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "getUnreadRoomMessage request timeout." });
+        return;
+    }, webConfig.timeout);
 
+    this.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, roomId, uid, function (err, res) {
         if (err || res === false) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL, message: "cannot access your request room." });
         }
         else {
             chatRoomManager.getUnreadMsgCountAndLastMsgContentInRoom(roomId, lastAccessTime, function (err, res) {
                 console.log("GetUnreadMsgOfRoom response: ", res);
                 if (err) {
+                    clearTimeout(_timeOut);
                     next(null, { code: Code.FAIL, message: err });
                 }
                 else {
+                    clearTimeout(_timeOut);
                     next(null, { code: Code.OK, data: res });
                 }
             });
@@ -457,13 +464,13 @@ prototype.getRoomInfo = function (msg, session, next) {
 prototype.getRoomById = function (msg, session, next) {
     var self = this;
     var token = msg.token;
-    var owner = msg.ownerId; 
+    var owner = msg.ownerId;
     var roommate = msg.roommateId;
-    if(!owner || !roommate) {
+    if (!owner || !roommate) {
         next(null, { code: Code.FAIL, message: "some params is invalid." });
         return;
     }
-    
+
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
         if (err) {
             console.log(err);
@@ -471,13 +478,13 @@ prototype.getRoomById = function (msg, session, next) {
         }
         else {
             let id = '';
-            if(owner < roommate) {
+            if (owner < roommate) {
                 id = owner.concat(roommate);
             }
             else {
                 id = roommate.concat(owner);
             }
-            
+
             var md = crypto.createHash('md5');
             md.update(id);
             var hexCode = md.digest('hex');
@@ -507,7 +514,7 @@ prototype.getRoomById = function (msg, session, next) {
                                 }
                                 var roomMemberData = { _id: roomId, members: members };
                                 self.app.rpc.chat.chatRemote.updateRoomMembers(session, roomMemberData, null);
-                                   
+
                                 //<!-- Push updated lastAccessRoom fields to all members.
                                 async.each(members, function (member, cb) {
                                     //<!-- Add rid to user members lastAccessField.
@@ -560,11 +567,11 @@ prototype.getRoomById = function (msg, session, next) {
     });
 }
 
-var pushRoomInfoToAllMember = function (roomInfo: any, editType:string, editedMembers: Array<Room.Member>) {
+var pushRoomInfoToAllMember = function (roomInfo: any, editType: string, editedMembers: Array<Room.Member>) {
     console.log("pushRoomInfoToAllMember: ", roomInfo);
     var roomMembers: Room.Member[] = JSON.parse(JSON.stringify(roomInfo.members));
-    
-    if(editType === "remove") {
+
+    if (editType === "remove") {
         editedMembers.forEach(element => {
             roomMembers.push(element);
         });
@@ -669,6 +676,6 @@ function pushMemberInfoToAllMembersOfRoom(roomInfo: Room.Room, editedMember: Roo
 
         cb(null, cb);
     }], (callback) => {
-            channelService.pushMessageByUids(params.route, params.data, pushTargets);
-        });
+        channelService.pushMessageByUids(params.route, params.data, pushTargets);
+    });
 }

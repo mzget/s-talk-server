@@ -90,7 +90,7 @@ handler.login = function (msg, session, next) {
 		next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
  
-    self.app.rpc.chat.chatRemote.getOnlineUsers(session, (onlineUsers) => {
+    self.app.rpc.chat.chatRemote.getOnlineUsers(session, (err, onlineUsers: User.IOnlineUser) => {
         self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
             if (result.code === code.OK) {
             //@ Signing success.
@@ -538,7 +538,7 @@ handler.enterRoom = function (msg, session, next) {
 
                 addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
                     clearTimeout(timeOut_id);
-                    next(null, result);
+                    next(null, { code: code.OK, data: result });
                 });
             }
         });

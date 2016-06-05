@@ -20,7 +20,7 @@ app.configure('production|development', function () {
     app.route('chat', routeUtil.chat);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
-    app.filter(pomelo.filters.timeout(webConfig.timeout));
+    // app.filter(pomelo.filters.timeout(webConfig.timeout));
 });
 // Configure for auth server
 app.configure('production|development', 'auth', function () {

@@ -12,7 +12,7 @@ import ChatService = require('../../../services/chatService');
 var userManager = MUser.Controller.UserManager.getInstance();
 var authenManager = MAuthen.Controller.AuthenManager.getInstance();
 var tokenService: TokenService = new TokenService();
-var onlineUserCollection: User.OnlineUser;
+var onlineUserCollection: User.IOnlineUser;
 
 module.exports = function (app) {
     return new AuthenRemote(app);
@@ -58,7 +58,7 @@ authenRemote.me = function (msg, cb) {
     }, {roomAccess : 0 });
 }
 
-authenRemote.auth = function (username, password, onlineUsers, callback) {
+authenRemote.auth = function (username, password, onlineUsers: User.IOnlineUser, callback) {
     onlineUserCollection = onlineUsers;
     authenManager.GetUsername({ username: username }, function (res) {
         onAuthentication(password, res, callback);

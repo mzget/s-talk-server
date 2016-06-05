@@ -9,6 +9,7 @@ var crypto = require('crypto');
 var Room = require('../../../model/Room');
 var UserRole = require('../../../model/UserRole');
 var async = require('async');
+var webConfig = require('../../../../config/webConfig.json');
 var ObjectID = mongodb.ObjectID;
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
@@ -341,18 +342,24 @@ prototype.getUnreadRoomMessage = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: msgs });
         return;
     }
+    var _timeOut = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "getUnreadRoomMessage request timeout." });
+        return;
+    }, webConfig.timeout);
     this.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, roomId, uid, function (err, res) {
-        console.log("checkedCanAccessRoom: ", res);
         if (err || res === false) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL, message: "cannot access your request room." });
         }
         else {
             chatRoomManager.getUnreadMsgCountAndLastMsgContentInRoom(roomId, lastAccessTime, function (err, res) {
                 console.log("GetUnreadMsgOfRoom response: ", res);
                 if (err) {
+                    clearTimeout(_timeOut);
                     next(null, { code: Code.FAIL, message: err });
                 }
                 else {
+                    clearTimeout(_timeOut);
                     next(null, { code: Code.OK, data: res });
                 }
             });

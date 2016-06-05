@@ -24,7 +24,7 @@ app.configure('production|development', function () {
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
-    app.filter(pomelo.filters.timeout(webConfig.timeout));
+    // app.filter(pomelo.filters.timeout(webConfig.timeout));
 });
 
 // Configure for auth server
