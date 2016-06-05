@@ -16,8 +16,8 @@ var userManager = MUserManager.Controller.UserManager.getInstance();
 var tokenService = new TokenService();
 var chatService;
 var channelService;
-console.info("instanctiate ChatRoomHandler.");
 module.exports = function (app) {
+    console.info("instanctiate ChatRoomHandler.");
     return new ChatRoomHandler(app);
 };
 var ChatRoomHandler = function (app) {

@@ -9,13 +9,13 @@ var TokenService = require('../../../services/tokenService');
 var MUser = require('../../../controller/UserManager');
 var async = require('async');
 var mongodb = require('mongodb');
+var webConfig = require('../../../../config/webConfig.json');
 var ObjectID = mongodb.ObjectID;
 var http = require('http');
 var tokenService = new TokenService();
 var companyManager = CompanyController.CompanyManager.getInstance();
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUser.Controller.UserManager.getInstance();
-var webConfig = require('../../../../config/webConfig.json');
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate connector handler.");

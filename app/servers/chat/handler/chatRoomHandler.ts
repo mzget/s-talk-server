@@ -20,9 +20,8 @@ var tokenService: TokenService = new TokenService();
 var chatService: MChatService.ChatService;
 var channelService;
 
-
-console.info("instanctiate ChatRoomHandler.");
 module.exports = function (app) {
+    console.info("instanctiate ChatRoomHandler.");
     return new ChatRoomHandler(app);
 };
 

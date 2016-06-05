@@ -12,13 +12,13 @@ import MUser = require('../../../controller/UserManager');
 import async = require('async');
 import mongodb = require('mongodb');
 
+const webConfig = require('../../../../config/webConfig.json');
 const ObjectID = mongodb.ObjectID;
 const http = require('http');
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = MUser.Controller.UserManager.getInstance();
-const webConfig = require('../../../../config/webConfig.json');
 var channelService;
 
 module.exports = function (app) {
