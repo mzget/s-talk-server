@@ -146,16 +146,13 @@ var logOut = function (app, session, next) {
 }
 
 handler.kickMe = function (msg, session, next) {
-    if (session.uid !== msg.uid) {
-        next(null, { code: code.FAIL, message: "cannot kick session when session.uid != msg.uid" });
-        return;
-    }
-
-	session.__sessionService__.kick(msg.uid, "kick by logout all session", next);
+	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
 	
 	//!-- log user out.
 	this.app.rpc.chat.chatRemote.removeOnlineUser(session, session.uid, null);
 	userDAL.prototype.removeAllRegistrationId(session.uid);
+	
+	next(null , null);
 }
 
 /**
