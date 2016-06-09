@@ -51,11 +51,11 @@ var handler = Handler.prototype;
 handler.send = function (msg, session, next) {
     let self = this;
     let rid = session.get('rid');
+    let clientUUID = msg.uuid;
 
     if (!rid) {
         var errMsg = "rid is invalid please chaeck.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code.FAIL, message: errMsg, body: msg });
         return;
     }
 
@@ -105,7 +105,8 @@ handler.send = function (msg, session, next) {
                             var params = {
                                 messageId: resultMsg._id,
                                 type: resultMsg.type,
-                                createTime: resultMsg.createTime
+                                createTime: resultMsg.createTime,
+                                clientId : clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
                 
