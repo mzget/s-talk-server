@@ -17,7 +17,6 @@ exports.UserTransaction = UserTransaction;
 ;
 var User = (function () {
     function User() {
-        this.string = [];
     }
     User.prototype.toString = function () {
         return generic.collections.makeString(this);

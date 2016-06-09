@@ -44,7 +44,7 @@ export class User {
     sharedBy: string[];
     companies: string[];
     link_requests: string[];
-    trash_link_requests; string[];
+    trash_link_requests: string[];
 
     roomAccess: MAccess.RoomAccessData[];
     memberOfRooms: string[];
