@@ -1,4 +1,5 @@
-﻿/// <reference path="../../../../typings/jsonwebtoken/jsonwebtoken.d.ts" />
+﻿/// <reference path="../../../../typings/tsd.d.ts" />
+
 import jwt = require('jsonwebtoken');
 import Code = require('../../../../shared/Code');
 import TokenService = require('../../../services/tokenService');
@@ -24,8 +25,7 @@ var AuthenRemote = function (app) {
 
 var authenRemote = AuthenRemote.prototype;
 
-authenRemote.tokenService = function (bearerToken: string, cb: Function)
-{
+authenRemote.tokenService = function (bearerToken: string, cb: Function) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
             console.info("ensureAuthorized error: ", err);
@@ -55,14 +55,14 @@ authenRemote.me = function (msg, cb) {
         }
 
         cb({ code: Code.OK, data: user });
-    }, {roomAccess : 0 });
+    }, { roomAccess: 0 });
 }
 
-authenRemote.auth = function (username, password, onlineUsers: User.IOnlineUser, callback) {
+authenRemote.auth = function (email, password, onlineUsers: User.IOnlineUser, callback) {
     onlineUserCollection = onlineUsers;
-    authenManager.GetUsername({ username: username }, function (res) {
+    authenManager.GetUsername({ email: email }, function (res) {
         onAuthentication(password, res, callback);
-    }, { username: 1, password: 1 });
+    }, { email: 1, password: 1 });
 }
 
 var onAuthentication = function (_password, userInfo, callback) {
@@ -75,12 +75,22 @@ var onAuthentication = function (_password, userInfo, callback) {
             if (!user) {
                 // if user is found and password is right
                 // create a token
-                var token = tokenService.signToken(obj);
-                callback({
-                    code: Code.OK,
-                    uid: obj._id,
-                    message: "Authenticate success!",
-                    token: token
+                tokenService.signToken(obj, (err, encode) => {
+                    if (err) {
+                        callback({
+                            code: Code.FAIL,
+                            uid: obj._id,
+                            message: err,
+                        });
+                    }
+                    else {
+                        callback({
+                            code: Code.OK,
+                            uid: obj._id,
+                            message: "Authenticate success!",
+                            token: encode
+                        });
+                    }
                 });
             }
             else {
@@ -95,7 +105,7 @@ var onAuthentication = function (_password, userInfo, callback) {
         else {
             callback({
                 code: Code.FAIL,
-                message: "Authentication failed. User not found."
+                message: "Authentication failed."
             });
         }
     }

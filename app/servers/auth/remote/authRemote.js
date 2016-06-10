@@ -1,3 +1,4 @@
+/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var Code = require('../../../../shared/Code');
 var TokenService = require('../../../services/tokenService');
@@ -52,24 +53,24 @@ authenRemote.auth = function (email, password, onlineUsers, callback) {
 var onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
-        var obj_1 = JSON.parse(JSON.stringify(userInfo));
-        if (obj_1.password === _password) {
-            var user = onlineUserCollection[obj_1._id];
+        var obj = JSON.parse(JSON.stringify(userInfo));
+        if (obj.password === _password) {
+            var user = onlineUserCollection[obj._id];
             if (!user) {
                 // if user is found and password is right
                 // create a token
-                tokenService.signToken(obj_1, function (err, encode) {
+                tokenService.signToken(obj, function (err, encode) {
                     if (err) {
                         callback({
                             code: Code.FAIL,
-                            uid: obj_1._id,
+                            uid: obj._id,
                             message: err,
                         });
                     }
                     else {
                         callback({
                             code: Code.OK,
-                            uid: obj_1._id,
+                            uid: obj._id,
                             message: "Authenticate success!",
                             token: encode
                         });
@@ -81,7 +82,7 @@ var onAuthentication = function (_password, userInfo, callback) {
                 callback({
                     code: Code.DuplicatedLogin,
                     message: "duplicate log in.",
-                    uid: obj_1._id,
+                    uid: obj._id,
                 });
             }
         }

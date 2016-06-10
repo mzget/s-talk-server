@@ -34,7 +34,14 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
     var self = this;
-    var registrationId = msg.registrationId;
+    var body = JSON.parse(JSON.stringify(msg));
+    if (!body || !body.email || !body.password) {
+        next(null, { code: code.FAIL, message: "Missing some params.." });
+        return;
+    }
+    var email = body.email.toLowerCase();
+    var password = body.password;
+    var registrationId = body.registrationId;
     /*
     var url: string = this.webServer + "/?api/login";
     console.log("login", url);
@@ -79,7 +86,7 @@ handler.login = function (msg, session, next) {
         next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
     self.app.rpc.chat.chatRemote.getOnlineUsers(session, function (err, onlineUsers) {
-        self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
+        self.app.rpc.auth.authRemote.auth(session, email, password, onlineUsers, function (result) {
             if (result.code === code.OK) {
                 //@ Signing success.
                 session.bind(result.uid);

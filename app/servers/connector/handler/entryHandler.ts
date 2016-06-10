@@ -42,7 +42,16 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
 	let self = this;
-	let registrationId: string = msg.registrationId;
+	let body = JSON.parse(JSON.stringify(msg));
+	if (!body || !body.email || !body.password) {
+		next(null, { code: code.FAIL, message: "Missing some params.." });
+		return;
+	}
+
+	let email: string = body.email.toLowerCase();
+	let password: string = body.password;
+	let registrationId: string = body.registrationId;
+
 
 	/*
 	var url: string = this.webServer + "/?api/login";
@@ -89,18 +98,18 @@ handler.login = function (msg, session, next) {
 	let id = setTimeout(function () {
 		next(null, { code: code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
- 
+
     self.app.rpc.chat.chatRemote.getOnlineUsers(session, (err, onlineUsers: User.IOnlineUser) => {
-        self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
+		self.app.rpc.auth.authRemote.auth(session, email, password, onlineUsers, function (result) {
             if (result.code === code.OK) {
-            //@ Signing success.
+				//@ Signing success.
 				session.bind(result.uid);
 				session.on('closed', onUserLeave.bind(null, self.app));
 
 				if (!!registrationId) {
 					userDAL.prototype.saveRegistrationId(result.uid, registrationId);
                 }
-                
+
                 var param = {
                     route: code.sharedEvents.onUserLogin,
                     data: { _id: result.uid }
@@ -108,7 +117,7 @@ handler.login = function (msg, session, next) {
 
                 channelService.broadcast("connector", param.route, param.data);
 			}
-			else if(result.code === code.DuplicatedLogin) {
+			else if (result.code === code.DuplicatedLogin) {
 				// session.__sessionService__.kick()
 			}
 
@@ -147,12 +156,12 @@ var logOut = function (app, session, next) {
 
 handler.kickMe = function (msg, session, next) {
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
-	
+
 	//!-- log user out.
 	this.app.rpc.chat.chatRemote.removeOnlineUser(session, session.uid, null);
 	userDAL.prototype.removeAllRegistrationId(session.uid);
-	
-	next(null , null);
+
+	next(null, null);
 }
 
 /**
@@ -214,7 +223,7 @@ handler.getMe = function (msg, session, next) {
 				//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
 				//}
 				console.log("New onlineUsers %s : ", onlineUser);
-				
+
 				self.app.rpc.chat.chatRemote.addOnlineUser(session, onlineUser, null);
 				self.app.rpc.chat.chatRemote.addUserTransaction(session, userTransaction, null);
 			});
@@ -239,7 +248,7 @@ handler.getLastAccessRooms = function (msg, session, next) {
 
 	async.series([function (cb1: (err, user: User.OnlineUser) => void) {
 		self.app.rpc.chat.chatRemote.getOnlineUser(session, uid, (err, user) => {
-			if(err || user === null) {
+			if (err || user === null) {
 				cb1(err, null);
 			}
 			else {
@@ -263,9 +272,9 @@ handler.getLastAccessRooms = function (msg, session, next) {
 				channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
 			}
 		});
-		});
+	});
 
-	next(null, {code:code.OK});
+	next(null, { code: code.OK });
 }
 
 handler.getCompanyInfo = function (msg, session, next) {
@@ -292,7 +301,7 @@ handler.getCompanyInfo = function (msg, session, next) {
 				else {
 					response = { code: code.FAIL, message: "Have no a company infomation." };
 				}
-				
+
 				clearTimeout(timeout);
 
 				next(null, response);
@@ -322,7 +331,7 @@ handler.getCompanyMember = function (msg, session, next) {
 			next(err, { code: code.FAIL, message: err });
 			return;
 		}
-		else {    
+		else {
 			companyManager.GetCompanyMembers({ _id: 1, displayname: 1, status: 1, image: 1 }, function (err, res) {
 				var result;
 				if (res !== null) {
@@ -400,7 +409,7 @@ handler.getProjectBaseGroups = function (msg, session, next) {
 	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
 		if (err) {
 			console.log(err);
-			next(err, {code: code.FAIL, message: err });
+			next(err, { code: code.FAIL, message: err });
 			return;
 		}
 		else {
@@ -416,7 +425,7 @@ handler.getProjectBaseGroups = function (msg, session, next) {
 
 					updateRoomsPairMembersCollection(self.app, session, result);
 				}
-				
+
 				var params = {
 					route: code.sharedEvents.onGetProjectBaseGroups,
 					data: result
@@ -428,8 +437,8 @@ handler.getProjectBaseGroups = function (msg, session, next) {
 				channelService.pushMessageByUids(params.route, params.data, target);
 			});
 		}
-		
-		next(null, { code:code.OK });
+
+		next(null, { code: code.OK });
 	});
 }
 
@@ -449,7 +458,7 @@ handler.getMyPrivateGroupChat = function (msg, session, next) {
 	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
 		if (err) {
 			console.log(err);
-			next(err, { code: code.FAIL, message:err });
+			next(err, { code: code.FAIL, message: err });
 			return;
 		}
 		else {
@@ -511,15 +520,15 @@ handler.enterRoom = function (msg, session, next) {
         return;
     }, webConfig.timeout);
 
-    chatRoomManager.GetChatRoomInfo({_id : new ObjectID(rid)}, null, function(result) {
+    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
         self.app.rpc.chat.chatRemote.updateRoomMembers(session, result, null);
-        
+
         self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
             console.log("checkedCanAccessRoom: ", res);
 
             if (err || res === false) {
                 clearTimeout(timeOut_id);
-                next(null, { code: code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!"});
+                next(null, { code: code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
             }
             else {
                 session.set('rid', rid);
@@ -594,7 +603,7 @@ var onUserLeave = function (app, session) {
 	var onlineUser = new User.OnlineUser();
 	onlineUser.username = "";
 	onlineUser.uid = session.uid;
-	
+
 	app.rpc.chat.chatRemote.kick(session, onlineUser, app.get('serverId'), session.get('rid'), null);
 	logOut(app, session, null);
 };
@@ -706,18 +715,18 @@ handler.voiceCallRequest = function (msg, session, next) {
 /**
 * Call this function when want to send hangupCall signaling to other.
 */
-handler.hangupCall = function(msg, session, next) {
-	var myId =  msg.userId;
+handler.hangupCall = function (msg, session, next) {
+	var myId = msg.userId;
 	var contactId = msg.contactId;
 	var token = msg.token;
 	var self = this;
-	
-	if(!myId || ! contactId || !token) {
+
+	if (!myId || !contactId || !token) {
 		next(null, { code: code.FAIL, message: "some parametor has a problem." });
 		return;
 	}
-	
-	 self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+
+	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
 		if (err) {
 			console.warn(err);
 			next(err, res);
