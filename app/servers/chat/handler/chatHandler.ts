@@ -22,9 +22,9 @@ var chatService: MChatService.ChatService;
 var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
 
-console.info("instanctiate ChatHandler.");
 
 module.exports = function (app) {
+    console.info("instanctiate ChatHandler.");
     return new Handler(app);
 }
 
