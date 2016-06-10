@@ -19,7 +19,6 @@ export module Controller {
     };
 
     export class UserManager {
-
         private static _instance: UserManager = null;
         private userDataAccess: UserDataAccessService = new UserDataAccessService();
 
@@ -31,7 +30,7 @@ export module Controller {
         }
 
         public static getInstance(): UserManager {
-            if (UserManager._instance === null) {
+            if (!UserManager._instance) {
                 UserManager._instance = new UserManager();
             }
             return UserManager._instance;
@@ -381,7 +380,7 @@ export module Controller {
                 assert.equal(null, err);    
                 
                 // Get the documents collection
-                var collection = db.collection(Mdb.DbController.userColl);
+                let collection = db.collection(Mdb.DbController.userColl);
                 // Find some documents
                 collection.find(query).project(projection).limit(1).toArray((err, results) => {
                     if (err) {

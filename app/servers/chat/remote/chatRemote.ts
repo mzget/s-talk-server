@@ -34,7 +34,8 @@ var chatRemote = ChatRemote.prototype;
  * 2. call when user logout.
  */
 chatRemote.addOnlineUser = function (user, cb) {
-    console.error("addOnlineUser");
+    console.info("addOnlineUser", user);
+    
     chatService.addOnlineUser(user, cb);
 }
 chatRemote.removeOnlineUser = function (userId, cb) {

@@ -19,7 +19,6 @@ export module Controller {
             AuthenManager._instance = this;
         }
 
-
         GetUsername(query, callback, projections?) {
             DbClient.FindDocument(MDbController.DbController.userColl, callback, query, projections);
         }

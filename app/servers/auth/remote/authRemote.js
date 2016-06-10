@@ -44,6 +44,17 @@ authenRemote.me = function (msg, cb) {
         cb({ code: Code.OK, data: user });
     }, { roomAccess: 0 });
 };
+authenRemote.myProfile = function (userId, cb) {
+    userManager.getMemberProfile(userId, function (err, res) {
+        if (res === null) {
+            var errMsg = "Get my user data is invalid.";
+            console.error(errMsg);
+            cb({ code: Code.FAIL, message: errMsg });
+            return;
+        }
+        cb({ code: Code.OK, data: res });
+    });
+};
 authenRemote.auth = function (email, password, onlineUsers, callback) {
     onlineUserCollection = onlineUsers;
     authenManager.GetUsername({ email: email }, function (res) {

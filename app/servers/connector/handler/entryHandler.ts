@@ -116,6 +116,8 @@ handler.login = function (msg, session, next) {
                 };
 
                 channelService.broadcast("connector", param.route, param.data);
+
+				addOnlineUser(self.app, session, result.uid);
 			}
 			else if (result.code === code.DuplicatedLogin) {
 				// session.__sessionService__.kick()
@@ -228,6 +230,32 @@ handler.getMe = function (msg, session, next) {
 				self.app.rpc.chat.chatRemote.addUserTransaction(session, userTransaction, null);
 			});
 		}
+	});
+}
+
+function addOnlineUser(app, session, userId: string) {
+	app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
+		let datas = JSON.parse(JSON.stringify(result.data));
+		let my = datas[0];
+		let onlineUser = new User.OnlineUser();
+		onlineUser.uid = my._id;
+		onlineUser.username = my.username;
+		onlineUser.serverId = session.frontendId;
+		onlineUser.registrationIds = my.deviceTokens;
+
+		var userTransaction = new User.UserTransaction();
+		userTransaction.uid = my._id;
+		userTransaction.username = my.username;
+
+		//!-- check uid in onlineUsers list.
+		//var usersDict = userManager.onlineUsers;
+		//for (var i in usersDict) {
+		//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
+		//}
+		console.log("New onlineUsers %s : ", onlineUser);
+
+		app.rpc.chat.chatRemote.addOnlineUser(session, onlineUser, null);
+		app.rpc.chat.chatRemote.addUserTransaction(session, userTransaction, null);
 	});
 }
 
