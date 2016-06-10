@@ -21,42 +21,27 @@ export class ChatService {
      * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
      */
     private onlineUsers: User.IOnlineUser;
-    
-    /*
-    * @ Deprecated no one want this func.
-    */
-    public setOnlineUsers(userdata, callback: Function) {
-        if (!this.onlineUsers)
-            this.onlineUsers = {};
-
-        this.onlineUsers = userdata;
-
-        callback();
-    }
     public get OnlineUsers(): User.IOnlineUser {
         if (!this.onlineUsers)
             this.onlineUsers = {};
 
         return this.onlineUsers;
     }
-
     public getOnlineUser(userId: string, cb: (err: any, user: User.OnlineUser) => void) {
         if (!this.onlineUsers)
             this.onlineUsers = {};
 
         if (!this.onlineUsers[userId]) {
-            var errMsg = "Specific uid is not online.";
+            let errMsg = "Specific uid is not online.";
             cb(errMsg, null);
             return;
         }
 
-        var user = this.onlineUsers[userId];
+        let user = this.onlineUsers[userId];
         cb(null, user);
     }
-
     public addOnlineUser(user: User.OnlineUser, callback: Function) {
-
-        console.error("chatService.addOnlineUser");
+        console.log("chatService.addOnlineUser");
 
         if (!this.onlineUsers)
             this.onlineUsers = {};
@@ -70,7 +55,6 @@ export class ChatService {
 
         callback();
     }
-
     public removeOnlineUser(userId: string) {
         delete this.onlineUsers[userId];
     }
@@ -111,7 +95,7 @@ export class ChatService {
            return;
        }
 
-       var room = this.roomsMap[roomId];
+       let room = this.roomsMap[roomId];
        callback(null, room);
    }
    

@@ -83,6 +83,7 @@ chatRemote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
     cb();
 };
 chatRemote.getChatService = function (cb) {
+    console.warn("getChatService is deprecated fuction.");
     cb(chatService.OnlineUsers);
 };
 /**
@@ -116,10 +117,9 @@ chatRemote.add = function (user, sid, rid, flag, cb) {
     if (!!channel) {
         channel.add(uid, sid);
     }
+    if (!!cb)
+        cb();
     //    var users = this.getUsers(rid, flag);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, { status: 1 }, function (result) {
-        cb(result);
-    });
 };
 /**
 * Get user from chat channel.
@@ -152,11 +152,11 @@ chatRemote.getUsers = function (name, flag) {
 * @param {String} name channel name
 */
 chatRemote.kick = function (user, sid, rid, cb) {
+    var self = this;
     cb();
     if (!rid) {
         return;
     }
-    var self = this;
     userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
         var printR = (accessInfo) ? accessInfo.result : null;
         console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
@@ -197,16 +197,14 @@ chatRemote.updateRoomAccess = function (uid, rid, date, cb) {
 };
 chatRemote.checkedCanAccessRoom = function (roomId, userId, callback) {
     chatService.getRoom(roomId, function (err, room) {
-        console.log("getRoomMembers rid is %s result is", roomId, room);
         var result = false;
-        if (err || room === null) {
+        if (err || !room) {
             callback(null, result);
         }
         else {
-            room.members.forEach(function (value) {
+            result = room.members.some(function (value) {
                 if (value.id === userId) {
-                    result = true;
-                    return;
+                    return true;
                 }
             });
             callback(null, result);

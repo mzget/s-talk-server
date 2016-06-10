@@ -15,6 +15,7 @@ import async = require('async');
 import promise = require('es6-promise');
 
 
+const webConfig = require('../../../../config/webConfig.json');
 var chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
 var channelService;
@@ -72,7 +73,7 @@ handler.send = function (msg, session, next) {
         else {
             chatService.getRoom(rid, function (err, room) {
                 console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
-        
+
                 thisRoom = room;
                 if (!room.members) {
                     console.warn("RoomMembers is empty.");
@@ -93,11 +94,11 @@ handler.send = function (msg, session, next) {
 
                     var _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
-                    _msg.type = msg.type,
-                    _msg.body = msg.content,
-                    _msg.sender = msg.sender,
-                    _msg.createTime = new Date(),
-                    _msg.meta = msg.meta;
+                        _msg.type = msg.type,
+                        _msg.body = msg.content,
+                        _msg.sender = msg.sender,
+                        _msg.createTime = new Date(),
+                        _msg.meta = msg.meta;
                     chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                         if (docs !== null) {
                             var resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
@@ -109,13 +110,13 @@ handler.send = function (msg, session, next) {
                                 clientId : clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
-                
+
                             //<!-- push chat data to other members in room.
                             var onChat = {
                                 route: Code.sharedEvents.onChat,
                                 data: resultMsg
                             };
-    
+
                             //the target is all users
                             if (msg.target === '*') {
                                 //<!-- Push new message to online users.
@@ -131,7 +132,7 @@ handler.send = function (msg, session, next) {
                                     cb();
                                 }, function done() {
                                     channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-    
+
                                     //<!-- Push message to off line users via parse.
                                     callPushNotification(thisRoom, resultMsg.sender, offlineMembers);
                                 });
@@ -165,13 +166,13 @@ handler.send = function (msg, session, next) {
     });
 };
 
-handler.getSyncDateTime = function(msg, session, next) {
-    var date:Date = new Date();
+handler.getSyncDateTime = function (msg, session, next) {
+    var date: Date = new Date();
     var param = {
-        code:Code.OK,
+        code: Code.OK,
         data: date
     }
-    
+
     next(null, param);
 }
 
@@ -228,7 +229,7 @@ handler.getChatHistory = function (msg, session, next) {
     let self = this;
     let rid = msg.rid;
     let lastMessageTime = msg.lastAccessTime;
-  
+
     if (!rid) {
         next(null, { code: Code.FAIL, message: "room_id field is in valid." });
         return;
@@ -239,20 +240,27 @@ handler.getChatHistory = function (msg, session, next) {
         return;
     }
 
+    let _timeOut = setTimeout(() => {
+        next(null, { code: Code.RequestTimeout, message: "getChatHistory request timeout." });
+        return;
+    }, webConfig.timeout);
+
     let utc = new Date(lastMessageTime);
-    
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
         if (result !== null) {
+            clearTimeout(_timeOut);
+
             var chatrecords = JSON.parse(JSON.stringify(result));
             next(null, { code: Code.OK, data: chatrecords });
 
             //<!-- When get chat history complete. System will update roomAccess data for user.
-            self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);            
+            self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);
         } else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL, message: "have no a chatrecord for this room." });
         }
-    });     
+    });
 }
 
 /**
@@ -266,15 +274,22 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
     if (!rid || !topEdgeMessageTime) {
         next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
-    } 
+    }
 
+    let _timeOut = setTimeout(() => {
+        next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
+        return;
+    }, webConfig.timeout);
+    
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
 
         if (!!res) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.OK, data: res });
         }
         else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL });
         }
     });
@@ -289,14 +304,21 @@ handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => vo
         next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
+    
+    let _timeOut = setTimeout(() => {
+        next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
+        return;
+    }, webConfig.timeout);
 
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
 
         if (!!res) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.OK, data: res.length });
         }
         else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL });
         }
     });
@@ -322,10 +344,10 @@ handler.getMessagesReaders = function (msg, session, next) {
 
         return;
     }
-    
+
     let channel = channelService.getChannel(rid, false);
 
-    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime,function (err, res) {
+    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
@@ -354,14 +376,14 @@ handler.getMessagesReaders = function (msg, session, next) {
 * @param {Object} session
 * @param  {Function} next next stemp callback that return records of message_id.
 */
-handler.getMessageContent = function(msg, session, next) {
+handler.getMessageContent = function (msg, session, next) {
     var messageId = msg.messageId;
     if (!messageId) {
         var err = "messageId connot be null or empty.";
         console.warn(err);
-        next(null, {code: Code.FAIL, message: err });
+        next(null, { code: Code.FAIL, message: err });
     }
-    
+
     chatRoomManager.GetChatContent(messageId, function (err, result) {
         console.log("GetChatContent: ", result);
         if (result !== null) {
@@ -370,7 +392,7 @@ handler.getMessageContent = function(msg, session, next) {
         } else {
             next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
         }
-    });  
+    });
 }
 
 /*
@@ -380,23 +402,23 @@ handler.getMessageContent = function(msg, session, next) {
 * Return : no return anything.
 */
 handler.updateWhoReadMessage = function (msg, session, next) {
-//    var token = msg.token;
+    //    var token = msg.token;
     var messageId: string = msg.messageId;
     var rid: string = msg.roomId;
     var uid = session.uid;
 
     if (!messageId || !uid || !rid) {
-        var errMsg =  "messageId or uid or rid data field is invalid.";
+        var errMsg = "messageId or uid or rid data field is invalid.";
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
         return;
     }
-    
+
     var channel = channelService.getChannel(rid, false);
-    if(!channel) {
+    if (!channel) {
         var message = "no have room for your request.";
         console.warn(message);
-        next(null, {code:Code.FAIL, message : message});
+        next(null, { code: Code.FAIL, message: message });
         return;
     }
     else {
@@ -407,16 +429,16 @@ handler.updateWhoReadMessage = function (msg, session, next) {
             }
             else {
                 //<!-- Push who read message to sender.
-                chatRoomManager.getWhoReadMessage(messageId, function(err, res) {
-                    if(!err) {
+                chatRoomManager.getWhoReadMessage(messageId, function (err, res) {
+                    if (!err) {
                         var onMessageRead = {
                             route: Code.sharedEvents.onMessageRead,
-                            data : res
+                            data: res
                         };
-                        
+
                         var senderInfo = channel.getMember(res.sender);
-                        if(!senderInfo) { 
-                            return;    
+                        if (!senderInfo) {
+                            return;
                         }
                         else {
                             var uidsGroup = new Array();
@@ -429,8 +451,8 @@ handler.updateWhoReadMessage = function (msg, session, next) {
             }
         });
     }
-    
-    next(null , {code:Code.OK});
+
+    next(null, { code: Code.OK });
 }
 
 /*
@@ -478,7 +500,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     next(null, { code: Code.OK });
 }
 
- //<!-- Push who read message to sender.
+//<!-- Push who read message to sender.
 function getWhoReadMessages(messages: Array<string>, channel) {
     async.eachSeries(messages, function iterator(item, cb) {
         chatRoomManager.getWhoReadMessage(item, function (err, res) {
@@ -532,22 +554,22 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
      * - check the offline user who subscribe this room or not.
      * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
      * - if one of list has contain room_id dont push message for them.
-     *  */ 
+     *  */
 
     async.waterfall([t => {
         //<!-- checking roomType
         chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, (result) => {
-        if (!result) {
-            var errMsg = "checkedRoomType fail.";
-            console.error(errMsg);
-            t(new Error(errMsg), null);
-        }
-        else if(result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup){
-            t(null, {});
-        }
-        else {
-            t(null, result.type);
-        }
+            if (!result) {
+                var errMsg = "checkedRoomType fail.";
+                console.error(errMsg);
+                t(new Error(errMsg), null);
+            }
+            else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+                t(null, {});
+            }
+            else {
+                t(null, result.type);
+            }
         })
     }, (arg1, cb) => {
         if (arg1 === null) {
@@ -559,7 +581,7 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
             var roomType: MRoom.RoomType = JSON.parse(JSON.stringify(arg1));
 
             async.eachSeries(offlineMembers, function iterrator(item, callback) {
-//                console.warn("offline member _id: ", item);
+                //                console.warn("offline member _id: ", item);
                 userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
                     //<!-- if result is contain in unsubscribe list. we ignore this member.
                     if (!err && results !== null) {
@@ -569,11 +591,11 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
                         var objId = new ObjectID(item);
                         targetMemberWhoSubscribeRoom.push(objId);
                     }
-                    
+
                     callback();
                 });
             }, function callback(err) {
-                if(err) {
+                if (err) {
                     cb(err, null);
                 }
                 else {
@@ -586,10 +608,10 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
                 var objId = new ObjectID(offline);
                 targetMemberWhoSubscribeRoom.push(objId);
             });
-            
+
             cb(null, {});
         }
-        }],
+    }],
         (err, result) => {
             if (err || result === null) {
                 console.error(err);
@@ -630,9 +652,9 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
                     });
                 }).then(function onfulfill(value) {
                     pushService.sendPushToTargetDevices(targetDevices, alertMessage);
-                    }).catch(function onRejected(err) {
-                        console.error("push to target deviceTokens fail.", err);
+                }).catch(function onRejected(err) {
+                    console.error("push to target deviceTokens fail.", err);
                 });
             }
-    });
+        });
 }

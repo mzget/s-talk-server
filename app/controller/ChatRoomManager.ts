@@ -207,7 +207,6 @@ module Controller {
         }
 
         public getUnreadMsgCountAndLastMsgContentInRoom(roomId: string, lastAccessTime: string, callback: Function) {
-            console.info("GetUnreadMsgOfRoom: %s lastacc: %s", roomId, lastAccessTime);
             var isoDate = new Date(lastAccessTime).toISOString();
 
             this.roomDAL.getUnreadMsgCountAndLastMsgContentInRoom(roomId, isoDate, callback);
@@ -257,7 +256,6 @@ module Controller {
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
                 collection.find({ _id: new ObjectID(lastDoc._id)}).limit(1).toArray(function (err, docs) {
-                    console.log("getLastMsgContentInMessagesIdArray found the following records", docs);
                     if (!docs) {
                         callback(new Error("getLastMsgContentInMessagesIdArray error."), docs);
                     }
@@ -280,7 +278,6 @@ module Controller {
                 // Find newest message documents
                 collection.find({ rid: rid.toString() }).sort({ createTime: -1 }).limit(1).toArray(function (err, docs) {
                     assert.equal(null, err);
-                    console.log("getLastMessageContentOfRoom found the following records", docs);
                     if (!docs) {
                         callback(new Error("getLastMessageContentOfRoom by query date is no response."), docs);
                     }
@@ -305,7 +302,7 @@ module Controller {
                 // Find some documents
                 collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }).project({ _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
-                    console.log("findUnreadMsgInRoom found the following records", docs);
+                    
                     if (!docs) {
                         callback(new Error("GetUnreadMsgOfRoom by query date is no response."), docs);
                     }

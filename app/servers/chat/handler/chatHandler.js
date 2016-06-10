@@ -9,14 +9,15 @@ var Code = require('../../../../shared/Code');
 var MPushService = require('../../../services/ParsePushService');
 var mongodb = require('mongodb');
 var async = require('async');
+var webConfig = require('../../../../config/webConfig.json');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
 var channelService;
 var chatService;
 var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
-console.info("instanctiate ChatHandler.");
 module.exports = function (app) {
+    console.info("instanctiate ChatHandler.");
     return new Handler(app);
 };
 var Handler = function (app) {
@@ -203,16 +204,22 @@ handler.getChatHistory = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
         return;
     }
+    var _timeOut = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "getChatHistory request timeout." });
+        return;
+    }, webConfig.timeout);
     var utc = new Date(lastMessageTime);
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
         if (result !== null) {
+            clearTimeout(_timeOut);
             var chatrecords = JSON.parse(JSON.stringify(result));
             next(null, { code: Code.OK, data: chatrecords });
             //<!-- When get chat history complete. System will update roomAccess data for user.
             self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);
         }
         else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL, message: "have no a chatrecord for this room." });
         }
     });
@@ -228,12 +235,18 @@ handler.getOlderMessageChunk = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
+    var _timeOut = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
+        return;
+    }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.OK, data: res });
         }
         else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL });
         }
     });
@@ -246,12 +259,18 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
+    var _timeOut = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
+        return;
+    }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.OK, data: res.length });
         }
         else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL });
         }
     });

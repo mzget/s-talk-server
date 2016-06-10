@@ -59,7 +59,6 @@ app.configure('production|development', 'chat', function () {
 //});
 
 // start app
-
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
