@@ -16,12 +16,12 @@ import promise = require('es6-promise');
 
 
 const webConfig = require('../../../../config/webConfig.json');
-var chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUserManager.Controller.UserManager.getInstance();
+const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+const userManager = MUserManager.Controller.UserManager.getInstance();
+const pushService = new MPushService.ParsePushService();
+const ObjectID = mongodb.ObjectID;
 var channelService;
 var chatService: MChatService.ChatService;
-var pushService = new MPushService.ParsePushService();
-var ObjectID = mongodb.ObjectID;
 
 
 module.exports = function (app) {

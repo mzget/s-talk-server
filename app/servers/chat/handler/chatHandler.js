@@ -12,10 +12,10 @@ var async = require('async');
 var webConfig = require('../../../../config/webConfig.json');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
-var channelService;
-var chatService;
 var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
+var channelService;
+var chatService;
 module.exports = function (app) {
     console.info("instanctiate ChatHandler.");
     return new Handler(app);

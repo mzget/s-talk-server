@@ -8,6 +8,7 @@ var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var chatService;
 var channelService;
 module.exports = function (app) {
+    console.info("instanctiate ChatRemote.");
     return new ChatRemote(app);
 };
 var ChatRemote = function (app) {

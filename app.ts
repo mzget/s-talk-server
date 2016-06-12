@@ -1,11 +1,11 @@
 ﻿/// <reference path="./typings/tsd.d.ts" />
 
-var pomelo = require('pomelo');
-var routeUtil = require('./app/util/routeUtil');
+const pomelo = require('pomelo');
+const routeUtil = require('./app/util/routeUtil');
 import MChatService = require('./app/services/chatService');
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-var webConfig = require('./config/webConfig');
+const webConfig = require('./config/webConfig');
 
 /**
  * Init app for client.

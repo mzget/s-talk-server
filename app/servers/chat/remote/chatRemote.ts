@@ -12,6 +12,7 @@ var chatService: MChatService.ChatService;
 var channelService;
 
 module.exports = function (app) {
+    console.info("instanctiate ChatRemote.");
     return new ChatRemote(app);
 };
 
