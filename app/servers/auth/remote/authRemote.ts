@@ -80,6 +80,19 @@ remote.addUserTransaction = function (userTransac: User.UserTransaction, cb) {
 
     cb();
 }
+remote.getUserTransaction = function (uid: string, cb: Function) {
+    if (!!accountService.userTransaction) {
+        cb(null, accountService.userTransaction[uid]);
+    }
+    else {
+        cb(null, null);
+    }
+}
+
+
+remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
+    accountService.getRoom(rid, callback);
+}
 
 remote.updateRoomMembers = function (data, cb) {
     accountService.addRoom(data);
@@ -117,10 +130,6 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
     });
 
     cb();
-}
-
-remote.getAccountService = function (): AccountService {
-    return accountService;
 }
 
 remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
