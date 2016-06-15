@@ -16,7 +16,6 @@ const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = MUser.Controller.UserManager.getInstance();
 const authenManager = MAuthen.Controller.AuthenManager.getInstance();
 const tokenService: TokenService = new TokenService();
-var onlineUserCollection: User.IOnlineUser;
 var accountService: AccountService;
 var channelService;
 
@@ -26,7 +25,7 @@ module.exports = function (app) {
 
 const AuthenRemote = function (app) {
     this.app = app;
-    
+
     channelService = app.get("channelService");
     if (app.getServerType() === 'auth') {
         accountService = app.get('accountService');
@@ -178,39 +177,40 @@ remote.me = function (msg, cb) {
     }, { roomAccess: 0 });
 }
 
-remote.auth = function (username, password, onlineUsers: User.IOnlineUser, callback) {
-    onlineUserCollection = onlineUsers;
-    authenManager.GetUsername({ username: username }, function (res) {
+remote.auth = function (email, password, callback) {
+    authenManager.GetUsername({ username: email }, function (res) {
         onAuthentication(password, res, callback);
     }, { username: 1, password: 1 });
 }
 
 const onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
+
     if (userInfo !== null) {
-        var obj = JSON.parse(JSON.stringify(userInfo));
+        let obj = JSON.parse(JSON.stringify(userInfo));
 
         if (obj.password === _password) {
-            var user = onlineUserCollection[obj._id];
-            if (!user) {
-                // if user is found and password is right
-                // create a token
-                var token = tokenService.signToken(obj);
-                callback({
-                    code: Code.OK,
-                    uid: obj._id,
-                    message: "Authenticate success!",
-                    token: token
-                });
-            }
-            else {
-                console.warn("Duplicate user by onlineUsers collections.");
-                callback({
-                    code: Code.DuplicatedLogin,
-                    message: "duplicate log in.",
-                    uid: obj._id,
-                });
-            }
+            accountService.getOnlineUser(obj._id, (error, user) => {
+                if (!user) {
+                    // if user is found and password is right
+                    // create a token
+                    let token = tokenService.signToken(obj);
+                    callback({
+                        code: Code.OK,
+                        uid: obj._id,
+                        message: "Authenticate success!",
+                        token: token
+                    });
+                }
+                else {
+                    console.warn("Duplicate user by onlineUsers collections.");
+                    callback({
+                        code: Code.DuplicatedLogin,
+                        message: "duplicate log in.",
+                        uid: obj._id,
+                    });
+                }
+            });
         }
         else {
             callback({

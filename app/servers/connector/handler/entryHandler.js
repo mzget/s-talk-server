@@ -78,26 +78,24 @@ handler.login = function (msg, session, next) {
     var id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
-    self.app.rpc.auth.authRemote.getOnlineUsers(session, function (err, onlineUsers) {
-        self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, onlineUsers, function (result) {
-            if (result.code === Code.OK) {
-                //@ Signing success.
-                session.bind(result.uid);
-                session.on('closed', onUserLeave.bind(null, self.app));
-                if (!!registrationId) {
-                    userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-                }
-                var param = {
-                    route: Code.sharedEvents.onUserLogin,
-                    data: { _id: result.uid }
-                };
-                channelService.broadcast("connector", param.route, param.data);
+    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
+        if (result.code === Code.OK) {
+            //@ Signing success.
+            session.bind(result.uid);
+            session.on('closed', onUserLeave.bind(null, self.app));
+            if (!!registrationId) {
+                userDAL.prototype.saveRegistrationId(result.uid, registrationId);
             }
-            else if (result.code === Code.DuplicatedLogin) {
-            }
-            clearTimeout(id);
-            next(null, result);
-        });
+            var param = {
+                route: Code.sharedEvents.onUserLogin,
+                data: { _id: result.uid }
+            };
+            channelService.broadcast("connector", param.route, param.data);
+        }
+        else if (result.code === Code.DuplicatedLogin) {
+        }
+        clearTimeout(id);
+        next(null, result);
     });
 };
 handler.logout = function (msg, session, next) {
