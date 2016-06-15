@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+/// <reference path="../../../../typings/index.d.ts" />
 "use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
@@ -82,50 +82,51 @@ handler.send = function (msg, session, next) {
                         _msg.meta = msg.meta;
                     chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                         if (docs !== null) {
-                            var resultMsg = JSON.parse(JSON.stringify(docs[0]));
+                            var resultMsg_1 = JSON.parse(JSON.stringify(docs[0]));
                             //<!-- send callback to user who send chat msg.
                             var params = {
-                                messageId: resultMsg._id,
-                                type: resultMsg.type,
-                                createTime: resultMsg.createTime,
-                                clientId: clientUUID
+                                messageId: resultMsg_1._id,
+                                type: resultMsg_1.type,
+                                createTime: resultMsg_1.createTime,
+                                uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
                             //<!-- push chat data to other members in room.
-                            var onChat = {
+                            resultMsg_1.uuid = clientUUID;
+                            var onChat_1 = {
                                 route: Code.sharedEvents.onChat,
-                                data: resultMsg
+                                data: resultMsg_1
                             };
                             //the target is all users
                             if (msg.target === '*') {
                                 //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
+                                var uidsGroup_1 = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
                                     var group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
-                                    uidsGroup.push(group);
+                                    uidsGroup_1.push(group);
                                     console.info("online member:", val.username);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                                    channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_1);
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(thisRoom, resultMsg.sender, offlineMembers);
+                                    callPushNotification(thisRoom, resultMsg_1.sender, offlineMembers);
                                 });
                             }
                             else if (msg.target === "bot") {
                                 //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
+                                var uidsGroup_2 = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
                                     var group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
-                                    uidsGroup.push(group);
+                                    uidsGroup_2.push(group);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                                    channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_2);
                                 });
                             }
                             else {
@@ -567,10 +568,10 @@ function callPushNotification(room, sender, offlineMembers) {
                             }
                         }, function done(err, results) {
                             if (err) {
-                                reject();
+                                reject(err);
                             }
                             else {
-                                resolve();
+                                resolve(results);
                             }
                         });
                     }

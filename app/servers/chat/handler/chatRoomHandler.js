@@ -406,87 +406,79 @@ prototype.getRoomById = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: "some params is invalid." });
         return;
     }
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, res);
+    var id = '';
+    if (owner < roommate) {
+        id = owner.concat(roommate);
+    }
+    else {
+        id = roommate.concat(owner);
+    }
+    var md = crypto.createHash('md5');
+    md.update(id);
+    var hexCode = md.digest('hex');
+    console.log("hexcode: ", hexCode);
+    var roomId = hexCode.slice(0, 24);
+    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (result) {
+        console.info("GetChatRoom", result);
+        if (result !== null) {
+            var obj = JSON.parse(JSON.stringify(result));
+            next(null, { code: Code.OK, data: obj });
         }
         else {
-            var id = '';
-            if (owner < roommate) {
-                id = owner.concat(roommate);
-            }
-            else {
-                id = roommate.concat(owner);
-            }
-            var md = crypto.createHash('md5');
-            md.update(id);
-            var hexCode = md.digest('hex');
-            console.log("hexcode: ", hexCode);
-            var roomId = hexCode.slice(0, 24);
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (result) {
-                console.info("GetChatRoom", result);
+            chatRoomManager.createPrivateChatRoom({ _id: new ObjectID(roomId), members: [owner, roommate] }, function (err, result) {
+                console.info("Create Private Chat Room: ", result);
                 if (result !== null) {
                     var obj = JSON.parse(JSON.stringify(result));
                     next(null, { code: Code.OK, data: obj });
-                }
-                else {
-                    chatRoomManager.createPrivateChatRoom({ _id: new ObjectID(roomId), members: [owner, roommate] }, function (err, result) {
-                        console.info("Create Private Chat Room: ", result);
-                        if (result !== null) {
-                            var obj = JSON.parse(JSON.stringify(result));
-                            next(null, { code: Code.OK, data: obj });
-                            var roomId = result._id;
-                            //  var roomObj = JSON.parse(JSON.stringify(result));
-                            var members = new Array();
-                            for (var i in result.members) {
-                                members.push(result.members[i]);
+                    var roomId = result._id;
+                    //  var roomObj = JSON.parse(JSON.stringify(result));
+                    var members = new Array();
+                    for (var i in result.members) {
+                        members.push(result.members[i]);
+                    }
+                    var roomMemberData = { _id: roomId, members: members };
+                    self.app.rpc.chat.chatRemote.updateRoomMembers(session, roomMemberData, null);
+                    //<!-- Push updated lastAccessRoom fields to all members.
+                    async.each(members, function (member, cb) {
+                        //<!-- Add rid to user members lastAccessField.
+                        userManager.AddRoomIdToRoomAccessFieldForUser(roomId, member.id, new Date(), function (err, res) {
+                            if (err) {
+                                cb(err);
                             }
-                            var roomMemberData = { _id: roomId, members: members };
-                            self.app.rpc.chat.chatRemote.updateRoomMembers(session, roomMemberData, null);
-                            //<!-- Push updated lastAccessRoom fields to all members.
-                            async.each(members, function (member, cb) {
-                                //<!-- Add rid to user members lastAccessField.
-                                userManager.AddRoomIdToRoomAccessFieldForUser(roomId, member.id, new Date(), function (err, res) {
+                            else {
+                                chatService.getOnlineUser(member.id, function (err, user) {
                                     if (err) {
-                                        cb(err);
+                                        console.error(err);
                                     }
                                     else {
-                                        chatService.getOnlineUser(member.id, function (err, user) {
+                                        //<!-- Dont use getRoomAccessOfRoomId it not work when insert and then find db.
+                                        userManager.getRoomAccessForUser(member.id, function (err, roomAccess) {
                                             if (err) {
                                                 console.error(err);
                                             }
                                             else {
-                                                //<!-- Dont use getRoomAccessOfRoomId it not work when insert and then find db.
-                                                userManager.getRoomAccessForUser(member.id, function (err, roomAccess) {
-                                                    if (err) {
-                                                        console.error(err);
-                                                    }
-                                                    else {
-                                                        var targetId = { uid: user.uid, sid: user.serverId };
-                                                        var pushGroup = new Array();
-                                                        pushGroup.push(targetId);
-                                                        var param = {
-                                                            route: Code.sharedEvents.onAddRoomAccess,
-                                                            data: roomAccess
-                                                        };
-                                                        channelService.pushMessageByUids(param.route, param.data, pushGroup);
-                                                    }
-                                                });
+                                                var targetId = { uid: user.uid, sid: user.serverId };
+                                                var pushGroup = new Array();
+                                                pushGroup.push(targetId);
+                                                var param = {
+                                                    route: Code.sharedEvents.onAddRoomAccess,
+                                                    data: roomAccess
+                                                };
+                                                channelService.pushMessageByUids(param.route, param.data, pushGroup);
                                             }
                                         });
                                     }
                                 });
-                            }, function (errCb) {
-                                console.error("AddRoomIdToRoomAccessFieldForUser_fail", errCb);
-                            });
-                        }
-                        else {
-                            next(null, {
-                                code: Code.FAIL,
-                                message: "have no a room."
-                            });
-                        }
+                            }
+                        });
+                    }, function (errCb) {
+                        console.error("AddRoomIdToRoomAccessFieldForUser_fail", errCb);
+                    });
+                }
+                else {
+                    next(null, {
+                        code: Code.FAIL,
+                        message: "have no a room."
                     });
                 }
             });

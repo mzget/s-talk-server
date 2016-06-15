@@ -1,10 +1,10 @@
-/// <reference path="./typings/tsd.d.ts" />
+/// <reference path="./typings/index.d.ts" />
 "use strict";
 var pomelo = require('pomelo');
-var routeUtil = require('./app/util/routeUtil');
 var MChatService = require('./app/services/chatService');
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
+var routeUtil_1 = require('./app/util/routeUtil');
 var webConfig = require('./config/webConfig');
 /**
  * Init app for client.
@@ -17,7 +17,7 @@ app.configure('production|development', function () {
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
     // route configures
-    app.route('chat', routeUtil.chat);
+    app.route('chat', routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
     app.filter(pomelo.filters.timeout(webConfig.timeout));

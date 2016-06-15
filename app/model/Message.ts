@@ -18,4 +18,8 @@ export class Message {
     createTime: Date;
     readers: string[];
     meta: MessageMeta;
+    /**
+     * uuid mean client side uuid.
+     */
+    uuid: string;
 }

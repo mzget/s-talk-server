@@ -1,4 +1,4 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
+﻿/// <reference path="../../../../typings/index.d.ts" />
 
 import Mcontroller = require('../../../controller/ChatRoomManager');
 import MChatService = require('../../../services/chatService');
@@ -12,7 +12,7 @@ import MPushService = require('../../../services/ParsePushService');
 import mongodb = require('mongodb');
 import https = require('https');
 import async = require('async');
-import promise = require('es6-promise');
+import promise = require('promise');
 
 
 const webConfig = require('../../../../config/webConfig.json');
@@ -55,7 +55,7 @@ handler.send = function (msg, session, next) {
     let clientUUID = msg.uuid;
 
     if (!rid) {
-        var errMsg = "rid is invalid please chaeck.";
+        let errMsg = "rid is invalid please chaeck.";
         next(null, { code: Code.FAIL, message: errMsg, body: msg });
         return;
     }
@@ -92,7 +92,7 @@ handler.send = function (msg, session, next) {
                         });
                     });
 
-                    var _msg = new MMessage.Message();
+                    let _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
                         _msg.type = msg.type,
                         _msg.body = msg.content,
@@ -101,18 +101,20 @@ handler.send = function (msg, session, next) {
                         _msg.meta = msg.meta;
                     chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                         if (docs !== null) {
-                            var resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
+                            let resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
                             //<!-- send callback to user who send chat msg.
-                            var params = {
+                            let params = {
                                 messageId: resultMsg._id,
                                 type: resultMsg.type,
                                 createTime: resultMsg.createTime,
-                                clientId : clientUUID
+                                uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
 
                             //<!-- push chat data to other members in room.
-                            var onChat = {
+
+                            resultMsg.uuid = clientUUID;
+                            let onChat = {
                                 route: Code.sharedEvents.onChat,
                                 data: resultMsg
                             };
@@ -120,9 +122,9 @@ handler.send = function (msg, session, next) {
                             //the target is all users
                             if (msg.target === '*') {
                                 //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
+                                let uidsGroup = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
+                                    let group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
@@ -139,9 +141,9 @@ handler.send = function (msg, session, next) {
                             }
                             else if (msg.target === "bot") {
                                 //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
+                                let uidsGroup = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
+                                    let group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
@@ -280,7 +282,7 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
         next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
     }, webConfig.timeout);
-    
+
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
 
@@ -304,7 +306,7 @@ handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => vo
         next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
-    
+
     let _timeOut = setTimeout(() => {
         next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
         return;
@@ -642,10 +644,10 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
                                 }
                             }, function done(err, results) {
                                 if (err) {
-                                    reject();
+                                    reject(err);
                                 }
                                 else {
-                                    resolve();
+                                    resolve(results);
                                 }
                             });
                         }

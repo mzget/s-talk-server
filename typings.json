@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "jsonwebtoken": "registry:npm/jsonwebtoken#5.5.4+20160208220328"
+  },
+  "globalDependencies": {
+    "async": "registry:dt/async#1.4.2+20160602152629",
+    "mongodb": "registry:dt/mongodb#2.1.0+20160602142941",
+    "node": "registry:dt/node#6.0.0+20160608110640",
+    "parse": "registry:dt/parse#1.2.19+20160316155526",
+    "promise": "registry:dt/promise#7.1.1+20160602154553"
   }
 }

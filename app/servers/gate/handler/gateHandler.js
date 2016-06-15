@@ -1,7 +1,7 @@
 "use strict";
-var dispatcher = require('../../../util/dispatcher');
 var Code = require('../../../../shared/Code');
 var TokenService = require('../../../services/tokenService');
+var dispatcher_1 = require('../../../util/dispatcher');
 var tokenService = new TokenService();
 module.exports = function (app) {
     return new Handler(app);
@@ -35,7 +35,7 @@ handler.queryEntry = function (msg, session, next) {
         return;
     }
     // select connector
-    var res = dispatcher.dispatch(uid, connectors);
+    var res = dispatcher_1.default(uid, connectors);
     next(null, {
         code: Code.OK,
         host: res.host,
