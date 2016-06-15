@@ -1,4 +1,3 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
@@ -54,9 +53,8 @@ handler.send = function (msg, session, next) {
             next(null, { code: Code.FAIL, message: "cannot access your request room." });
         }
         else {
-            var accountService = self.app.rpc.auth.getAccountService(session);
-            accountService.getRoom(rid, function (err, room) {
-                console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
+            self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
+                console.log("get members from room: %s name: %s members: %s", rid, room.name, room.members.length);
                 thisRoom = room;
                 if (!room.members) {
                     console.warn("RoomMembers is empty.");
@@ -104,7 +102,7 @@ handler.send = function (msg, session, next) {
                                         sid: val.serverId
                                     };
                                     uidsGroup.push(group);
-                                    console.info("online member:", val.username);
+                                    console.log("online member:", val);
                                     cb();
                                 }, function done() {
                                     channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
@@ -471,114 +469,126 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
     * 4. Know installationsId of receiver users.
     */
     var pushTitle = room.name;
+    var alertMessage = "";
     if (!pushTitle) {
-        var accountService = app.rpc.auth.getAccountService(session);
-        var userTrans = accountService.userTransaction[sender];
-        pushTitle = userTrans.username;
-    }
-    var alertMessage = pushTitle + " has a new message.";
-    var targetDevices = new Array();
-    var targetMemberWhoSubscribeRoom = new Array();
-    //<-- To push only user who subscribe this room. This process need a some logic.
-    /**
-     * - check the offline user who subscribe this room or not.
-     * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
-     * - if one of list has contain room_id dont push message for them.
-     *  */
-    async.waterfall([function (t) {
-            //<!-- checking roomType
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, function (result) {
-                if (!result) {
-                    var errMsg = "checkedRoomType fail.";
-                    console.error(errMsg);
-                    t(new Error(errMsg), null);
-                }
-                else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
-                    t(null, {});
-                }
-                else {
-                    t(null, result.type);
-                }
+        new Promise(function (resolve, reject) {
+            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
+                pushTitle = userTrans.username;
+                resolve(pushTitle);
             });
-        }, function (arg1, cb) {
-            if (arg1 === null) {
-                cb(null, null);
-            }
-            else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
-                /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
-                //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
-                var roomType = JSON.parse(JSON.stringify(arg1));
-                async.eachSeries(offlineMembers, function iterrator(item, callback) {
-                    //                console.warn("offline member _id: ", item);
-                    userManager.checkUnsubscribeRoom(item, roomType, room._id, function (err, results) {
-                        //<!-- if result is contain in unsubscribe list. we ignore this member.
-                        if (!err && results !== null) {
-                        }
-                        else {
-                            var objId = new ObjectID(item);
-                            targetMemberWhoSubscribeRoom.push(objId);
-                        }
-                        callback();
-                    });
-                }, function callback(err) {
-                    if (err) {
-                        cb(err, null);
+        }).then(function (value) {
+            alertMessage = value + " has a new message.";
+            call();
+        });
+    }
+    else {
+        alertMessage = pushTitle + " has a new message.";
+        call();
+    }
+    function call() {
+        var targetDevices = new Array();
+        var targetMemberWhoSubscribeRoom = new Array();
+        //<-- To push only user who subscribe this room. This process need a some logic.
+        /**
+         * - check the offline user who subscribe this room or not.
+         * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
+         * - if one of list has contain room_id dont push message for them.
+         *  */
+        async.waterfall([function (t) {
+                //<!-- checking roomType
+                chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, function (result) {
+                    if (!result) {
+                        var errMsg = "checkedRoomType fail.";
+                        console.error(errMsg);
+                        t(new Error(errMsg), null);
+                    }
+                    else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+                        t(null, {});
                     }
                     else {
-                        cb(null, {});
+                        t(null, result.type);
                     }
                 });
+            }, function (arg1, cb) {
+                if (arg1 === null) {
+                    cb(null, null);
+                }
+                else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
+                    /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
+                    //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
+                    var roomType = JSON.parse(JSON.stringify(arg1));
+                    async.eachSeries(offlineMembers, function iterrator(item, callback) {
+                        //                console.warn("offline member _id: ", item);
+                        userManager.checkUnsubscribeRoom(item, roomType, room._id, function (err, results) {
+                            //<!-- if result is contain in unsubscribe list. we ignore this member.
+                            if (!err && results !== null) {
+                            }
+                            else {
+                                var objId = new ObjectID(item);
+                                targetMemberWhoSubscribeRoom.push(objId);
+                            }
+                            callback();
+                        });
+                    }, function callback(err) {
+                        if (err) {
+                            cb(err, null);
+                        }
+                        else {
+                            cb(null, {});
+                        }
+                    });
+                }
+                else {
+                    offlineMembers.forEach(function (offline) {
+                        var objId = new ObjectID(offline);
+                        targetMemberWhoSubscribeRoom.push(objId);
+                    });
+                    cb(null, {});
+                }
+            }], function (err, result) {
+            if (err || result === null) {
+                console.error(err);
             }
             else {
-                offlineMembers.forEach(function (offline) {
-                    var objId = new ObjectID(offline);
-                    targetMemberWhoSubscribeRoom.push(objId);
+                var promise = new Promise(function (resolve, reject) {
+                    //<!-- Query all deviceTokens for each members.
+                    UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
+                        if (!!res) {
+                            var memberTokens = res; // array of deviceTokens for each member.
+                            async.mapSeries(memberTokens, function iterator(item, cb) {
+                                if (!!item.deviceTokens) {
+                                    var deviceTokens = item.deviceTokens;
+                                    async.mapSeries(deviceTokens, function (token, resultCb) {
+                                        targetDevices.push(token);
+                                        resultCb(null, {});
+                                    }, function done(err, results) {
+                                        if (err) {
+                                            cb(err, null);
+                                        }
+                                        else {
+                                            cb(null, null);
+                                        }
+                                    });
+                                }
+                                else {
+                                    cb(null, null);
+                                }
+                            }, function done(err, results) {
+                                if (err) {
+                                    reject(err);
+                                }
+                                else {
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }).then(function onfulfill(value) {
+                    pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+                }).catch(function onRejected(err) {
+                    console.error("push to target deviceTokens fail.", err);
                 });
-                cb(null, {});
             }
-        }], function (err, result) {
-        if (err || result === null) {
-            console.error(err);
-        }
-        else {
-            var promise_1 = new Promise(function (resolve, reject) {
-                //<!-- Query all deviceTokens for each members.
-                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
-                    if (!!res) {
-                        var memberTokens = res; // array of deviceTokens for each member.
-                        async.mapSeries(memberTokens, function iterator(item, cb) {
-                            if (!!item.deviceTokens) {
-                                var deviceTokens = item.deviceTokens;
-                                async.mapSeries(deviceTokens, function (token, resultCb) {
-                                    targetDevices.push(token);
-                                    resultCb(null, {});
-                                }, function done(err, results) {
-                                    if (err) {
-                                        cb(err, null);
-                                    }
-                                    else {
-                                        cb(null, null);
-                                    }
-                                });
-                            }
-                            else {
-                                cb(null, null);
-                            }
-                        }, function done(err, results) {
-                            if (err) {
-                                reject();
-                            }
-                            else {
-                                resolve();
-                            }
-                        });
-                    }
-                });
-            }).then(function onfulfill(value) {
-                pushService.sendPushToTargetDevices(targetDevices, alertMessage);
-            }).catch(function onRejected(err) {
-                console.error("push to target deviceTokens fail.", err);
-            });
-        }
-    });
+        });
+    }
 }
