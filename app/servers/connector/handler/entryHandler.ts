@@ -106,7 +106,8 @@ handler.login = function (msg, session, next) {
 
 			channelService.broadcast("connector", param.route, param.data);
 
-			addOnlineUser(self.app, session, result.uid);
+			//@ Comment this line when we dont want to force user to online-list when loged-in.
+//			addOnlineUser(self.app, session, result.uid);
 		}
 		else if (result.code === Code.DuplicatedLogin) {
 			// session.__sessionService__.kick()

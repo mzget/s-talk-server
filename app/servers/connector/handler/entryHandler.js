@@ -91,7 +91,6 @@ handler.login = function (msg, session, next) {
                 data: { _id: result.uid }
             };
             channelService.broadcast("connector", param.route, param.data);
-            addOnlineUser(self.app, session, result.uid);
         }
         else if (result.code === Code.DuplicatedLogin) {
         }
