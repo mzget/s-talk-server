@@ -1,6 +1,4 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
-
-import Mcontroller = require('../../../controller/ChatRoomManager');
+﻿import Mcontroller = require('../../../controller/ChatRoomManager');
 import Room = require('../../../model/Room');
 import mongodb = require('mongodb');
 import ObjectID = mongodb.ObjectID;

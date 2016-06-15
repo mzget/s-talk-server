@@ -1,4 +1,4 @@
-/// <reference path="./typings/tsd.d.ts" />
+/// <reference path="./typings/index.d.ts" />
 "use strict";
 var pomelo = require('pomelo');
 var routeUtil = require('./app/util/routeUtil');

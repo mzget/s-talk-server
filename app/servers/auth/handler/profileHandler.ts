@@ -3,7 +3,6 @@
 * for edit user profile info.
 ***********************************************/
 
-/// <reference path="../../../../typings/tsd.d.ts" />
 import Mdb = require('../../../db/dbClient');
 import code = require('../../../../shared/Code');
 import MUser = require('../../../controller/UserManager');

@@ -1,4 +1,3 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
@@ -541,7 +540,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
             console.error(err);
         }
         else {
-            var promise_1 = new Promise(function (resolve, reject) {
+            var promise = new Promise(function (resolve, reject) {
                 //<!-- Query all deviceTokens for each members.
                 UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
                     if (!!res) {
@@ -566,10 +565,10 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                             }
                         }, function done(err, results) {
                             if (err) {
-                                reject();
+                                reject(err);
                             }
                             else {
-                                resolve();
+                                resolve(results);
                             }
                         });
                     }

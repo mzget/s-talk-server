@@ -1,6 +1,4 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
-
-import Mcontroller = require('../../../controller/ChatRoomManager');
+﻿import Mcontroller = require('../../../controller/ChatRoomManager');
 import MUserManager = require("../../../controller/UserManager");
 import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
@@ -12,7 +10,6 @@ import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
 import https = require('https');
 import async = require('async');
-import promise = require('es6-promise');
 
 const webConfig = require('../../../../config/webConfig.json');
 const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -639,10 +636,10 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
                                 }
                             }, function done(err, results) {
                                 if (err) {
-                                    reject();
+                                    reject(err);
                                 }
                                 else {
-                                    resolve();
+                                    resolve(results);
                                 }
                             });
                         }

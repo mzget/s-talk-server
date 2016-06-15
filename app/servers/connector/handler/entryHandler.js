@@ -1,18 +1,17 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var CompanyController = require("../../../controller/CompanyManager");
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var Code = require('../../../../shared/Code');
 var User = require('../../../model/User');
 var userDAL = require('../../../dal/userDataAccess');
-var TokenService = require('../../../services/tokenService');
+var tokenService_1 = require('../../../services/tokenService');
 var MUser = require('../../../controller/UserManager');
 var async = require('async');
 var mongodb = require('mongodb');
 var webConfig = require('../../../../config/webConfig.json');
 var ObjectID = mongodb.ObjectID;
 var http = require('http');
-var tokenService = new TokenService();
+var tokenService = new tokenService_1.default();
 var companyManager = CompanyController.CompanyManager.getInstance();
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUser.Controller.UserManager.getInstance();
@@ -80,26 +79,24 @@ handler.login = function (msg, session, next) {
     var id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
-    self.app.rpc.auth.authRemote.getOnlineUsers(session, function (err, onlineUsers) {
-        self.app.rpc.auth.authRemote.auth(session, email, pass, onlineUsers, function (result) {
-            if (result.code === Code.OK) {
-                //@ Signing success.
-                session.bind(result.uid);
-                session.on('closed', onUserLeave.bind(null, self.app));
-                if (!!registrationId) {
-                    userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-                }
-                var param = {
-                    route: Code.sharedEvents.onUserLogin,
-                    data: { _id: result.uid }
-                };
-                channelService.broadcast("connector", param.route, param.data);
+    self.app.rpc.auth.authRemote.auth(session, email, pass, function (result) {
+        if (result.code === Code.OK) {
+            //@ Signing success.
+            session.bind(result.uid);
+            session.on('closed', onUserLeave.bind(null, self.app));
+            if (!!registrationId) {
+                userDAL.prototype.saveRegistrationId(result.uid, registrationId);
             }
-            else if (result.code === Code.DuplicatedLogin) {
-            }
-            clearTimeout(id);
-            next(null, result);
-        });
+            var param = {
+                route: Code.sharedEvents.onUserLogin,
+                data: { _id: result.uid }
+            };
+            channelService.broadcast("connector", param.route, param.data);
+        }
+        else if (result.code === Code.DuplicatedLogin) {
+        }
+        clearTimeout(id);
+        next(null, result);
     });
 };
 handler.logout = function (msg, session, next) {

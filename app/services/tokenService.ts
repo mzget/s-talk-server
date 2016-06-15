@@ -1,8 +1,9 @@
-/// <reference path="../../typings/tsd.d.ts" />
-import jwt = require('jsonwebtoken');
-var sessionConfig = require('../../config/session.json');
+/// <reference path="../../typings/index.d.ts" />
 
-class TokenService {
+import jwt = require('jsonwebtoken');
+const sessionConfig = require('../../config/session.json');
+
+export default class TokenService {
 	private secret = "";
 	private DEFAULT_SECRET = 'ahoostudio_session_secret';
 	private expire: string | number;
@@ -44,4 +45,3 @@ class TokenService {
 	    }
 	}
 }
-export = TokenService;

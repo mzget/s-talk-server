@@ -1,15 +1,14 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+/// <reference path="../../../../typings/index.d.ts" />
 "use strict";
 var Code = require('../../../../shared/Code');
-var TokenService = require('../../../services/tokenService');
+var tokenService_1 = require('../../../services/tokenService');
 var MAuthen = require('../../../controller/AuthenManager');
 var MUser = require('../../../controller/UserManager');
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUser.Controller.UserManager.getInstance();
 var authenManager = MAuthen.Controller.AuthenManager.getInstance();
-var tokenService = new TokenService();
-var onlineUserCollection;
+var tokenService = new tokenService_1.default();
 var accountService;
 var channelService;
 module.exports = function (app) {
@@ -146,37 +145,37 @@ remote.me = function (msg, cb) {
         cb({ code: Code.OK, data: user });
     }, { roomAccess: 0 });
 };
-remote.auth = function (username, password, onlineUsers, callback) {
-    onlineUserCollection = onlineUsers;
-    authenManager.GetUsername({ username: username }, function (res) {
+remote.auth = function (email, password, callback) {
+    authenManager.GetUsername({ email: email }, function (res) {
         onAuthentication(password, res, callback);
-    }, { username: 1, password: 1 });
+    }, { email: 1, password: 1 });
 };
 var onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
-        var obj = JSON.parse(JSON.stringify(userInfo));
-        if (obj.password === _password) {
-            var user = onlineUserCollection[obj._id];
-            if (!user) {
-                // if user is found and password is right
-                // create a token
-                var token = tokenService.signToken(obj);
-                callback({
-                    code: Code.OK,
-                    uid: obj._id,
-                    message: "Authenticate success!",
-                    token: token
-                });
-            }
-            else {
-                console.warn("Duplicate user by onlineUsers collections.");
-                callback({
-                    code: Code.DuplicatedLogin,
-                    message: "duplicate log in.",
-                    uid: obj._id,
-                });
-            }
+        var obj_1 = JSON.parse(JSON.stringify(userInfo));
+        if (obj_1.password === _password) {
+            accountService.getOnlineUser(obj_1._id, function (error, user) {
+                if (!user) {
+                    // if user is found and password is right
+                    // create a token
+                    tokenService.signToken(obj_1, function (err, encode) {
+                        callback({
+                            code: Code.OK,
+                            uid: obj_1._id,
+                            token: encode
+                        });
+                    });
+                }
+                else {
+                    console.warn("Duplicate user by onlineUsers collections.");
+                    callback({
+                        code: Code.DuplicatedLogin,
+                        message: "duplicate log in.",
+                        uid: obj_1._id,
+                    });
+                }
+            });
         }
         else {
             callback({

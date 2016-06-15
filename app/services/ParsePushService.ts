@@ -1,26 +1,25 @@
-﻿/// <reference path="../../typings/tsd.d.ts" />
-
-import https = require('https');
+﻿import https = require('https');
 import MWebConfig = require('../../config/WebConfig');
 
-var webConfig = new MWebConfig.WebConfig();
-var configJson = require('../../config/webConfig.json');
+const configJson = require('../../config/webConfig.json');
 
 export class ParsePushService {
 
+    webConfig = new MWebConfig.WebConfig();
+
     constructor() {
-        webConfig = JSON.parse(JSON.stringify(configJson));
+        this.webConfig = JSON.parse(JSON.stringify(configJson));
     }
 
     public queryingInstallations() {
         var options = {
-            hostname: webConfig.pushServer,
+            hostname: this.webConfig.pushServer,
             port: 443,
             path: "/1/installations",
             method: 'GET',
             headers: {
-                'X-Parse-Application-Id': webConfig.ParseApplicationId,
-                'X-Parse-Master-Key': webConfig.ParseMasterKey
+                'X-Parse-Application-Id': this.webConfig.ParseApplicationId,
+                'X-Parse-Master-Key': this.webConfig.ParseMasterKey
             }
         };
 
@@ -44,7 +43,7 @@ export class ParsePushService {
 
     public sendPushToChannels(channels: string[], alert: string) {
         //var data = "{\"where\": { \"channels\": \"RFL\" }, \"data\": { \"alert\": \"The Giants scored a run! The score is now 2-2.\"}}";
-
+        let self = this;
         var data = {
             "where": {
                 "channels": channels
@@ -54,15 +53,15 @@ export class ParsePushService {
             }
         };
         var postJson = JSON.stringify(data);
-        
+
         var options = {
-            hostname: webConfig.pushServer,
+            hostname: self.webConfig.pushServer,
             port: 443,
             path: "/1/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
+                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };
@@ -87,13 +86,14 @@ export class ParsePushService {
         request.write(postJson);
         request.end();
     }
-    
+
     public sendPushToInstallationsId(installationsId: string[], alert: string) {
-        if(!installationsId || installationsId.length === 0) {
+        let self = this;
+        if (!installationsId || installationsId.length === 0) {
             return;
         }
-        
-//        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
+
+        //        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
         var data = {
             "where": {
                 "installationId": { "$in": installationsId }
@@ -106,13 +106,13 @@ export class ParsePushService {
         var postJson = JSON.stringify(data);
 
         var options = {
-            hostname: webConfig.pushServer,
+            hostname: self.webConfig.pushServer,
             port: 443,
             path: "/1/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
+                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };
@@ -139,10 +139,11 @@ export class ParsePushService {
     }
 
     public sendPushToTargetDevices(registrationIds: string[], alert: string) {
+        let self = this;
         if (!registrationIds || registrationIds.length === 0) {
             return;
         }
-        
+
         //        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
         var data = {
             "where": {
@@ -158,13 +159,13 @@ export class ParsePushService {
         var postJson = JSON.stringify(data);
 
         var options = {
-            hostname: webConfig.pushServer,
+            hostname: self.webConfig.pushServer,
             port: 443,
             path: "/1/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
+                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };

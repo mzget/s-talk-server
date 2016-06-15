@@ -1,9 +1,7 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
-
-import Mcontroller = require("../../../controller/ChatRoomManager");
+﻿import Mcontroller = require("../../../controller/ChatRoomManager");
 import MUserManager = require("../../../controller/UserManager");
 import Code = require("../../../../shared/Code");
-import TokenService = require("../../../services/tokenService");
+import TokenService from "../../../services/tokenService";
 import mongodb = require('mongodb');
 import crypto = require('crypto');
 import { AccountService } from '../../../services/accountService';

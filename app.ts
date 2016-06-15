@@ -1,4 +1,4 @@
-﻿/// <reference path="./typings/tsd.d.ts" />
+﻿/// <reference path="./typings/index.d.ts" />
 
 const pomelo = require('pomelo');
 const routeUtil = require('./app/util/routeUtil');

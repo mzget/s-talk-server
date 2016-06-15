@@ -1,9 +1,8 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var MUserManager = require("../../../controller/UserManager");
 var Code = require("../../../../shared/Code");
-var TokenService = require("../../../services/tokenService");
+var tokenService_1 = require("../../../services/tokenService");
 var mongodb = require('mongodb');
 var crypto = require('crypto');
 var Room = require('../../../model/Room');
@@ -13,7 +12,7 @@ var webConfig = require('../../../../config/webConfig.json');
 var ObjectID = mongodb.ObjectID;
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
-var tokenService = new TokenService();
+var tokenService = new tokenService_1.default();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRoomHandler.");

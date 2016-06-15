@@ -6,7 +6,7 @@
     "allowJs": false
   },
   "exclude": [
-    "./typings",
-    "./node_modules"
+    "typings",
+    "node_modules"
   ]
 }

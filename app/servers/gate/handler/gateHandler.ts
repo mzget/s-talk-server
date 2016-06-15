@@ -1,5 +1,5 @@
 import Code = require('../../../../shared/Code');
-import TokenService = require('../../../services/tokenService');
+import TokenService from '../../../services/tokenService';
 import dispatcher from '../../../util/dispatcher';
 const tokenService: TokenService = new TokenService();
 

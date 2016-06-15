@@ -3,7 +3,6 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
-/// <reference path="../../../../typings/tsd.d.ts" />
 var Mdb = require('../../../db/dbClient');
 var code = require('../../../../shared/Code');
 var MUser = require('../../../controller/UserManager');

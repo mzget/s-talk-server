@@ -3,22 +3,20 @@
 * for edit user profile info.
 ***********************************************/
 
-/// <reference path="../../../../typings/tsd.d.ts" />
-
 import Mdb = require('../../../db/dbClient');
 import code = require('../../../../shared/Code');
 import MUser = require('../../../controller/UserManager');
 import User = require('../../../model/User');
 import Room = require('../../../model/Room');
 import async = require('async');
-import MChatService = require('../../../services/chatService');
+import { AccountService } from '../../../services/accountService';
 import FriendManager from "../../../controller/friendManager";
 
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;
 const webConfig = require('../../../../config/webConfig.json');
 var channelService;
-var chatService : MChatService.ChatService;
+var chatService : AccountService;
 
 module.exports = function (app) {
     console.info("instanctiate userHandler.");

@@ -1,5 +1,5 @@
+/// <reference path="../../typings/index.d.ts" />
 "use strict";
-/// <reference path="../../typings/tsd.d.ts" />
 var jwt = require('jsonwebtoken');
 var sessionConfig = require('../../config/session.json');
 var TokenService = (function () {
@@ -41,4 +41,5 @@ var TokenService = (function () {
     };
     return TokenService;
 }());
-module.exports = TokenService;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TokenService;

@@ -1,12 +1,9 @@
-﻿/// <reference path="../../typings/tsd.d.ts" />
-
-import User = require('../model/User');
+﻿import User = require('../model/User');
 import Room = require('../model/Room');
 import RoomAccess = require('../model/RoomAccessData');
 import Mdb = require('../db/dbClient');
 import mongodb = require('mongodb');
 import async = require('async');
-import mongoose = require('mongoose');
 import generic = require('../util/collections');
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
