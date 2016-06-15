@@ -8,9 +8,9 @@
     "crc": "0.2.0",
     "form-data": "*",
     "jsonwebtoken": "*",
-    "mongodb": "*",
+    "mongodb": "^2.1.18",
     "parse": "^*",
-    "promise": "*",
-    "pomelo": "1.2.3"
+    "pomelo": "1.2.3",
+    "promise": "^7.1.1"
   }
 }

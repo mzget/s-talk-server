@@ -2,7 +2,7 @@
 "use strict";
 var pomelo = require('pomelo');
 var routeUtil = require('./app/util/routeUtil');
-var MChatService = require('./app/services/chatService');
+var accountService_1 = require('./app/services/accountService');
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
 var webConfig = require('./config/webConfig');
@@ -10,7 +10,7 @@ var webConfig = require('./config/webConfig');
  * Init app for client.
  */
 var app = pomelo.createApp();
-app.set('name', 'the-spartanchat-node');
+app.set('name', 'stalk-node-server');
 // app configure
 app.configure('production|development', function () {
     // filter configures
@@ -24,9 +24,9 @@ app.configure('production|development', function () {
 });
 // Configure for auth server
 app.configure('production|development', 'auth', function () {
+    app.set('accountService', new accountService_1.AccountService(app));
 });
 app.configure('production|development', 'chat', function () {
-    app.set('chatService', new MChatService.ChatService(app));
 });
 //app.configure('production|development', 'master', function () {
 //var http = new HttpDebug();

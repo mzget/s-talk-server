@@ -13,8 +13,8 @@ var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
 var userManager = MUser.Controller.UserManager.getInstance();
 var channelService;
-console.info("instanctiate profileHandler.");
 module.exports = function (app) {
+    console.info("instanctiate profileHandler.");
     return new ProfileHandler(app);
 };
 var ProfileHandler = function (app) {

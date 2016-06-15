@@ -15,7 +15,6 @@ var userManager = MUserManager.Controller.UserManager.getInstance();
 var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
 var channelService;
-var chatService;
 module.exports = function (app) {
     console.info("instanctiate ChatHandler.");
     return new Handler(app);
@@ -23,7 +22,6 @@ module.exports = function (app) {
 var Handler = function (app) {
     this.app = app;
     channelService = this.app.get('channelService');
-    chatService = this.app.get('chatService');
 };
 var handler = Handler.prototype;
 /**
@@ -51,12 +49,13 @@ handler.send = function (msg, session, next) {
     var thisRoom = null;
     var onlineMembers = new Array();
     var offlineMembers = new Array();
-    self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
+    self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
         if (err || res === false) {
             next(null, { code: Code.FAIL, message: "cannot access your request room." });
         }
         else {
-            chatService.getRoom(rid, function (err, room) {
+            var accountService = self.app.rpc.auth.getAccountService(session);
+            accountService.getRoom(rid, function (err, room) {
                 console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
                 thisRoom = room;
                 if (!room.members) {
@@ -64,7 +63,7 @@ handler.send = function (msg, session, next) {
                 }
                 else {
                     room.members.forEach(function (value) {
-                        self.app.rpc.chat.chatRemote.getOnlineUser(session, value.id, function (err2, user) {
+                        self.app.rpc.auth.authRemote.getOnlineUser(session, value.id, function (err2, user) {
                             if (err2 || user === null) {
                                 offlineMembers.push(value.id);
                             }
@@ -110,7 +109,7 @@ handler.send = function (msg, session, next) {
                                 }, function done() {
                                     channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(thisRoom, resultMsg.sender, offlineMembers);
+                                    callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
                                 });
                             }
                             else if (msg.target === "bot") {
@@ -462,7 +461,7 @@ function getWhoReadMessages(messages, channel) {
         console.log("getWhoReadMessages. done");
     });
 }
-function callPushNotification(room, sender, offlineMembers) {
+function callPushNotification(app, session, room, sender, offlineMembers) {
     //<!-- Push message to off line users via parse.
     /**<!-- Before push message via parse.
     * Todo
@@ -473,7 +472,8 @@ function callPushNotification(room, sender, offlineMembers) {
     */
     var pushTitle = room.name;
     if (!pushTitle) {
-        var userTrans = chatService.userTransaction[sender];
+        var accountService = app.rpc.auth.getAccountService(session);
+        var userTrans = accountService.userTransaction[sender];
         pushTitle = userTrans.username;
     }
     var alertMessage = pushTitle + " has a new message.";

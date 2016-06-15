@@ -2,7 +2,7 @@
 
 const pomelo = require('pomelo');
 const routeUtil = require('./app/util/routeUtil');
-import MChatService = require('./app/services/chatService');
+import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
 const webConfig = require('./config/webConfig');
@@ -11,7 +11,7 @@ const webConfig = require('./config/webConfig');
  * Init app for client.
  */
 var app = pomelo.createApp();
-app.set('name', 'the-spartanchat-node');
+app.set('name', 'stalk-node-server');
 
 // app configure
 app.configure('production|development', function () {
@@ -29,18 +29,17 @@ app.configure('production|development', function () {
 
 // Configure for auth server
 app.configure('production|development', 'auth', function () {
-
+    app.set('accountService', new AccountService(app));
 });
 
 app.configure('production|development', 'chat', function () {
-    app.set('chatService', new MChatService.ChatService(app));
 });
 
 //app.configure('production|development', 'master', function () {
-    //var http = new HttpDebug();
-    //http.start();
-    //var net = new netserver.NetServer();
-    //net.Start();
+//var http = new HttpDebug();
+//http.start();
+//var net = new netserver.NetServer();
+//net.Start();
 //});
 
 // start app

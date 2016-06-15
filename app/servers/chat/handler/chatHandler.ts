@@ -1,7 +1,6 @@
 ﻿/// <reference path="../../../../typings/tsd.d.ts" />
 
 import Mcontroller = require('../../../controller/ChatRoomManager');
-import MChatService = require('../../../services/chatService');
 import MUserManager = require("../../../controller/UserManager");
 import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
@@ -9,11 +8,11 @@ import MRoom = require('../../../model/Room');
 import MMessage = require('../../../model/Message');
 import Code = require('../../../../shared/Code');
 import MPushService = require('../../../services/ParsePushService');
+import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
 import https = require('https');
 import async = require('async');
 import promise = require('es6-promise');
-
 
 const webConfig = require('../../../../config/webConfig.json');
 const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -21,7 +20,6 @@ const userManager = MUserManager.Controller.UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();
 const ObjectID = mongodb.ObjectID;
 var channelService;
-var chatService: MChatService.ChatService;
 
 
 module.exports = function (app) {
@@ -29,13 +27,12 @@ module.exports = function (app) {
     return new Handler(app);
 }
 
-var Handler = function (app) {
+const Handler = function (app) {
     this.app = app;
     channelService = this.app.get('channelService');
-    chatService = this.app.get('chatService');
 }
 
-var handler = Handler.prototype;
+const handler = Handler.prototype;
 
 /**
  * Send messages to users
@@ -54,7 +51,7 @@ handler.send = function (msg, session, next) {
     let rid = session.get('rid');
 
     if (!rid) {
-        var errMsg = "rid is invalid please chaeck.";
+        let errMsg = "rid is invalid please chaeck.";
         console.error(errMsg);
         next(null, { code: Code.FAIL, message: errMsg });
         return;
@@ -64,14 +61,14 @@ handler.send = function (msg, session, next) {
     let thisRoom: MRoom.Room = null;
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
-
-
-    self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
+    
+    self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
         if (err || res === false) {
             next(null, { code: Code.FAIL, message: "cannot access your request room." });
         }
         else {
-            chatService.getRoom(rid, function (err, room) {
+            let accountService: AccountService = self.app.rpc.auth.getAccountService(session);
+            accountService.getRoom(rid, function (err, room) {
                 console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
 
                 thisRoom = room;
@@ -80,7 +77,7 @@ handler.send = function (msg, session, next) {
                 }
                 else {
                     room.members.forEach(value => {
-                        self.app.rpc.chat.chatRemote.getOnlineUser(session, value.id, function (err2, user) {
+                        self.app.rpc.auth.authRemote.getOnlineUser(session, value.id, function (err2, user) {
                             if (err2 || user === null) {
                                 offlineMembers.push(value.id);
                                 //console.info("who offline:", value.id, user, err2);
@@ -133,7 +130,7 @@ handler.send = function (msg, session, next) {
                                     channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
 
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(thisRoom, resultMsg.sender, offlineMembers);
+                                    callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
                                 });
                             }
                             else if (msg.target === "bot") {
@@ -250,7 +247,7 @@ handler.getChatHistory = function (msg, session, next) {
         if (result !== null) {
             clearTimeout(_timeOut);
 
-            var chatrecords = JSON.parse(JSON.stringify(result));
+            let chatrecords = JSON.parse(JSON.stringify(result));
             next(null, { code: Code.OK, data: chatrecords });
 
             //<!-- When get chat history complete. System will update roomAccess data for user.
@@ -531,7 +528,7 @@ function getWhoReadMessages(messages: Array<string>, channel) {
     });
 }
 
-function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: Array<string>): void {
+function callPushNotification(app: any, session: any, room: MRoom.Room, sender: string, offlineMembers: Array<string>): void {
     //<!-- Push message to off line users via parse.
     /**<!-- Before push message via parse.
     * Todo 
@@ -542,10 +539,11 @@ function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: 
     */
     var pushTitle = room.name;
     if (!pushTitle) {
-        var userTrans = chatService.userTransaction[sender];
+        let accountService: AccountService = app.rpc.auth.getAccountService(session);
+        let userTrans = accountService.userTransaction[sender];
         pushTitle = userTrans.username;
     }
-    var alertMessage = pushTitle + " has a new message.";
+    let alertMessage = pushTitle + " has a new message.";
     let targetDevices = new Array<string>();
     let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
     //<-- To push only user who subscribe this room. This process need a some logic.
