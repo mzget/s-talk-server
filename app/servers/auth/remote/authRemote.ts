@@ -177,6 +177,20 @@ remote.me = function (msg, cb) {
     }, { roomAccess: 0 });
 }
 
+remote.myProfile = function (userId: string, cb: Function) {
+    userManager.getMemberProfile(userId, (err, res) => {
+        if (res === null) {
+            var errMsg = "Get my user data is invalid.";
+            console.error(errMsg);
+            cb({ code: Code.FAIL, message: errMsg });
+            return;
+        }
+
+        cb({ code: Code.OK, data: res });
+    });
+}
+
+
 remote.auth = function (email, password, callback) {
     authenManager.GetUsername({ username: email }, function (res) {
         onAuthentication(password, res, callback);

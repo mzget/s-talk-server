@@ -91,6 +91,7 @@ handler.login = function (msg, session, next) {
                 data: { _id: result.uid }
             };
             channelService.broadcast("connector", param.route, param.data);
+            addOnlineUser(self.app, session, result.uid);
         }
         else if (result.code === Code.DuplicatedLogin) {
         }
@@ -185,6 +186,28 @@ handler.getMe = function (msg, session, next) {
         }
     });
 };
+function addOnlineUser(app, session, userId) {
+    app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
+        var datas = JSON.parse(JSON.stringify(result.data));
+        var my = datas[0];
+        var onlineUser = new User.OnlineUser();
+        onlineUser.uid = my._id;
+        onlineUser.username = my.username;
+        onlineUser.serverId = session.frontendId;
+        onlineUser.registrationIds = my.deviceTokens;
+        var userTransaction = new User.UserTransaction();
+        userTransaction.uid = my._id;
+        userTransaction.username = my.username;
+        //!-- check uid in onlineUsers list.
+        //var usersDict = userManager.onlineUsers;
+        //for (var i in usersDict) {
+        //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
+        //}
+        console.log("New onlineUsers %s : ", onlineUser);
+        app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+        app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+    });
+}
 /**
 * getLastAccessRooms.
 * Require uid.
