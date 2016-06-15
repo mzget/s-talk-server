@@ -54,6 +54,8 @@
     <TypeScriptCompile Include="typings\async\async.d.ts" />
     <TypeScriptCompile Include="typings\async\async.d.ts" />
     <TypeScriptCompile Include="typings\async\async.d.ts" />
+    <TypeScriptCompile Include="typings\async\async.d.ts" />
+    <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
     <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
     <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
     <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
@@ -68,8 +70,13 @@
     <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
     <TypeScriptCompile Include="typings\es6-promise\es6-promise.d.ts" />
     <TypeScriptCompile Include="typings\globals\async\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\async\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\mongodb\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\mongodb\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\node\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\parse\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\parse\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\promise\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\promise\index.d.ts" />
     <TypeScriptCompile Include="typings\index.d.ts" />
     <TypeScriptCompile Include="typings\index.d.ts" />
@@ -84,6 +91,8 @@
     <TypeScriptCompile Include="typings\index.d.ts" />
     <TypeScriptCompile Include="typings\index.d.ts" />
     <TypeScriptCompile Include="typings\index.d.ts" />
+    <TypeScriptCompile Include="typings\index.d.ts" />
+    <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
     <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
@@ -110,6 +119,8 @@
     <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
     <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
     <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
+    <TypeScriptCompile Include="typings\jsonwebtoken\jsonwebtoken.d.ts" />
+    <TypeScriptCompile Include="typings\modules\jsonwebtoken\index.d.ts" />
     <TypeScriptCompile Include="typings\modules\jsonwebtoken\index.d.ts" />
     <TypeScriptCompile Include="typings\modules\jsonwebtoken\index.d.ts" />
     <TypeScriptCompile Include="typings\modules\jsonwebtoken\index.d.ts" />
@@ -136,6 +147,8 @@
     <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
     <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
     <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
+    <TypeScriptCompile Include="typings\mongodb\mongodb.d.ts" />
+    <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
@@ -162,6 +175,8 @@
     <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
@@ -261,6 +276,8 @@
     <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
     <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
     <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
     <TypeScriptCompile Include="typings\underscore\underscore.d.ts" />
@@ -304,6 +321,7 @@
     <Folder Include="typings\globals\" />
     <Folder Include="typings\globals\async\" />
     <Folder Include="typings\globals\mongodb\" />
+    <Folder Include="typings\globals\node\" />
     <Folder Include="typings\globals\parse\" />
     <Folder Include="typings\globals\promise\" />
     <Folder Include="typings\jquery" />

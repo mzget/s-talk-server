@@ -38,10 +38,10 @@ var handler = Handler.prototype;
 handler.send = function (msg, session, next) {
     var self = this;
     var rid = session.get('rid');
+    var clientUUID = msg.uuid;
     if (!rid) {
         var errMsg = "rid is invalid please chaeck.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code.FAIL, message: errMsg, body: msg });
         return;
     }
     //<!-- Get online members of room.
@@ -84,10 +84,12 @@ handler.send = function (msg, session, next) {
                             var params = {
                                 messageId: resultMsg._id,
                                 type: resultMsg.type,
-                                createTime: resultMsg.createTime
+                                createTime: resultMsg.createTime,
+                                uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
                             //<!-- push chat data to other members in room.
+                            resultMsg.uuid = clientUUID;
                             var onChat = {
                                 route: Code.sharedEvents.onChat,
                                 data: resultMsg
@@ -95,17 +97,17 @@ handler.send = function (msg, session, next) {
                             //the target is all users
                             if (msg.target === '*') {
                                 //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
+                                var uidsGroup_1 = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
                                     var group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
-                                    uidsGroup.push(group);
+                                    uidsGroup_1.push(group);
                                     console.log("online member:", val);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup_1);
                                     //<!-- Push message to off line users via parse.
                                     callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
                                 });

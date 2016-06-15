@@ -46,11 +46,11 @@ const handler = Handler.prototype;
 handler.send = function (msg, session, next) {
     let self = this;
     let rid = session.get('rid');
-
+    let clientUUID = msg.uuid;
+    
     if (!rid) {
         let errMsg = "rid is invalid please chaeck.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code.FAIL, message: errMsg, body: msg });
         return;
     }
 
@@ -85,7 +85,7 @@ handler.send = function (msg, session, next) {
                         });
                     });
 
-                    var _msg = new MMessage.Message();
+                    let _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
                         _msg.type = msg.type,
                         _msg.body = msg.content,
@@ -99,11 +99,13 @@ handler.send = function (msg, session, next) {
                             var params = {
                                 messageId: resultMsg._id,
                                 type: resultMsg.type,
-                                createTime: resultMsg.createTime
+                                createTime: resultMsg.createTime,
+                                uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
 
                             //<!-- push chat data to other members in room.
+                            resultMsg.uuid = clientUUID;
                             var onChat = {
                                 route: Code.sharedEvents.onChat,
                                 data: resultMsg
@@ -112,9 +114,9 @@ handler.send = function (msg, session, next) {
                             //the target is all users
                             if (msg.target === '*') {
                                 //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
+                                let uidsGroup = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
+                                    let group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
