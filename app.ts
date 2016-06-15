@@ -1,18 +1,17 @@
-﻿/// <reference path="./typings/index.d.ts" />
+﻿/// <reference path="./typings/tsd.d.ts" />
 
 const pomelo = require('pomelo');
-import MChatService = require('./app/services/chatService');
+const routeUtil = require('./app/util/routeUtil');
+import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-
-import chatRoute from './app/util/routeUtil';
 const webConfig = require('./config/webConfig');
 
 /**
  * Init app for client.
  */
-var app = pomelo.createApp();
-app.set('name', 'the-spartanchat-node');
+const app = pomelo.createApp();
+app.set('name', 'stalk-node-server');
 
 // app configure
 app.configure('production|development', function () {
@@ -21,12 +20,12 @@ app.configure('production|development', function () {
     //    app.filter(pomelo.filters.serial(5000));
 
     // route configures
-    app.route('chat', chatRoute);
+    app.route('chat', routeUtil.chat);
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
     app.filter(pomelo.filters.timeout(webConfig.timeout));
-   
+       
     app.set('connectorConfig',
     {
         connector : pomelo.connectors.hybridconnector,
@@ -46,17 +45,19 @@ app.configure('production|development', function () {
 });
 
 // Configure for auth server
-// app.configure('production|development', 'auth', function () {});
+app.configure('production|development', 'auth', function () {
+    app.set('accountService', new AccountService(app));
+});
 
 app.configure('production|development', 'chat', function () {
-    app.set('chatService', new MChatService.ChatService(app));
+
 });
 
 //app.configure('production|development', 'master', function () {
-    //var http = new HttpDebug();
-    //http.start();
-    //var net = new netserver.NetServer();
-    //net.Start();
+//var http = new HttpDebug();
+//http.start();
+//var net = new netserver.NetServer();
+//net.Start();
 //});
 
 // start app

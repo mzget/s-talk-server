@@ -1,4 +1,4 @@
-/// <reference path="../../../../typings/index.d.ts" />
+/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUserManager = require("../../../controller/UserManager");
@@ -12,10 +12,9 @@ var async = require('async');
 var webConfig = require('../../../../config/webConfig.json');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
-var channelService;
-var chatService;
 var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
+var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatHandler.");
     return new Handler(app);
@@ -23,7 +22,6 @@ module.exports = function (app) {
 var Handler = function (app) {
     this.app = app;
     channelService = this.app.get('channelService');
-    chatService = this.app.get('chatService');
 };
 var handler = Handler.prototype;
 /**
@@ -41,22 +39,23 @@ var handler = Handler.prototype;
 handler.send = function (msg, session, next) {
     var self = this;
     var rid = session.get('rid');
-    var clientUUID = msg.uuid;
     if (!rid) {
         var errMsg = "rid is invalid please chaeck.";
-        next(null, { code: Code.FAIL, message: errMsg, body: msg });
+        console.error(errMsg);
+        next(null, { code: Code.FAIL, message: errMsg });
         return;
     }
     //<!-- Get online members of room.
     var thisRoom = null;
     var onlineMembers = new Array();
     var offlineMembers = new Array();
-    self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
+    self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
         if (err || res === false) {
             next(null, { code: Code.FAIL, message: "cannot access your request room." });
         }
         else {
-            chatService.getRoom(rid, function (err, room) {
+            var accountService = self.app.rpc.auth.getAccountService(session);
+            accountService.getRoom(rid, function (err, room) {
                 console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
                 thisRoom = room;
                 if (!room.members) {
@@ -64,7 +63,7 @@ handler.send = function (msg, session, next) {
                 }
                 else {
                     room.members.forEach(function (value) {
-                        self.app.rpc.chat.chatRemote.getOnlineUser(session, value.id, function (err2, user) {
+                        self.app.rpc.auth.authRemote.getOnlineUser(session, value.id, function (err2, user) {
                             if (err2 || user === null) {
                                 offlineMembers.push(value.id);
                             }
@@ -82,51 +81,49 @@ handler.send = function (msg, session, next) {
                         _msg.meta = msg.meta;
                     chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                         if (docs !== null) {
-                            var resultMsg_1 = JSON.parse(JSON.stringify(docs[0]));
+                            var resultMsg = JSON.parse(JSON.stringify(docs[0]));
                             //<!-- send callback to user who send chat msg.
                             var params = {
-                                messageId: resultMsg_1._id,
-                                type: resultMsg_1.type,
-                                createTime: resultMsg_1.createTime,
-                                uuid: clientUUID
+                                messageId: resultMsg._id,
+                                type: resultMsg.type,
+                                createTime: resultMsg.createTime
                             };
                             next(null, { code: Code.OK, data: params });
                             //<!-- push chat data to other members in room.
-                            resultMsg_1.uuid = clientUUID;
-                            var onChat_1 = {
+                            var onChat = {
                                 route: Code.sharedEvents.onChat,
-                                data: resultMsg_1
+                                data: resultMsg
                             };
                             //the target is all users
                             if (msg.target === '*') {
                                 //<!-- Push new message to online users.
-                                var uidsGroup_1 = new Array();
+                                var uidsGroup = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
                                     var group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
-                                    uidsGroup_1.push(group);
+                                    uidsGroup.push(group);
                                     console.info("online member:", val.username);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_1);
+                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(thisRoom, resultMsg_1.sender, offlineMembers);
+                                    callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
                                 });
                             }
                             else if (msg.target === "bot") {
                                 //<!-- Push new message to online users.
-                                var uidsGroup_2 = new Array();
+                                var uidsGroup = new Array();
                                 async.eachSeries(onlineMembers, function iterator(val, cb) {
                                     var group = {
                                         uid: val.uid,
                                         sid: val.serverId
                                     };
-                                    uidsGroup_2.push(group);
+                                    uidsGroup.push(group);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_2);
+                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
                                 });
                             }
                             else {
@@ -464,7 +461,7 @@ function getWhoReadMessages(messages, channel) {
         console.log("getWhoReadMessages. done");
     });
 }
-function callPushNotification(room, sender, offlineMembers) {
+function callPushNotification(app, session, room, sender, offlineMembers) {
     //<!-- Push message to off line users via parse.
     /**<!-- Before push message via parse.
     * Todo
@@ -475,7 +472,8 @@ function callPushNotification(room, sender, offlineMembers) {
     */
     var pushTitle = room.name;
     if (!pushTitle) {
-        var userTrans = chatService.userTransaction[sender];
+        var accountService = app.rpc.auth.getAccountService(session);
+        var userTrans = accountService.userTransaction[sender];
         pushTitle = userTrans.username;
     }
     var alertMessage = pushTitle + " has a new message.";
@@ -568,10 +566,10 @@ function callPushNotification(room, sender, offlineMembers) {
                             }
                         }, function done(err, results) {
                             if (err) {
-                                reject(err);
+                                reject();
                             }
                             else {
-                                resolve(results);
+                                resolve();
                             }
                         });
                     }

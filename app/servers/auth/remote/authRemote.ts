@@ -6,26 +6,146 @@ import TokenService = require('../../../services/tokenService');
 import MAuthen = require('../../../controller/AuthenManager');
 import MUser = require('../../../controller/UserManager');
 import User = require('../../../model/User');
+import { Room } from "../../../model/Room";
 import Generic = require('../../../util/collections');
 import code = require('../../../../shared/Code');
-import ChatService = require('../../../services/chatService');
+import { AccountService } from '../../../services/accountService';
+import Mcontroller = require('../../../controller/ChatRoomManager');
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 
-var userManager = MUser.Controller.UserManager.getInstance();
-var authenManager = MAuthen.Controller.AuthenManager.getInstance();
-var tokenService: TokenService = new TokenService();
+const userManager = MUser.Controller.UserManager.getInstance();
+const authenManager = MAuthen.Controller.AuthenManager.getInstance();
+const tokenService: TokenService = new TokenService();
 var onlineUserCollection: User.IOnlineUser;
+var accountService: AccountService;
+var channelService;
 
 module.exports = function (app) {
     return new AuthenRemote(app);
 }
 
-var AuthenRemote = function (app) {
+const AuthenRemote = function (app) {
     this.app = app;
+    
+    channelService = app.get("channelService");
+    if (app.getServerType() === 'auth') {
+        accountService = app.get('accountService');
+        initServer();
+    }
 }
 
-var authenRemote = AuthenRemote.prototype;
+const remote = AuthenRemote.prototype;
 
-authenRemote.tokenService = function (bearerToken: string, cb: Function) {
+/**
+ * Init Server this function call when server start.
+ * for load room members from database to cache in memmory before.
+ */
+const initServer = function (): void {
+    chatRoomManager.getAllRooms(function (rooms) {
+        //<!-- To reduce database retrive data. We store rooms Map data to server memory.
+        console.log("init AuthenServer for get all rooms data to server memory.");
+
+        accountService.setRoomsMap(rooms, () => { });
+    });
+}
+
+/**
+ * UpdateOnlineUsers.
+ * The func call with 2 scenario,
+ * 1. Call when user login success and joining in system.
+ * 2. call when user logout.
+ */
+remote.addOnlineUser = function (user, cb) {
+    console.error("addOnlineUser");
+    accountService.addOnlineUser(user, cb);
+}
+remote.removeOnlineUser = function (userId, cb) {
+    accountService.removeOnlineUser(userId);
+    cb();
+}
+remote.getOnlineUser = function (userId: string, callback: (err, user: User.OnlineUser) => void) {
+    accountService.getOnlineUser(userId, callback);
+}
+remote.getOnlineUsers = function (callback: (err, user: User.IOnlineUser) => void) {
+    callback(null, accountService.OnlineUsers);
+}
+
+remote.addUserTransaction = function (userTransac: User.UserTransaction, cb) {
+    if (accountService.userTransaction !== null) {
+        if (!accountService.userTransaction[userTransac.uid]) {
+            accountService.userTransaction[userTransac.uid] = userTransac;
+        }
+    }
+    else {
+        console.warn("chatService.userTransaction is null.");
+    }
+
+    cb();
+}
+
+remote.updateRoomMembers = function (data, cb) {
+    accountService.addRoom(data);
+
+    if (!!cb) {
+        cb();
+    }
+}
+/**
+* UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
+*/
+remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Function) {
+    rooms.forEach(room => {
+        if (!accountService.RoomsMap[room._id]) {
+            accountService.addRoom(room);
+
+            //<!-- Notice all member of new room to know they have a new room.   
+            let param = {
+                route: Code.sharedEvents.onNewGroupCreated,
+                data: room
+            }
+
+            let pushGroup = new Array();
+            room.members.forEach(member => {
+                accountService.getOnlineUser(member.id, (err, user) => {
+                    if (!err) {
+                        var item = { uid: user.uid, sid: user.serverId };
+                        pushGroup.push(item);
+                    }
+                });
+            });
+
+            channelService.pushMessageByUids(param.route, param.data, pushGroup);
+        }
+    });
+
+    cb();
+}
+
+remote.getAccountService = function (): AccountService {
+    return accountService;
+}
+
+remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
+    accountService.getRoom(roomId, (err, room) => {
+        let result: boolean = false;
+
+        if (err || !room) {
+            callback(null, result);
+        }
+        else {
+            result = room.members.some(value => {
+                if (value.id === userId) {
+                    return true;
+                }
+            });
+
+            callback(null, result);
+        }
+    });
+}
+
+
+remote.tokenService = function (bearerToken: string, cb: Function) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
             console.info("ensureAuthorized error: ", err);
@@ -41,7 +161,7 @@ authenRemote.tokenService = function (bearerToken: string, cb: Function) {
  * route for /me data.
  * require => username, password, bearerToken
  */
-authenRemote.me = function (msg, cb) {
+remote.me = function (msg, cb) {
     var username = msg.username;
     var password = msg.password;
     var bearerToken = msg.token;
@@ -58,27 +178,14 @@ authenRemote.me = function (msg, cb) {
     }, { roomAccess: 0 });
 }
 
-authenRemote.myProfile = function (userId: string, cb: Function) {
-    userManager.getMemberProfile(userId, (err, res) => {
-        if (res === null) {
-            var errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
-            return;
-        }
-
-        cb({ code: Code.OK, data: res });
-    });
-}
-
-authenRemote.auth = function (email, password, onlineUsers: User.IOnlineUser, callback) {
+remote.auth = function (username, password, onlineUsers: User.IOnlineUser, callback) {
     onlineUserCollection = onlineUsers;
-    authenManager.GetUsername({ email: email }, function (res) {
+    authenManager.GetUsername({ username: username }, function (res) {
         onAuthentication(password, res, callback);
-    }, { email: 1, password: 1 });
+    }, { username: 1, password: 1 });
 }
 
-var onAuthentication = function (_password, userInfo, callback) {
+const onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
         var obj = JSON.parse(JSON.stringify(userInfo));
@@ -88,22 +195,12 @@ var onAuthentication = function (_password, userInfo, callback) {
             if (!user) {
                 // if user is found and password is right
                 // create a token
-                tokenService.signToken(obj, (err, encode) => {
-                    if (err) {
-                        callback({
-                            code: Code.FAIL,
-                            uid: obj._id,
-                            message: err,
-                        });
-                    }
-                    else {
-                        callback({
-                            code: Code.OK,
-                            uid: obj._id,
-                            message: "Authenticate success!",
-                            token: encode
-                        });
-                    }
+                var token = tokenService.signToken(obj);
+                callback({
+                    code: Code.OK,
+                    uid: obj._id,
+                    message: "Authenticate success!",
+                    token: token
                 });
             }
             else {
@@ -118,7 +215,7 @@ var onAuthentication = function (_password, userInfo, callback) {
         else {
             callback({
                 code: Code.FAIL,
-                message: "Authentication failed."
+                message: "Authentication failed. User not found."
             });
         }
     }

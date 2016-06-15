@@ -11,7 +11,8 @@ interface IRoomsMap {
 interface IUsersMap {
     [uid: string]: User.UserTransaction
 }
-export class ChatService {
+
+export class AccountService {
 
     private app: any;
     private uidMap = {};

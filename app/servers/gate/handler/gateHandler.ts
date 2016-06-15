@@ -1,18 +1,17 @@
 import Code = require('../../../../shared/Code');
 import TokenService = require('../../../services/tokenService');
 import dispatcher from '../../../util/dispatcher';
-
 const tokenService: TokenService = new TokenService();
 
 module.exports = function(app) {
 	return new Handler(app);
 };
 
-var Handler = function(app) {
+const Handler = function (app) {
 	this.app = app;
 };
 
-var handler = Handler.prototype;
+const handler = Handler.prototype;
 
 /**
  * Gate handler that dispatch user to connectors.

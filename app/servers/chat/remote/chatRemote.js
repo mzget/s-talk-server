@@ -1,102 +1,18 @@
 "use strict";
-var Mcontroller = require('../../../controller/ChatRoomManager');
 var MUser = require('../../../controller/UserManager');
 var Code = require('../../../../shared/Code');
 var ObjectID = require('mongodb').ObjectID;
 var userManager = MUser.Controller.UserManager.getInstance();
-var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var chatService;
 var channelService;
 module.exports = function (app) {
+    console.info("instanctiate ChatRemote.");
     return new ChatRemote(app);
 };
 var ChatRemote = function (app) {
     this.app = app;
-    if (app.getServerType() === 'chat') {
-        channelService = app.get('channelService');
-        chatService = app.get('chatService');
-        initServer();
-    }
+    channelService = app.get('channelService');
 };
-var chatRemote = ChatRemote.prototype;
-/**
- * UpdateOnlineUsers.
- * The func call with 2 scenario,
- * 1. Call when user login success and joining in system.
- * 2. call when user logout.
- */
-chatRemote.addOnlineUser = function (user, cb) {
-    console.info("addOnlineUser", user);
-    chatService.addOnlineUser(user, cb);
-};
-chatRemote.removeOnlineUser = function (userId, cb) {
-    chatService.removeOnlineUser(userId);
-    cb();
-};
-chatRemote.getOnlineUser = function (userId, callback) {
-    chatService.getOnlineUser(userId, callback);
-};
-chatRemote.getOnlineUsers = function (callback) {
-    callback(null, chatService.OnlineUsers);
-};
-chatRemote.addUserTransaction = function (userTransac, cb) {
-    if (chatService.userTransaction !== null) {
-        if (!chatService.userTransaction[userTransac.uid]) {
-            chatService.userTransaction[userTransac.uid] = userTransac;
-        }
-    }
-    else {
-        console.warn("chatService.userTransaction is null.");
-    }
-    cb();
-};
-chatRemote.updateRoomMembers = function (data, cb) {
-    chatService.addRoom(data);
-    if (!!cb) {
-        cb();
-    }
-};
-/**
-* UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
-*/
-chatRemote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
-    rooms.forEach(function (room) {
-        if (!chatService.RoomsMap[room._id]) {
-            chatService.addRoom(room);
-            //<!-- Notice all member of new room to know they have a new room.   
-            var param = {
-                route: Code.sharedEvents.onNewGroupCreated,
-                data: room
-            };
-            var pushGroup = new Array();
-            room.members.forEach(function (member) {
-                chatService.getOnlineUser(member.id, function (err, user) {
-                    if (!err) {
-                        var item = { uid: user.uid, sid: user.serverId };
-                        pushGroup.push(item);
-                    }
-                });
-            });
-            channelService.pushMessageByUids(param.route, param.data, pushGroup);
-        }
-    });
-    cb();
-};
-chatRemote.getChatService = function (cb) {
-    console.warn("getChatService is deprecated fuction.");
-    cb(chatService.OnlineUsers);
-};
-/**
- * Init Server this function call when server start.
- * for load room members from database to cache in memmory before.
- */
-var initServer = function () {
-    chatRoomManager.getAllRooms(function (rooms) {
-        //<!-- To reduce database retrive data. We store rooms Map data to server memory.
-        console.info("init chatServer for get all rooms data to server memory.");
-        chatService.setRoomsMap(rooms, function () { });
-    });
-};
+var remote = ChatRemote.prototype;
 /**
 * Add user into chat channel.
 * @param {String} uid unique id for user
@@ -104,7 +20,7 @@ var initServer = function () {
 * @param {String} name channel name
 * @param {boolean} flag channel parameter
 */
-chatRemote.add = function (user, sid, rid, flag, cb) {
+remote.add = function (user, sid, rid, flag, cb) {
     var channel = channelService.getChannel(rid, flag);
     var username = user.username;
     var uid = user.uid;
@@ -130,7 +46,7 @@ chatRemote.add = function (user, sid, rid, flag, cb) {
 * @return {Array} users uids in channel
 *
 */
-chatRemote.getUsers = function (name, flag) {
+remote.getUsers = function (name, flag) {
     var users = [];
     var channel = channelService.getChannel(name, flag);
     if (!!channel) {
@@ -151,7 +67,7 @@ chatRemote.getUsers = function (name, flag) {
 * @param {String} sid server id
 * @param {String} name channel name
 */
-chatRemote.kick = function (user, sid, rid, cb) {
+remote.kick = function (user, sid, rid, cb) {
     var self = this;
     cb();
     if (!rid) {
@@ -188,26 +104,10 @@ chatRemote.kick = function (user, sid, rid, cb) {
         channel.leave(uid, sid);
     }
 };
-chatRemote.updateRoomAccess = function (uid, rid, date, cb) {
+remote.updateRoomAccess = function (uid, rid, date, cb) {
     userManager.updateLastAccessTimeOfRoom(uid, rid, date, function (err, accessInfo) {
         console.log("updateLastAccessRoom rid is %s: ", rid, accessInfo.result);
         if (!!cb)
             cb(err, accessInfo);
-    });
-};
-chatRemote.checkedCanAccessRoom = function (roomId, userId, callback) {
-    chatService.getRoom(roomId, function (err, room) {
-        var result = false;
-        if (err || !room) {
-            callback(null, result);
-        }
-        else {
-            result = room.members.some(function (value) {
-                if (value.id === userId) {
-                    return true;
-                }
-            });
-            callback(null, result);
-        }
     });
 };

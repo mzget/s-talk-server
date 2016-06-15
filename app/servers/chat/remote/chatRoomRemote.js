@@ -4,17 +4,13 @@ var Mcontroller = require('../../../controller/ChatRoomManager');
 var mongodb = require('mongodb');
 var ObjectID = mongodb.ObjectID;
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var chatService;
 var channelService;
 module.exports = function (app) {
     return new ChatRoomRemote(app);
 };
 var ChatRoomRemote = function (app) {
     this.app = app;
-    if (app.getServerType() === 'chat') {
-        channelService = app.get('channelService');
-        chatService = app.get('chatService');
-    }
+    channelService = app.get('channelService');
 };
 var remote = ChatRoomRemote.prototype;
 remote.checkedRoomType = function (roomId, cb) {
