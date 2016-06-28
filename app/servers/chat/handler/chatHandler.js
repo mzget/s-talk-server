@@ -70,7 +70,7 @@ handler.send = function (msg, session, next) {
                             }
                         });
                     });
-                    console.log("online %s: offline %s:", onlineMembers.length, offlineMembers.length);
+                    console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
                     var _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
                         _msg.type = msg.type,
