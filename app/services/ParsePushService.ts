@@ -57,7 +57,7 @@ export class ParsePushService {
         var options = {
             hostname: self.webConfig.pushServer,
             port: 443,
-            path: "/1/push",
+            path: "/push",
             method: 'POST',
             headers: {
                 'X-Parse-Application-Id': self.webConfig.ParseApplicationId,

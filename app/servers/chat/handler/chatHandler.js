@@ -70,6 +70,7 @@ handler.send = function (msg, session, next) {
                             }
                         });
                     });
+                    console.log("online %s: offline %s:", onlineMembers.length, offlineMembers.length);
                     var _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
                         _msg.type = msg.type,
@@ -79,20 +80,20 @@ handler.send = function (msg, session, next) {
                         _msg.meta = msg.meta;
                     chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                         if (docs !== null) {
-                            var resultMsg = JSON.parse(JSON.stringify(docs[0]));
+                            var resultMsg_1 = JSON.parse(JSON.stringify(docs[0]));
                             //<!-- send callback to user who send chat msg.
                             var params = {
-                                messageId: resultMsg._id,
-                                type: resultMsg.type,
-                                createTime: resultMsg.createTime,
+                                messageId: resultMsg_1._id,
+                                type: resultMsg_1.type,
+                                createTime: resultMsg_1.createTime,
                                 uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
                             //<!-- push chat data to other members in room.
-                            resultMsg.uuid = clientUUID;
-                            var onChat = {
+                            resultMsg_1.uuid = clientUUID;
+                            var onChat_1 = {
                                 route: Code.sharedEvents.onChat,
-                                data: resultMsg
+                                data: resultMsg_1
                             };
                             //the target is all users
                             if (msg.target === '*') {
@@ -107,9 +108,9 @@ handler.send = function (msg, session, next) {
                                     console.log("online member:", val);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup_1);
+                                    channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_1);
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                                    callPushNotification(self.app, session, thisRoom, resultMsg_1.sender, offlineMembers);
                                 });
                             }
                             else if (msg.target === "bot") {
@@ -123,7 +124,7 @@ handler.send = function (msg, session, next) {
                                     uidsGroup.push(group);
                                     cb();
                                 }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                                    channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup);
                                 });
                             }
                             else {

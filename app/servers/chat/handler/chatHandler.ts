@@ -85,6 +85,8 @@ handler.send = function (msg, session, next) {
                         });
                     });
 
+                    console.log("online %s: offline %s:", onlineMembers.length, offlineMembers.length);
+
                     let _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
                         _msg.type = msg.type,
@@ -92,11 +94,12 @@ handler.send = function (msg, session, next) {
                         _msg.sender = msg.sender,
                         _msg.createTime = new Date(),
                         _msg.meta = msg.meta;
+
                     chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                         if (docs !== null) {
-                            var resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
+                            let resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
                             //<!-- send callback to user who send chat msg.
-                            var params = {
+                            let params = {
                                 messageId: resultMsg._id,
                                 type: resultMsg.type,
                                 createTime: resultMsg.createTime,
@@ -106,7 +109,7 @@ handler.send = function (msg, session, next) {
 
                             //<!-- push chat data to other members in room.
                             resultMsg.uuid = clientUUID;
-                            var onChat = {
+                            let onChat = {
                                 route: Code.sharedEvents.onChat,
                                 data: resultMsg
                             };
