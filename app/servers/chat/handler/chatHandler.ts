@@ -684,7 +684,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
     let alertMessage = "";
     let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
     let targetDevices = new Array<string>();
-    if (!pushTitle) {
+    if (!pushTitle && pushTitle != undefined) {
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 if (!!err) {

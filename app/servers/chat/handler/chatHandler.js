@@ -605,7 +605,7 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
     var alertMessage = "";
     var targetMemberWhoSubscribeRoom = new Array();
     var targetDevices = new Array();
-    if (!pushTitle) {
+    if (!pushTitle && pushTitle != undefined) {
         new Promise(function (resolve, reject) {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 if (!!err) {
