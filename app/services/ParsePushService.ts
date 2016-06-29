@@ -1,4 +1,5 @@
 ﻿import https = require('https');
+import http = require("http");
 import MWebConfig = require('../../config/WebConfig');
 
 const configJson = require('../../config/webConfig.json');
@@ -160,7 +161,7 @@ export class ParsePushService {
 
         let options = {
             hostname: self.webConfig.pushServer,
-            // port: 443,
+            port: 4040,
             path: "/parse/push",
             method: 'POST',
             headers: {
@@ -170,7 +171,7 @@ export class ParsePushService {
                 'Content-Type': 'application/json'
             }
         };
-        let request = https.request(options, function (res) {
+        let request = http.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
 

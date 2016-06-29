@@ -1,5 +1,6 @@
 "use strict";
 var https = require('https');
+var http = require("http");
 var MWebConfig = require('../../config/WebConfig');
 var configJson = require('../../config/webConfig.json');
 var ParsePushService = (function () {
@@ -138,7 +139,7 @@ var ParsePushService = (function () {
         var postJson = JSON.stringify(data);
         var options = {
             hostname: self.webConfig.pushServer,
-            // port: 443,
+            port: 4040,
             path: "/parse/push",
             method: 'POST',
             headers: {
@@ -148,7 +149,7 @@ var ParsePushService = (function () {
                 'Content-Type': 'application/json'
             }
         };
-        var request = https.request(options, function (res) {
+        var request = http.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
