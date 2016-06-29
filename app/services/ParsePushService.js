@@ -139,7 +139,7 @@ var ParsePushService = (function () {
         var options = {
             hostname: self.webConfig.pushServer,
             // port: 443,
-            // path: "/push",
+            path: "/parse/push",
             method: 'POST',
             headers: {
                 'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
