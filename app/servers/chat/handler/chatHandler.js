@@ -110,7 +110,10 @@ handler.send = function (msg, session, next) {
                                 }, function done() {
                                     channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_1);
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(self.app, session, thisRoom, resultMsg_1.sender, offlineMembers);
+                                    if (!!offlineMembers && offlineMembers.length > 0) {
+                                        // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                                        simplePushNotification(offlineMembers, thisRoom, resultMsg_1.sender);
+                                    }
                                 });
                             }
                             else if (msg.target === "bot") {
@@ -596,4 +599,53 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
             }
         });
     }
+}
+function simplePushNotification(offlineMembers, room, sender) {
+    var targetMemberWhoSubscribeRoom = new Array();
+    var targetDevices = new Array();
+    async.map(offlineMembers, function iterator(item, result) {
+        result(null, new ObjectID(item));
+    }, function done(err, results) {
+        targetMemberWhoSubscribeRoom = results.slice();
+        var promise = new Promise(function (resolve, reject) {
+            //<!-- Query all deviceTokens for each members.
+            UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
+                console.warn("DeviceToken", err, res);
+                if (!!res) {
+                    var memberTokens = res; // array of deviceTokens for each member.
+                    async.mapSeries(memberTokens, function iterator(item, cb) {
+                        if (!!item.deviceTokens) {
+                            var deviceTokens = item.deviceTokens;
+                            async.mapSeries(deviceTokens, function (token, resultCb) {
+                                targetDevices.push(token);
+                                resultCb(null, {});
+                            }, function done(err, results) {
+                                if (err) {
+                                    cb(err, null);
+                                }
+                                else {
+                                    cb(null, null);
+                                }
+                            });
+                        }
+                        else {
+                            cb(null, null);
+                        }
+                    }, function done(err, results) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            resolve(results);
+                        }
+                    });
+                }
+            });
+        }).then(function onfulfill(value) {
+            console.warn("Push", targetDevices, alertMessage);
+            pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+        }).catch(function onRejected(err) {
+            console.error("push to target deviceTokens fail.", err);
+        });
+    });
 }

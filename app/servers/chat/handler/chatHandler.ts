@@ -132,7 +132,10 @@ handler.send = function (msg, session, next) {
                                     channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
 
                                     //<!-- Push message to off line users via parse.
-                                    callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                                    if (!!offlineMembers && offlineMembers.length > 0) {
+                                        // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                                        simplePushNotification(offlineMembers, thisRoom, resultMsg.sender);
+                                    }
                                 });
                             }
                             else if (msg.target === "bot") {
@@ -673,4 +676,57 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
                 }
             });
     }
+}
+
+function simplePushNotification(offlineMembers: Array<string>, room: MRoom.Room, sender: string): void {
+
+    let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
+    let targetDevices = new Array<string>();
+    async.map(offlineMembers, function iterator(item, result: (err, obj: mongodb.ObjectID) => void) {
+        result(null, new ObjectID(item));
+    }, function done(err, results) {
+        targetMemberWhoSubscribeRoom = results.slice();
+
+        let promise = new Promise(function (resolve, reject) {
+            //<!-- Query all deviceTokens for each members.
+            UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
+
+                console.warn("DeviceToken", err, res);
+                if (!!res) {
+                    let memberTokens: Array<any> = res; // array of deviceTokens for each member.
+                    async.mapSeries(memberTokens, function iterator(item, cb) {
+                        if (!!item.deviceTokens) {
+                            let deviceTokens: Array<string> = item.deviceTokens;
+                            async.mapSeries(deviceTokens, (token, resultCb) => {
+                                targetDevices.push(token);
+                                resultCb(null, {});
+                            }, function done(err, results) {
+                                if (err) {
+                                    cb(err, null);
+                                }
+                                else {
+                                    cb(null, null);
+                                }
+                            });
+                        }
+                        else {
+                            cb(null, null);
+                        }
+                    }, function done(err, results) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            resolve(results);
+                        }
+                    });
+                }
+            });
+        }).then(function onfulfill(value) {
+            console.warn("Push", targetDevices, alertMessage);
+            pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+        }).catch(function onRejected(err) {
+            console.error("push to target deviceTokens fail.", err);
+        });
+    })
 }
