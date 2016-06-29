@@ -189,6 +189,7 @@ handler.getMe = function (msg, session, next) {
 };
 function addOnlineUser(app, session, userId) {
     app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
+        console.log("joining onlineUser", JSON.stringify(result));
         var datas = JSON.parse(JSON.stringify(result.data));
         var my = datas[0];
         var onlineUser = new User.OnlineUser();
@@ -204,7 +205,7 @@ function addOnlineUser(app, session, userId) {
         //for (var i in usersDict) {
         //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
         //}
-        console.log("New onlineUsers %s : ", JSON.stringify(onlineUser));
+        console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
         app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
         app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
     });
