@@ -39,6 +39,7 @@ handler.send = function (msg, session, next) {
     var self = this;
     var rid = session.get('rid');
     var clientUUID = msg.uuid;
+    var target = msg.target;
     if (!rid) {
         var errMsg = "rid is invalid please chaeck.";
         next(null, { code: Code.FAIL, message: errMsg, body: msg });
@@ -46,28 +47,15 @@ handler.send = function (msg, session, next) {
     }
     //<!-- Get online members of room.
     var thisRoom = null;
-    var onlineMembers = new Array();
-    var offlineMembers = new Array();
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
         console.log("get members from room: %s name: %s members: %s", rid, room.name, room.members.length);
         thisRoom = room;
-        if (!room.members) {
+        if (!thisRoom.members) {
             var errMsg = "Room no have a members.";
             next(null, { code: Code.FAIL, message: errMsg });
             return;
         }
         else {
-            room.members.forEach(function (value) {
-                self.app.rpc.auth.authRemote.getOnlineUser(session, value.id, function (err2, user) {
-                    if (err2 || user === null) {
-                        offlineMembers.push(value.id);
-                    }
-                    else {
-                        onlineMembers.push(user);
-                    }
-                });
-            });
-            console.log("0 online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
             var _msg = new MMessage.Message();
             _msg.rid = msg.rid,
                 _msg.type = msg.type,
@@ -77,58 +65,16 @@ handler.send = function (msg, session, next) {
                 _msg.meta = msg.meta;
             chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                 if (docs !== null) {
-                    var resultMsg_1 = JSON.parse(JSON.stringify(docs[0]));
+                    var resultMsg = JSON.parse(JSON.stringify(docs[0]));
                     //<!-- send callback to user who send chat msg.
                     var params = {
-                        messageId: resultMsg_1._id,
-                        type: resultMsg_1.type,
-                        createTime: resultMsg_1.createTime,
+                        messageId: resultMsg._id,
+                        type: resultMsg.type,
+                        createTime: resultMsg.createTime,
                         uuid: clientUUID
                     };
                     next(null, { code: Code.OK, data: params });
-                    console.log("1 online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
-                    //<!-- push chat data to other members in room.
-                    resultMsg_1.uuid = clientUUID;
-                    var onChat_1 = {
-                        route: Code.sharedEvents.onChat,
-                        data: resultMsg_1
-                    };
-                    //the target is all users
-                    if (msg.target === '*') {
-                        //<!-- Push new message to online users.
-                        var uidsGroup_1 = new Array();
-                        async.eachSeries(onlineMembers, function iterator(val, cb) {
-                            var group = {
-                                uid: val.uid,
-                                sid: val.serverId
-                            };
-                            uidsGroup_1.push(group);
-                            cb();
-                        }, function done() {
-                            channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup_1);
-                            //<!-- Push message to off line users via parse.
-                            if (!!offlineMembers && offlineMembers.length > 0) {
-                                // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
-                                simplePushNotification(self.app, session, offlineMembers, thisRoom, resultMsg_1.sender);
-                            }
-                        });
-                    }
-                    else if (msg.target === "bot") {
-                        //<!-- Push new message to online users.
-                        var uidsGroup = new Array();
-                        async.eachSeries(onlineMembers, function iterator(val, cb) {
-                            var group = {
-                                uid: val.uid,
-                                sid: val.serverId
-                            };
-                            uidsGroup.push(group);
-                            cb();
-                        }, function done() {
-                            channelService.pushMessageByUids(onChat_1.route, onChat_1.data, uidsGroup);
-                        });
-                    }
-                    else {
-                    }
+                    pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
                 }
                 else {
                     next(null, { code: Code.FAIL, message: "AddChatRecord fail please try to resend your message." });
@@ -137,6 +83,66 @@ handler.send = function (msg, session, next) {
         }
     });
 };
+function pushMessage(app, session, room, message, clientUUID, target) {
+    var onlineMembers = new Array();
+    var offlineMembers = new Array();
+    //@ Try to push message to other ...
+    async.map(room.members, function (item, resultCallback) {
+        app.rpc.auth.authRemote.getOnlineUser(session, item.id, function (err2, user) {
+            if (err2 || user === null) {
+                offlineMembers.push(item.id);
+            }
+            else {
+                onlineMembers.push(user);
+            }
+            resultCallback(null, item);
+        });
+    }, function (err, results) {
+        console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
+        //<!-- push chat data to other members in room.
+        message.uuid = clientUUID;
+        var onChat = {
+            route: Code.sharedEvents.onChat,
+            data: message
+        };
+        //the target is all users
+        if (target === '*') {
+            //<!-- Push new message to online users.
+            var uidsGroup_1 = new Array();
+            async.eachSeries(onlineMembers, function iterator(val, cb) {
+                var group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup_1.push(group);
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup_1);
+                //<!-- Push message to off line users via parse.
+                if (!!offlineMembers && offlineMembers.length > 0) {
+                    // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                    simplePushNotification(app, session, offlineMembers, room, message.sender);
+                }
+            });
+        }
+        else if (target === "bot") {
+            //<!-- Push new message to online users.
+            var uidsGroup_2 = new Array();
+            async.eachSeries(onlineMembers, function iterator(val, cb) {
+                var group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup_2.push(group);
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup_2);
+            });
+        }
+        else {
+        }
+    });
+}
 handler.getSyncDateTime = function (msg, session, next) {
     var date = new Date();
     var param = {
