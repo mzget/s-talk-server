@@ -112,7 +112,7 @@ handler.send = function (msg, session, next) {
                                     //<!-- Push message to off line users via parse.
                                     if (!!offlineMembers && offlineMembers.length > 0) {
                                         // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
-                                        simplePushNotification(offlineMembers, thisRoom, resultMsg_1.sender);
+                                        simplePushNotification(self.app, session, offlineMembers, thisRoom, resultMsg_1.sender);
                                     }
                                 });
                             }
@@ -600,52 +600,72 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
         });
     }
 }
-function simplePushNotification(offlineMembers, room, sender) {
+function simplePushNotification(app, session, offlineMembers, room, sender) {
+    var pushTitle = room.name;
+    var alertMessage = "";
     var targetMemberWhoSubscribeRoom = new Array();
     var targetDevices = new Array();
-    async.map(offlineMembers, function iterator(item, result) {
-        result(null, new ObjectID(item));
-    }, function done(err, results) {
-        targetMemberWhoSubscribeRoom = results.slice();
-        var promise = new Promise(function (resolve, reject) {
-            //<!-- Query all deviceTokens for each members.
-            UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
-                console.warn("DeviceToken", err, res);
-                if (!!res) {
-                    var memberTokens = res; // array of deviceTokens for each member.
-                    async.mapSeries(memberTokens, function iterator(item, cb) {
-                        if (!!item.deviceTokens) {
-                            var deviceTokens = item.deviceTokens;
-                            async.mapSeries(deviceTokens, function (token, resultCb) {
-                                targetDevices.push(token);
-                                resultCb(null, {});
-                            }, function done(err, results) {
-                                if (err) {
-                                    cb(err, null);
-                                }
-                                else {
-                                    cb(null, null);
-                                }
-                            });
-                        }
-                        else {
-                            cb(null, null);
-                        }
-                    }, function done(err, results) {
-                        if (err) {
-                            reject(err);
-                        }
-                        else {
-                            resolve(results);
-                        }
-                    });
-                }
+    if (!pushTitle) {
+        new Promise(function (resolve, reject) {
+            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
+                pushTitle = userTrans.username;
+                resolve(pushTitle);
             });
-        }).then(function onfulfill(value) {
-            console.warn("Push", targetDevices, alertMessage);
-            pushService.sendPushToTargetDevices(targetDevices, alertMessage);
-        }).catch(function onRejected(err) {
-            console.error("push to target deviceTokens fail.", err);
+        }).then(function (value) {
+            alertMessage = value + " has a new message.";
+            call();
         });
-    });
+    }
+    else {
+        alertMessage = pushTitle + " has a new message.";
+        call();
+    }
+    function call() {
+        async.map(offlineMembers, function iterator(item, result) {
+            result(null, new ObjectID(item));
+        }, function done(err, results) {
+            targetMemberWhoSubscribeRoom = results.slice();
+            var promise = new Promise(function (resolve, reject) {
+                //<!-- Query all deviceTokens for each members.
+                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
+                    console.warn("DeviceToken", err, res);
+                    //DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
+                    if (!!res) {
+                        var memberTokens = res; // array of deviceTokens for each member.
+                        async.mapSeries(memberTokens, function iterator(item, cb) {
+                            if (!!item.deviceTokens) {
+                                var deviceTokens = item.deviceTokens;
+                                async.mapSeries(deviceTokens, function (token, resultCb) {
+                                    resultCb(null, token);
+                                }, function done(err, results) {
+                                    if (!!err) {
+                                        cb(err, null);
+                                    }
+                                    else {
+                                        targetDevices = results.slice();
+                                        cb(null, null);
+                                    }
+                                });
+                            }
+                            else {
+                                cb(null, null);
+                            }
+                        }, function done(err, results) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(results);
+                            }
+                        });
+                    }
+                });
+            }).then(function onfulfill(value) {
+                console.warn("Push", targetDevices, alertMessage);
+                pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+            }).catch(function onRejected(err) {
+                console.error("push to target deviceTokens fail.", err);
+            });
+        });
+    }
 }

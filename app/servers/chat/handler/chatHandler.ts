@@ -134,7 +134,7 @@ handler.send = function (msg, session, next) {
                                     //<!-- Push message to off line users via parse.
                                     if (!!offlineMembers && offlineMembers.length > 0) {
                                         // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
-                                        simplePushNotification(offlineMembers, thisRoom, resultMsg.sender);
+                                        simplePushNotification(self.app, session, offlineMembers, thisRoom, resultMsg.sender);
                                     }
                                 });
                             }
@@ -678,55 +678,77 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
     }
 }
 
-function simplePushNotification(offlineMembers: Array<string>, room: MRoom.Room, sender: string): void {
+function simplePushNotification(app: any, session: any, offlineMembers: Array<string>, room: MRoom.Room, sender: string): void {
 
+    let pushTitle = room.name;
+    let alertMessage = "";
     let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
     let targetDevices = new Array<string>();
-    async.map(offlineMembers, function iterator(item, result: (err, obj: mongodb.ObjectID) => void) {
-        result(null, new ObjectID(item));
-    }, function done(err, results) {
-        targetMemberWhoSubscribeRoom = results.slice();
+    if (!pushTitle) {
+        new Promise((resolve, reject) => {
+            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
+                pushTitle = userTrans.username;
 
-        let promise = new Promise(function (resolve, reject) {
-            //<!-- Query all deviceTokens for each members.
-            UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-
-                console.warn("DeviceToken", err, res);
-                if (!!res) {
-                    let memberTokens: Array<any> = res; // array of deviceTokens for each member.
-                    async.mapSeries(memberTokens, function iterator(item, cb) {
-                        if (!!item.deviceTokens) {
-                            let deviceTokens: Array<string> = item.deviceTokens;
-                            async.mapSeries(deviceTokens, (token, resultCb) => {
-                                targetDevices.push(token);
-                                resultCb(null, {});
-                            }, function done(err, results) {
-                                if (err) {
-                                    cb(err, null);
-                                }
-                                else {
-                                    cb(null, null);
-                                }
-                            });
-                        }
-                        else {
-                            cb(null, null);
-                        }
-                    }, function done(err, results) {
-                        if (err) {
-                            reject(err);
-                        }
-                        else {
-                            resolve(results);
-                        }
-                    });
-                }
+                resolve(pushTitle);
             });
-        }).then(function onfulfill(value) {
-            console.warn("Push", targetDevices, alertMessage);
-            pushService.sendPushToTargetDevices(targetDevices, alertMessage);
-        }).catch(function onRejected(err) {
-            console.error("push to target deviceTokens fail.", err);
+        }).then(value => {
+            alertMessage = value + " has a new message.";
+            call();
         });
-    })
+    }
+    else {
+        alertMessage = pushTitle + " has a new message.";
+        call();
+    }
+
+    function call() {
+        async.map(offlineMembers, function iterator(item, result: (err, obj: mongodb.ObjectID) => void) {
+            result(null, new ObjectID(item));
+        }, function done(err, results) {
+            targetMemberWhoSubscribeRoom = results.slice();
+
+            let promise = new Promise(function (resolve, reject) {
+                //<!-- Query all deviceTokens for each members.
+                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
+
+                    console.warn("DeviceToken", err, res);
+                    //DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
+                    if (!!res) {
+                        let memberTokens: Array<any> = res; // array of deviceTokens for each member.
+                        async.mapSeries(memberTokens, function iterator(item, cb) {
+                            if (!!item.deviceTokens) {
+                                let deviceTokens: Array<string> = item.deviceTokens;
+                                async.mapSeries(deviceTokens, (token, resultCb: (err, obj: string) => void) => {                                    
+                                    resultCb(null, token);
+                                }, function done(err, results) {
+                                    if (!!err) {
+                                        cb(err, null);
+                                    }
+                                    else {
+                                        targetDevices = results.slice();
+                                        cb(null, null);
+                                    }
+                                });
+                            }
+                            else {
+                                cb(null, null);
+                            }
+                        }, function done(err, results) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(results);
+                            }
+                        });
+                    }
+                });
+            }).then(function onfulfill(value) {
+                console.warn("Push", targetDevices, alertMessage);
+                pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+            }).catch(function onRejected(err) {
+                console.error("push to target deviceTokens fail.", err);
+            });
+        });
+    }
 }
