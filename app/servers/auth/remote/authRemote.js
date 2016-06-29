@@ -41,7 +41,6 @@ var initServer = function () {
  * 2. call when user logout.
  */
 remote.addOnlineUser = function (user, cb) {
-    console.error("addOnlineUser");
     accountService.addOnlineUser(user, cb);
 };
 remote.removeOnlineUser = function (userId, cb) {

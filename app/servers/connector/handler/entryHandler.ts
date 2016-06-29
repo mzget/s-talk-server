@@ -240,7 +240,7 @@ function addOnlineUser(app, session, userId: string) {
 		//for (var i in usersDict) {
 		//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
 		//}
-		console.log("New onlineUsers %s : ", onlineUser);
+		console.log("New onlineUsers %s : ", JSON.stringify(onlineUser));
 
 		app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
 		app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
