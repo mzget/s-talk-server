@@ -138,7 +138,7 @@ var ParsePushService = (function () {
         };
         var postJson = JSON.stringify(data);
         var options = {
-            hostname: "http://smelink.animation-genius.com:4040/parse/push",
+            hostname: "smelink.animation-genius.com:4040/parse/push",
             // port: 4040,
             // path: "/parse/push",
             method: 'POST',
