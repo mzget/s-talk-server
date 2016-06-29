@@ -138,9 +138,9 @@ var ParsePushService = (function () {
         };
         var postJson = JSON.stringify(data);
         var options = {
-            hostname: self.webConfig.pushServer,
-            port: 4040,
-            path: "/parse/push",
+            hostname: "http://smelink.animation-genius.com:4040/parse/push",
+            // port: 4040,
+            // path: "/parse/push",
             method: 'POST',
             headers: {
                 'X-Parse-Application-Id': self.webConfig.ParseApplicationId,

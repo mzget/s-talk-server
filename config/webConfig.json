@@ -5,7 +5,7 @@
   "webserver": "http://git.animation-genius.com",
 
   
-  "pushServer": "http://203.149.37.180",
+  "pushServer": "http://smelink.animation-genius.com",
   "ParseApplicationId": "newSMELink",
   "ParseRESTAPIKey": "link1234",
   "ParseMasterKey": "link1234"
