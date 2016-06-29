@@ -84,7 +84,7 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
         cb(null, accountService.userTransaction[uid]);
     }
     else {
-        cb(null, null);
+        cb(new Error("No have userTransaction"), null);
     }
 }
 

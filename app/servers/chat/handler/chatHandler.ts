@@ -687,17 +687,27 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
     if (!pushTitle) {
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
-                pushTitle = userTrans.username;
+                if (!!err) {
+                    console.warn(err);
 
-                resolve(pushTitle);
+                    reject(err);
+                }
+                else {
+                    pushTitle = userTrans.username;
+
+                    resolve(pushTitle);
+                }
             });
         }).then(value => {
-            alertMessage = value + " has a new message.";
+            alertMessage = value + " sent you message.";
+            call();
+        }).catch(err => {
+            alertMessage = "You have a new message";
             call();
         });
     }
     else {
-        alertMessage = pushTitle + " has a new message.";
+        alertMessage = pushTitle + " sent you message.";
         call();
     }
 
@@ -718,7 +728,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
                         async.mapSeries(memberTokens, function iterator(item, cb) {
                             if (!!item.deviceTokens) {
                                 let deviceTokens: Array<string> = item.deviceTokens;
-                                async.mapSeries(deviceTokens, (token, resultCb: (err, obj: string) => void) => {                                    
+                                async.mapSeries(deviceTokens, (token, resultCb: (err, obj: string) => void) => {
                                     resultCb(null, token);
                                 }, function done(err, results) {
                                     if (!!err) {

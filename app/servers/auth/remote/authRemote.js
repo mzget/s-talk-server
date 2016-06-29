@@ -69,7 +69,7 @@ remote.getUserTransaction = function (uid, cb) {
         cb(null, accountService.userTransaction[uid]);
     }
     else {
-        cb(null, null);
+        cb(new Error("No have userTransaction"), null);
     }
 };
 remote.getRoomMap = function (rid, callback) {

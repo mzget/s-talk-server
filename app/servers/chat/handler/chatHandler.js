@@ -608,16 +608,25 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
     if (!pushTitle) {
         new Promise(function (resolve, reject) {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
-                pushTitle = userTrans.username;
-                resolve(pushTitle);
+                if (!!err) {
+                    console.warn(err);
+                    reject(err);
+                }
+                else {
+                    pushTitle = userTrans.username;
+                    resolve(pushTitle);
+                }
             });
         }).then(function (value) {
-            alertMessage = value + " has a new message.";
+            alertMessage = value + " sent you message.";
+            call();
+        }).catch(function (err) {
+            alertMessage = "You have a new message";
             call();
         });
     }
     else {
-        alertMessage = pushTitle + " has a new message.";
+        alertMessage = pushTitle + " sent you message.";
         call();
     }
     function call() {
