@@ -194,12 +194,12 @@ function addOnlineUser(app, session, userId) {
         var my = datas[0];
         var onlineUser = new User.OnlineUser();
         onlineUser.uid = my._id;
-        onlineUser.username = my.username;
+        onlineUser.username = my.first_name;
         onlineUser.serverId = session.frontendId;
-        onlineUser.registrationIds = my.deviceTokens;
+        onlineUser.registrationIds = my.devicesToken;
         var userTransaction = new User.UserTransaction();
         userTransaction.uid = my._id;
-        userTransaction.username = my.username;
+        userTransaction.username = my.first_name;
         //!-- check uid in onlineUsers list.
         //var usersDict = userManager.onlineUsers;
         //for (var i in usersDict) {

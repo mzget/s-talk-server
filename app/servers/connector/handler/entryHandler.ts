@@ -225,17 +225,17 @@ function addOnlineUser(app, session, userId: string) {
 	app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
 		console.log("joining onlineUser", JSON.stringify(result));
 
-		let datas = JSON.parse(JSON.stringify(result.data));
+		let datas: Array<User.User> = JSON.parse(JSON.stringify(result.data));
 		let my = datas[0];
 		let onlineUser = new User.OnlineUser();
 		onlineUser.uid = my._id;
-		onlineUser.username = my.username;
+		onlineUser.username = my.first_name;
 		onlineUser.serverId = session.frontendId;
-		onlineUser.registrationIds = my.deviceTokens;
+		onlineUser.registrationIds = my.devicesToken;
 
 		let userTransaction = new User.UserTransaction();
 		userTransaction.uid = my._id;
-		userTransaction.username = my.username;
+		userTransaction.username = my.first_name;
 
 		//!-- check uid in onlineUsers list.
 		//var usersDict = userManager.onlineUsers;

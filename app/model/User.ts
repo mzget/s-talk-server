@@ -37,7 +37,7 @@ export class User {
     favoriteGroups: string[]; // room_id
     closedNoticeUsers: string[]; // user_id
     closedNoticeGroups: string[]; // room_id
-    devicesToken: string;
+    devicesToken: string[];
     registerDate: string;
     linkeds: string[];
     follower: string[];
