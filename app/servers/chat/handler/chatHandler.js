@@ -488,6 +488,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
         alertMessage = pushTitle + " has a new message.";
         call();
     }
+    console.warn("alertMessage is ", alertMessage, offlineMembers);
     function call() {
         var targetDevices = new Array();
         var targetMemberWhoSubscribeRoom = new Array();

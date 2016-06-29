@@ -47,7 +47,7 @@ handler.send = function (msg, session, next) {
     let self = this;
     let rid = session.get('rid');
     let clientUUID = msg.uuid;
-    
+
     if (!rid) {
         let errMsg = "rid is invalid please chaeck.";
         next(null, { code: Code.FAIL, message: errMsg, body: msg });
@@ -106,7 +106,8 @@ handler.send = function (msg, session, next) {
                                 uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
-                    console.log("1 online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
+
+                            console.log("1 online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
 
                             //<!-- push chat data to other members in room.
                             resultMsg.uuid = clientUUID;
@@ -556,6 +557,8 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
         alertMessage = pushTitle + " has a new message.";
         call();
     }
+
+    console.warn("alertMessage is ", alertMessage, offlineMembers);
 
     function call() {
         let targetDevices = new Array<string>();
