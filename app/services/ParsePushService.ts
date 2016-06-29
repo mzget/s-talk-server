@@ -145,7 +145,7 @@ export class ParsePushService {
         }
 
         //        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
-        var data = {
+        let data = {
             "where": {
                 "deviceToken": { "$in": registrationIds }
             },
@@ -156,12 +156,12 @@ export class ParsePushService {
                 "badge": "Increment"
             }
         };
-        var postJson = JSON.stringify(data);
+        let postJson = JSON.stringify(data);
 
-        var options = {
+        let options = {
             hostname: self.webConfig.pushServer,
             port: 443,
-            path: "/1/push",
+            path: "/push",
             method: 'POST',
             headers: {
                 'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
@@ -169,7 +169,7 @@ export class ParsePushService {
                 'Content-Type': 'application/json'
             }
         };
-        var request = https.request(options, function (res) {
+        let request = https.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
 

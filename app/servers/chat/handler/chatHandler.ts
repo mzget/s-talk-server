@@ -126,7 +126,6 @@ handler.send = function (msg, session, next) {
                                     };
                                     uidsGroup.push(group);
 
-                                    console.log("online member:", val);
                                     cb();
                                 }, function done() {
                                     channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
@@ -590,7 +589,7 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
             else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
                 /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
                 //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
-                var roomType: MRoom.RoomType = JSON.parse(JSON.stringify(arg1));
+                let roomType: MRoom.RoomType = JSON.parse(JSON.stringify(arg1));
 
                 async.eachSeries(offlineMembers, function iterrator(item, callback) {
                     //                console.warn("offline member _id: ", item);
