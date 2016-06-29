@@ -558,9 +558,9 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
         call();
     }
 
-    console.warn("alertMessage is ", alertMessage, offlineMembers);
-
     function call() {
+        console.warn("alertMessage is ", alertMessage, offlineMembers);
+
         let targetDevices = new Array<string>();
         let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
         //<-- To push only user who subscribe this room. This process need a some logic.
@@ -665,6 +665,7 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
                             }
                         });
                     }).then(function onfulfill(value) {
+                        console.warn("Push", targetDevices, alertMessage);
                         pushService.sendPushToTargetDevices(targetDevices, alertMessage);
                     }).catch(function onRejected(err) {
                         console.error("push to target deviceTokens fail.", err);

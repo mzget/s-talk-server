@@ -488,8 +488,8 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
         alertMessage = pushTitle + " has a new message.";
         call();
     }
-    console.warn("alertMessage is ", alertMessage, offlineMembers);
     function call() {
+        console.warn("alertMessage is ", alertMessage, offlineMembers);
         var targetDevices = new Array();
         var targetMemberWhoSubscribeRoom = new Array();
         //<-- To push only user who subscribe this room. This process need a some logic.
@@ -588,6 +588,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                         }
                     });
                 }).then(function onfulfill(value) {
+                    console.warn("Push", targetDevices, alertMessage);
                     pushService.sendPushToTargetDevices(targetDevices, alertMessage);
                 }).catch(function onRejected(err) {
                     console.error("push to target deviceTokens fail.", err);
