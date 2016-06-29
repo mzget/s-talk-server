@@ -138,7 +138,7 @@ var ParsePushService = (function () {
         var postJson = JSON.stringify(data);
         var options = {
             hostname: self.webConfig.pushServer,
-            port: 443,
+            // port: 443,
             path: "/push",
             method: 'POST',
             headers: {
