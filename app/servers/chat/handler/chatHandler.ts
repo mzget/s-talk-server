@@ -8,7 +8,6 @@ import Code = require('../../../../shared/Code');
 import MPushService = require('../../../services/ParsePushService');
 import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
-import https = require('https');
 import async = require('async');
 
 const webConfig = require('../../../../config/webConfig.json');

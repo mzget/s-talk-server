@@ -168,7 +168,7 @@ handler.getMe = function (msg, session, next) {
 		return;
 	}
 
-	var timeOut = setTimeout(function () {
+	let timeOut = setTimeout(function () {
 		next(null, { code: Code.FAIL, message: "getMe timeout..." });
 	}, webConfig.timeout);
 
@@ -593,12 +593,19 @@ handler.leaveRoom = function (msg, session, next) {
 		return;
     }
 
-    var onlineUser = new User.OnlineUser();
+    let onlineUser = new User.OnlineUser();
     onlineUser.username = msg.username;
     onlineUser.uid = uid;
     onlineUser.serverId = sid;
 
     self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+        session.set('rid', null);
+        session.push('rid', function (err) {
+            if (err) {
+                console.error('set rid for session service failed! error is : %j', err.stack);
+            }
+        });
+
         if (err) {
             next(null, { code: Code.FAIL, message: "leaveRoom with error." });
         }
@@ -619,7 +626,7 @@ const onUserLeave = function (app, session) {
 		return;
 	}
 
-	var onlineUser = new User.OnlineUser();
+	let onlineUser = new User.OnlineUser();
 	onlineUser.username = "";
 	onlineUser.uid = session.uid;
 

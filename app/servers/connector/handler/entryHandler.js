@@ -511,6 +511,12 @@ handler.leaveRoom = function (msg, session, next) {
     onlineUser.uid = uid;
     onlineUser.serverId = sid;
     self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+        session.set('rid', null);
+        session.push('rid', function (err) {
+            if (err) {
+                console.error('set rid for session service failed! error is : %j', err.stack);
+            }
+        });
         if (err) {
             next(null, { code: Code.FAIL, message: "leaveRoom with error." });
         }
