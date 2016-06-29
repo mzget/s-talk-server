@@ -70,7 +70,7 @@ handler.send = function (msg, session, next) {
                             }
                         });
                     });
-                    console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
+                    console.log("0 online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
                     var _msg = new MMessage.Message();
                     _msg.rid = msg.rid,
                         _msg.type = msg.type,
@@ -89,6 +89,7 @@ handler.send = function (msg, session, next) {
                                 uuid: clientUUID
                             };
                             next(null, { code: Code.OK, data: params });
+                            console.log("1 online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
                             //<!-- push chat data to other members in room.
                             resultMsg_1.uuid = clientUUID;
                             var onChat_1 = {
