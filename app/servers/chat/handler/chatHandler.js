@@ -605,7 +605,11 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
     var alertMessage = "";
     var targetMemberWhoSubscribeRoom = new Array();
     var targetDevices = new Array();
-    if (!pushTitle && pushTitle != undefined) {
+    if (!!pushTitle) {
+        alertMessage = pushTitle + " sent you message.";
+        call();
+    }
+    else {
         new Promise(function (resolve, reject) {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 if (!!err) {
@@ -624,10 +628,6 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
             alertMessage = "You have a new message";
             call();
         });
-    }
-    else {
-        alertMessage = pushTitle + " sent you message.";
-        call();
     }
     function call() {
         async.map(offlineMembers, function iterator(item, result) {

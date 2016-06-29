@@ -679,12 +679,15 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
 }
 
 function simplePushNotification(app: any, session: any, offlineMembers: Array<string>, room: MRoom.Room, sender: string): void {
-
     let pushTitle = room.name;
     let alertMessage = "";
     let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
     let targetDevices = new Array<string>();
-    if (!pushTitle && pushTitle != undefined) {
+    if (!!pushTitle) {
+        alertMessage = pushTitle + " sent you message.";
+        call();
+    }
+    else {
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 if (!!err) {
@@ -705,10 +708,6 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
             alertMessage = "You have a new message";
             call();
         });
-    }
-    else {
-        alertMessage = pushTitle + " sent you message.";
-        call();
     }
 
     function call() {
