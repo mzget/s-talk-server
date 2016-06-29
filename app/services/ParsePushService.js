@@ -144,6 +144,7 @@ var ParsePushService = (function () {
             headers: {
                 'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
                 'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
+                'X-Parse-Master-Key': self.webConfig.ParseMasterKey,
                 'Content-Type': 'application/json'
             }
         };
