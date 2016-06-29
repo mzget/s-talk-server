@@ -160,9 +160,9 @@ export class ParsePushService {
         let postJson = JSON.stringify(data);
 
         let options = {
-            hostname: "smelink.animation-genius.com:4040/parse/push",//self.webConfig.pushServer,
-            // port: 4040,
-            // path: "/parse/push",
+            host: "smelink.animation-genius.com",//self.webConfig.pushServer,
+            port: 4040,
+            path: "/parse/push",
             method: 'POST',
             headers: {
                 'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
