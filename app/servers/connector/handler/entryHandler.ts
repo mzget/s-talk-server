@@ -372,44 +372,35 @@ handler.getCompanyMember = function (msg, session, next) {
 }
 
 handler.getCompanyChatRoom = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	var uid = session.uid;
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, { code: Code.FAIL, message: err });
-			return;
+	let self = this;
+	let token = msg.token;
+	let uid = session.uid;
+	companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
+		let result;
+		if (res !== null) {
+			console.log("GetCompanyChatRooms: ", res.length);
+
+			result = JSON.parse(JSON.stringify(res));
+
+			updateRoomsMap(self.app, session, result);
 		}
 		else {
-			companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
-				var result;
-				if (res !== null) {
-					console.log("GetCompanyChatRooms: ", res.length);
-
-					result = JSON.parse(JSON.stringify(res));
-
-					updateRoomsMap(self.app, session, result);
-				}
-				else {
-					console.log("Fail to getCompanyChatRooms");
-					result = null;
-				}
-
-				var params = {
-					route: Code.sharedEvents.onGetOrganizeGroups,
-					data: result
-				};
-
-				var target = new Array();
-				target.push({ uid: session.uid, sid: self.app.get('serverId') });
-
-				channelService.pushMessageByUids(params.route, params.data, target);
-			});
+			console.log("Fail to getCompanyChatRooms");
+			result = null;
 		}
 
-		next(null, { code: Code.OK });
+		var params = {
+			route: Code.sharedEvents.onGetOrganizeGroups,
+			data: result
+		};
+
+		var target = new Array();
+		target.push({ uid: session.uid, sid: self.app.get('serverId') });
+
+		channelService.pushMessageByUids(params.route, params.data, target);
 	});
+
+	next(null, { code: Code.OK });
 }
 
 handler.getProjectBaseGroups = function (msg, session, next) {
