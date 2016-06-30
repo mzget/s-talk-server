@@ -1,4 +1,3 @@
-/// <reference path='../../typings/node/node.d.ts' />
 "use strict";
 var net = require('net');
 var fs = require('fs');

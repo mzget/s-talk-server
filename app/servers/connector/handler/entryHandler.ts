@@ -1,6 +1,6 @@
 ﻿import CompanyController = require("../../../controller/CompanyManager");
 import Mcontroller = require("../../../controller/ChatRoomManager");
-import Code = require('../../../../shared/Code');
+import Code from    '../../../../shared/Code';
 import User = require('../../../model/User');
 import userDAL = require('../../../dal/userDataAccess');
 import Room = require('../../../model/Room');

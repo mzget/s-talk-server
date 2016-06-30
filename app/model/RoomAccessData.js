@@ -4,5 +4,6 @@ var RoomAccessData = (function () {
     }
     return RoomAccessData;
 }());
-exports.RoomAccessData = RoomAccessData;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = RoomAccessData;
 ;

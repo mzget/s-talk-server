@@ -1,10 +1,10 @@
-﻿import MUser = require('../../../controller/UserManager');
+﻿import { UserManager } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import generic = require('../../../util/collections');
-import Code = require('../../../../shared/Code');
+import Code from '../../../../shared/Code';
 import Room = require('../../../model/Room');
 const ObjectID = require('mongodb').ObjectID;
-const userManager = MUser.Controller.UserManager.getInstance();
+const userManager = UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {

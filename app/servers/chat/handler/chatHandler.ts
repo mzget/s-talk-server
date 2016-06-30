@@ -4,7 +4,7 @@ import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
 import MRoom = require('../../../model/Room');
 import MMessage = require('../../../model/Message');
-import Code = require('../../../../shared/Code');
+import Code from    '../../../../shared/Code';
 import MPushService = require('../../../services/ParsePushService');
 import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');

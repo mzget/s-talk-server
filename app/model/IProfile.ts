@@ -1,5 +1,5 @@
 ﻿
-import UserRole = require("./UserRole");
+import UserRole from "./UserRole";
 
 module IProfile {
     export interface IProfile {
@@ -12,7 +12,7 @@ module IProfile {
         tel: string;
         mail: string;
         image: any;
-        role: UserRole.UserRole;
+        role: UserRole;
     }
 
     export class Profile implements IProfile {
@@ -25,7 +25,7 @@ module IProfile {
         tel: string;
         mail: string;
         image: any;
-        role: UserRole.UserRole;
+        role: UserRole;
     }
 }
 export = IProfile;

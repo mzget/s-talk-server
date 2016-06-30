@@ -1,5 +1,4 @@
 "use strict";
-var generic = require('../util/collections');
 ;
 var OnlineUser = (function () {
     function OnlineUser() {
@@ -21,11 +20,4 @@ var StalkAccount = (function () {
     return StalkAccount;
 }());
 exports.StalkAccount = StalkAccount;
-;
-var BOLAccount = (function () {
-    function BOLAccount() {
-    }
-    return BOLAccount;
-}());
-exports.BOLAccount = BOLAccount;
 ;

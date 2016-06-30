@@ -3,16 +3,15 @@
 * for edit user profile info.
 ***********************************************/
 
-/// <reference path="../../../../typings/tsd.d.ts" />
 import Mdb = require('../../../db/dbClient');
-import code = require('../../../../shared/Code');
-import MUser = require('../../../controller/UserManager');
-import User = require('../../../model/User');
+import code from    '../../../../shared/Code';
+import {UserManager}  from   '../../../controller/UserManager';
+import *    as  User from    '../../../model/User';
 import Room = require('../../../model/Room');
 import async = require('async');
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;
-const userManager = MUser.Controller.UserManager.getInstance();
+const userManager = UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
@@ -41,7 +40,7 @@ profileHandler.profileUpdate = function (msg, session, next) {
     }
 
     var uid = msg._id;
-    var updateParams = new User.User();
+    var updateParams = new User.StalkAccount();
 
     if (msg.displayname && msg.displayname !== "")//updateParams = { displayname: msg.displayname, lastEditProfile: new Date() };
         updateParams.displayname = msg.displayname;

@@ -1,8 +1,8 @@
 "use strict";
-var MUser = require('../../../controller/UserManager');
-var Code = require('../../../../shared/Code');
+var UserManager_1 = require('../../../controller/UserManager');
+var Code_1 = require('../../../../shared/Code');
 var ObjectID = require('mongodb').ObjectID;
-var userManager = MUser.Controller.UserManager.getInstance();
+var userManager = UserManager_1.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
@@ -83,7 +83,7 @@ remote.kick = function (user, sid, rid, cb) {
                 var group = new Array();
                 group.push(targetId);
                 var param_1 = {
-                    route: Code.sharedEvents.onUpdatedLastAccessTime,
+                    route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
                     data: res
                 };
                 channelService.pushMessageByUids(param_1.route, param_1.data, group);

@@ -4,13 +4,10 @@
 
 /// <reference path="../../typings/index.d.ts" />
 
-import User = require('../model/User');
-import Room = require('../model/Room');
-import RoomAccess = require('../model/RoomAccessData');
-import Mdb = require('../db/dbClient');
+import User = require('../dataLayer/bolAccount');
+import Mdb = require('../../app/db/dbClient');
 import mongodb = require('mongodb');
 import async = require('async');
-import generic = require('../util/collections');
 const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;
 import assert = require('assert');
@@ -39,7 +36,7 @@ export default class FriendManager {
                 }
                 else {
                     if (docs.length != 0) {
-                        let user: User.User = JSON.parse(JSON.stringify(docs[0]));
+                        let user: User.BOLAccount = JSON.parse(JSON.stringify(docs[0]));
                         let linkRequests = user.link_requests;
                         if (!linkRequests)
                             linkRequests = [];

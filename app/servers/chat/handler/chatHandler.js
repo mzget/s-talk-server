@@ -4,7 +4,7 @@ var UserManager_1 = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
 var MRoom = require('../../../model/Room');
 var MMessage = require('../../../model/Message');
-var Code = require('../../../../shared/Code');
+var Code_1 = require('../../../../shared/Code');
 var MPushService = require('../../../services/ParsePushService');
 var mongodb = require('mongodb');
 var async = require('async');
@@ -42,7 +42,7 @@ handler.send = function (msg, session, next) {
     var target = msg.target;
     if (!rid) {
         var errMsg = "rid is invalid please chaeck.";
-        next(null, { code: Code.FAIL, message: errMsg, body: msg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
         return;
     }
     //<!-- Get online members of room.
@@ -52,7 +52,7 @@ handler.send = function (msg, session, next) {
         thisRoom = room;
         if (!thisRoom.members) {
             var errMsg = "Room no have a members.";
-            next(null, { code: Code.FAIL, message: errMsg });
+            next(null, { code: Code_1.default.FAIL, message: errMsg });
             return;
         }
         else {
@@ -73,11 +73,11 @@ handler.send = function (msg, session, next) {
                         createTime: resultMsg.createTime,
                         uuid: clientUUID
                     };
-                    next(null, { code: Code.OK, data: params });
+                    next(null, { code: Code_1.default.OK, data: params });
                     pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
                 }
                 else {
-                    next(null, { code: Code.FAIL, message: "AddChatRecord fail please try to resend your message." });
+                    next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please try to resend your message." });
                 }
             });
         }
@@ -102,7 +102,7 @@ function pushMessage(app, session, room, message, clientUUID, target) {
         //<!-- push chat data to other members in room.
         message.uuid = clientUUID;
         var onChat = {
-            route: Code.sharedEvents.onChat,
+            route: Code_1.default.sharedEvents.onChat,
             data: message
         };
         //the target is all users
@@ -146,7 +146,7 @@ function pushMessage(app, session, room, message, clientUUID, target) {
 handler.getSyncDateTime = function (msg, session, next) {
     var date = new Date();
     var param = {
-        code: Code.OK,
+        code: Code_1.default.OK,
         data: date
     };
     next(null, param);
@@ -163,7 +163,7 @@ handler.uploadImageFinished = function (msg, session, next) {
     var contentUrl = msg.contentUrl;
     var ownerMessageId = msg.ownerMessageId;
     if (!contentUrl || !ownerMessageId) {
-        next(null, { code: Code.FAIL, message: "path or ownerMessageId is invalid..." });
+        next(null, { code: Code_1.default.FAIL, message: "path or ownerMessageId is invalid..." });
         return;
     }
     chatRoomManager.updateChatRecordContent(ownerMessageId, contentUrl, function (err, res) {
@@ -185,7 +185,7 @@ handler.uploadImageFinished = function (msg, session, next) {
                 }
             });
         }
-        next(null, { code: Code.OK, data: res });
+        next(null, { code: Code_1.default.OK, data: res });
     });
 };
 /**
@@ -200,15 +200,15 @@ handler.getChatHistory = function (msg, session, next) {
     var rid = msg.rid;
     var lastMessageTime = msg.lastAccessTime;
     if (!rid) {
-        next(null, { code: Code.FAIL, message: "room_id field is in valid." });
+        next(null, { code: Code_1.default.FAIL, message: "room_id field is in valid." });
         return;
     }
     if (!lastMessageTime) {
-        next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
+        next(null, { code: Code_1.default.FAIL, message: "lastAccessTime field is in valid." });
         return;
     }
     var _timeOut = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "getChatHistory request timeout." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "getChatHistory request timeout." });
         return;
     }, webConfig.timeout);
     var utc = new Date(lastMessageTime);
@@ -217,13 +217,13 @@ handler.getChatHistory = function (msg, session, next) {
         if (result !== null) {
             clearTimeout(_timeOut);
             var chatrecords = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code.OK, data: chatrecords });
+            next(null, { code: Code_1.default.OK, data: chatrecords });
             //<!-- When get chat history complete. System will update roomAccess data for user.
             self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL, message: "have no a chatrecord for this room." });
+            next(null, { code: Code_1.default.FAIL, message: "have no a chatrecord for this room." });
         }
     });
 };
@@ -235,22 +235,22 @@ handler.getOlderMessageChunk = function (msg, session, next) {
     var rid = msg.rid;
     var topEdgeMessageTime = msg.topEdgeMessageTime;
     if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        next(null, { code: Code_1.default.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
     var _timeOut = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
     }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
             clearTimeout(_timeOut);
-            next(null, { code: Code.OK, data: res });
+            next(null, { code: Code_1.default.OK, data: res });
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
     });
 };
@@ -259,22 +259,22 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
     var rid = msg.rid;
     var topEdgeMessageTime = msg.topEdgeMessageTime;
     if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        next(null, { code: Code_1.default.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
     var _timeOut = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
         return;
     }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
             clearTimeout(_timeOut);
-            next(null, { code: Code.OK, data: res.length });
+            next(null, { code: Code_1.default.OK, data: res.length });
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
     });
 };
@@ -293,14 +293,14 @@ handler.getMessagesReaders = function (msg, session, next) {
     var errMsg = "uid or rid is invalid. or may be some params i missing.";
     if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
     chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
-                route: Code.sharedEvents.onGetMessagesReaders,
+                route: Code_1.default.sharedEvents.onGetMessagesReaders,
                 data: res
             };
             var memberInfo = channel.getMember(uid);
@@ -315,7 +315,7 @@ handler.getMessagesReaders = function (msg, session, next) {
             }
         }
     });
-    next(null, { code: Code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 /**
 * get log message content by message_id.
@@ -328,16 +328,16 @@ handler.getMessageContent = function (msg, session, next) {
     if (!messageId) {
         var err = "messageId connot be null or empty.";
         console.warn(err);
-        next(null, { code: Code.FAIL, message: err });
+        next(null, { code: Code_1.default.FAIL, message: err });
     }
     chatRoomManager.GetChatContent(messageId, function (err, result) {
         console.log("GetChatContent: ", result);
         if (result !== null) {
             var content = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code.OK, data: content });
+            next(null, { code: Code_1.default.OK, data: content });
         }
         else {
-            next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
+            next(null, { code: Code_1.default.FAIL, message: "have no a content for this message_id." });
         }
     });
 };
@@ -355,14 +355,14 @@ handler.updateWhoReadMessage = function (msg, session, next) {
     if (!messageId || !uid || !rid) {
         var errMsg = "messageId or uid or rid data field is invalid.";
         console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
     if (!channel) {
         var message = "no have room for your request.";
         console.warn(message);
-        next(null, { code: Code.FAIL, message: message });
+        next(null, { code: Code_1.default.FAIL, message: message });
         return;
     }
     else {
@@ -376,7 +376,7 @@ handler.updateWhoReadMessage = function (msg, session, next) {
                 chatRoomManager.getWhoReadMessage(messageId, function (err, res) {
                     if (!err) {
                         var onMessageRead = {
-                            route: Code.sharedEvents.onMessageRead,
+                            route: Code_1.default.sharedEvents.onMessageRead,
                             data: res
                         };
                         var senderInfo = channel.getMember(res.sender);
@@ -394,7 +394,7 @@ handler.updateWhoReadMessage = function (msg, session, next) {
             }
         });
     }
-    next(null, { code: Code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 /*
 * Update who read message by specific message_id.
@@ -410,14 +410,14 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     if (!messages || !uid || !rid) {
         var errMsg = "messageId or uid or rid data field is invalid.";
         console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
     if (!channel) {
         var errMsg = "no have room for your request.";
         console.warn(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     else {
@@ -435,7 +435,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
             getWhoReadMessages(messages, channel);
         });
     }
-    next(null, { code: Code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 //<!-- Push who read message to sender.
 function getWhoReadMessages(messages, channel) {
@@ -443,7 +443,7 @@ function getWhoReadMessages(messages, channel) {
         chatRoomManager.getWhoReadMessage(item, function (err, res) {
             if (!err) {
                 var onMessageRead = {
-                    route: Code.sharedEvents.onMessageRead,
+                    route: Code_1.default.sharedEvents.onMessageRead,
                     data: res
                 };
                 var senderInfo = channel.getMember(res.sender);

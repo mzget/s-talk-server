@@ -4,8 +4,8 @@
 ***********************************************/
 "use strict";
 var Mdb = require('../../../db/dbClient');
-var code = require('../../../../shared/Code');
-var friendManager_1 = require("../../../controller/friendManager");
+var Code_1 = require('../../../../shared/Code');
+var friendManager_1 = require("../../../../smelinkApp/appLayer/friendManager");
 var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
 var webConfig = require('../../../../config/webConfig.json');
@@ -32,25 +32,25 @@ handler.addFriend = function (msg, session, next) {
     var myUid = session.uid;
     if (!targetUid || !myUid || !token) {
         var _errMsg = "addFriend: missing params.";
-        next(null, { code: code.FAIL, message: _errMsg });
+        next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
     var id = setTimeout(function () {
-        next(null, { code: code.RequestTimeout, message: "request timeout..." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "request timeout..." });
     }, webConfig.timeout);
     var friendManager = new friendManager_1.default();
     friendManager.addFriends(myUid, targetUid, function (err, res) {
         if (err) {
             var log = 'add friend: fail!' + err;
             clearTimeout(id);
-            next(null, { code: code.FAIL, message: log });
+            next(null, { code: Code_1.default.FAIL, message: log });
         }
         else {
             clearTimeout(id);
-            next(null, { code: code.OK, message: res });
+            next(null, { code: Code_1.default.OK, message: res });
             //@ Push a link_request_list to target user.
             var param = {
-                route: code.friendEvents.addFriendEvent,
+                route: Code_1.default.friendEvents.addFriendEvent,
                 data: res
             };
             var pushGroup_1 = new Array();
