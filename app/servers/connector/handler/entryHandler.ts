@@ -40,8 +40,42 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     let self = this;
     let registrationId: string = msg.registrationId;
-	let email = msg.email.toLowerCase();
-	let pass = msg.password;
+
+	//@ use in "NewSmeLink" app.	
+	// let email = msg.email.toLowerCase();
+	// let pass = msg.password;
+
+    let id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "login timeout..." });
+    }, webConfig.timeout);
+
+    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
+		if (result.code === Code.OK) {
+			//@ Signing success.
+			session.bind(result.uid);
+			session.on('closed', onUserLeave.bind(null, self.app));
+
+			if (!!registrationId) {
+				userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+			}
+
+			let param = {
+				route: Code.sharedEvents.onUserLogin,
+				data: { _id: result.uid }
+			};
+
+			channelService.broadcast("connector", param.route, param.data);
+
+			//@ Comment this line when we dont want to force user to online-list when loged-in.
+			//			addOnlineUser(self.app, session, result.uid);
+		}
+		else if (result.code === Code.DuplicatedLogin) {
+			// session.__sessionService__.kick()
+		}
+
+		clearTimeout(id);
+		next(null, result);
+	});
 
 	/*
 	var url: string = this.webServer + "/?api/login";
@@ -83,38 +117,6 @@ handler.login = function (msg, session, next) {
 	req.write(qs);
 	req.end();
 	*/
-
-    let id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "login timeout..." });
-    }, webConfig.timeout);
-
-    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
-		if (result.code === Code.OK) {
-			//@ Signing success.
-			session.bind(result.uid);
-			session.on('closed', onUserLeave.bind(null, self.app));
-
-			if (!!registrationId) {
-				userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-			}
-
-			let param = {
-				route: Code.sharedEvents.onUserLogin,
-				data: { _id: result.uid }
-			};
-
-			channelService.broadcast("connector", param.route, param.data);
-
-			//@ Comment this line when we dont want to force user to online-list when loged-in.
-			//			addOnlineUser(self.app, session, result.uid);
-		}
-		else if (result.code === Code.DuplicatedLogin) {
-			// session.__sessionService__.kick()
-		}
-
-		clearTimeout(id);
-		next(null, result);
-	});
 }
 
 handler.logout = function (msg, session, next) {
