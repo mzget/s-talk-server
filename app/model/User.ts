@@ -1,6 +1,4 @@
-﻿//import UserRole = require("UserRole");
-//import JobLevel = require("JobLevel");
-import MAccess = require('./RoomAccessData');
+﻿import MAccess = require('./RoomAccessData');
 import UserRole = require('./UserRole');
 var generic = require('../util/collections');
 
@@ -21,8 +19,8 @@ export interface IOnlineUser {
     [uid: string]: OnlineUser;
 };
 
-export class User {
-    id: string;
+export class StalkAccount {
+    _id: string;
     displayname: string;
     username: string;
     password : string;
@@ -44,8 +42,28 @@ export class User {
     closedNoticeUsers: string[]; // user_id
     closedNoticeGroups: string[]; // room_id
     deviceTokens: string[];
-    
-    toString() {
-        return generic.collections.makeString(this);
-    }
+};
+
+export class BOLAccount {
+    _id: string;
+    displayname: string;
+    password : string;
+    first_name: string;
+    last_name: string;
+    tel: string;
+    mail: string;
+    image: string; //!-- mean image url.
+    role: UserRole.UserRole;
+    department: string;
+    jobLevel: JobLevel;
+    jobPosition: string;
+    status: string;
+    roomAccess: MAccess.RoomAccessData[];
+    memberOfRooms: string[];
+    lastEditProfile: Date;
+    favoriteUsers: string[]; // user_id
+    favoriteGroups: string[]; // room_id
+    closedNoticeUsers: string[]; // user_id
+    closedNoticeGroups: string[]; // room_id
+    devicesToken: string[];
 };
