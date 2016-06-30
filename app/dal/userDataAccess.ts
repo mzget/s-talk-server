@@ -16,7 +16,7 @@ class UserDataAccess {
             assert.equal(null, err);
 
             // Get the documents collection
-            var collection = db.collection(Mdb.DbController.userColl);
+            let collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
             collection.find({ _id: { $in: members } }).project({ deviceTokens: 1, _id: 0 }).toArray((err, results) => {
                 if (err || results === null) {

@@ -1,5 +1,4 @@
 "use strict";
-/// <reference path="../../typings/tsd.d.ts" />
 var mongodb = require('mongodb');
 var async = require('async');
 var MDb = require('../db/dbClient');

@@ -22,7 +22,6 @@
   <ItemGroup>
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
-    <Content Include="tsd.json" />
     <Content Include="README.md" />
     <TypeScriptCompile Include="app.ts" />
     <Compile Include="app.js" />
@@ -157,12 +156,9 @@
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
-    <TypeScriptCompile Include="typings\tsd.d.ts" />
-    <TypeScriptCompile Include="app\controller\AuthenManager.ts" />
     <TypeScriptCompile Include="app\controller\ChatRoomManager.ts" />
     <TypeScriptCompile Include="app\controller\CompanyManager.ts" />
     <TypeScriptCompile Include="app\controller\UserManager.ts" />
-    <Compile Include="app\controller\AuthenManager.js" />
     <Compile Include="app\controller\ChatRoomManager.js" />
     <Compile Include="app\controller\CompanyManager.js" />
     <Compile Include="app\controller\UserManager.js" />

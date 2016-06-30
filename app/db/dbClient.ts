@@ -1,6 +1,4 @@
-﻿/// <reference path="../../typings/tsd.d.ts" />
-
-import mongodb = require('mongodb');
+﻿import mongodb = require('mongodb');
 var Db = mongodb.Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
@@ -12,7 +10,7 @@ var Db = mongodb.Db,
     Code = require('mongodb').Code,
     BSON = require('mongodb').Bson,
     assert = require('assert');
-var webConfig = require('../../config/webConfig.json');
+const webConfig = require('../../config/webConfig.json');
 
 export module DbController {
 

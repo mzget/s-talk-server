@@ -2,9 +2,11 @@
   "compileOnSave": true,
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs"
+    "module": "commonjs",
+    "allowJs": false
   },
   "exclude": [
-    "./node_module"
+    "typings",
+    "node_modules"
   ]
 }

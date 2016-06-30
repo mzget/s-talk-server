@@ -1,5 +1,5 @@
+/// <reference path="../../typings/index.d.ts" />
 "use strict";
-/// <reference path="../../typings/jsonwebtoken/jsonwebtoken.d.ts" />
 var jwt = require('jsonwebtoken');
 var sessionConfig = require('../../config/session.json');
 var TokenService = (function () {
@@ -10,11 +10,8 @@ var TokenService = (function () {
         this.secret = sessionConfig.secret || this.DEFAULT_SECRET;
         this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
     }
-    TokenService.prototype.signToken = function (signObj) {
-        var token = jwt.sign(signObj, this.secret, {
-            expiresInMinutes: this.expire // expires in 24 hours
-        });
-        return token;
+    TokenService.prototype.signToken = function (signObj, callback) {
+        jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
     };
     /**
      * reture token decoded.
@@ -44,4 +41,5 @@ var TokenService = (function () {
     };
     return TokenService;
 }());
-module.exports = TokenService;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TokenService;

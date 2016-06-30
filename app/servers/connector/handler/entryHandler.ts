@@ -1,14 +1,12 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
-
-import CompanyController = require("../../../controller/CompanyManager");
+﻿import CompanyController = require("../../../controller/CompanyManager");
 import Mcontroller = require("../../../controller/ChatRoomManager");
 import Code = require('../../../../shared/Code');
 import User = require('../../../model/User');
 import userDAL = require('../../../dal/userDataAccess');
 import Room = require('../../../model/Room');
-import TokenService = require('../../../services/tokenService');
+import TokenService from '../../../services/tokenService';
 import generic = require('../../../util/collections');
-import MUser = require('../../../controller/UserManager');
+import {UserManager} from '../../../controller/UserManager';
 import async = require('async');
 import mongodb = require('mongodb');
 
@@ -18,7 +16,6 @@ const http = require('http');
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-const userManager = MUser.Controller.UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
@@ -43,6 +40,8 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     let self = this;
     let registrationId: string = msg.registrationId;
+	let email = msg.email.toLowerCase();
+	let pass = msg.password;
 
 	/*
 	var url: string = this.webServer + "/?api/login";
@@ -89,7 +88,7 @@ handler.login = function (msg, session, next) {
         next(null, { code: Code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
 
-	self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
+    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
 		if (result.code === Code.OK) {
 			//@ Signing success.
 			session.bind(result.uid);
@@ -107,7 +106,7 @@ handler.login = function (msg, session, next) {
 			channelService.broadcast("connector", param.route, param.data);
 
 			//@ Comment this line when we dont want to force user to online-list when loged-in.
-//			addOnlineUser(self.app, session, result.uid);
+			//			addOnlineUser(self.app, session, result.uid);
 		}
 		else if (result.code === Code.DuplicatedLogin) {
 			// session.__sessionService__.kick()
@@ -132,7 +131,7 @@ handler.logout = function (msg, session, next) {
 	next();
 }
 
-var logOut = function (app, session, next) {
+const logOut = function (app, session, next) {
 	app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
 		if (!err && user !== null) {
 			console.log("User logout.", user);
@@ -169,7 +168,7 @@ handler.getMe = function (msg, session, next) {
 		return;
 	}
 
-	var timeOut = setTimeout(function () {
+	let timeOut = setTimeout(function () {
 		next(null, { code: Code.FAIL, message: "getMe timeout..." });
 	}, webConfig.timeout);
 
@@ -197,23 +196,18 @@ handler.getMe = function (msg, session, next) {
 				uidsGroup.push(group);
 				channelService.pushMessageByUids(onGetMe.route, onGetMe.data, uidsGroup);
 
-				let data = JSON.parse(JSON.stringify(result.data));
+                let profile: User.StalkAccount = JSON.parse(JSON.stringify(result.data));
 				let onlineUser = new User.OnlineUser();
-				onlineUser.uid = data._id;
-				onlineUser.username = data.username;
+				onlineUser.uid = profile._id;
+				onlineUser.username = profile.username;
 				onlineUser.serverId = session.frontendId;
-				onlineUser.registrationIds = data.deviceTokens;
+				onlineUser.registrationIds = profile.deviceTokens;
 
 				let userTransaction = new User.UserTransaction();
-				userTransaction.uid = data._id;
-				userTransaction.username = data.username;
+				userTransaction.uid = profile._id;
+				userTransaction.username = profile.username;
 
-				//!-- check uid in onlineUsers list.
-				//var usersDict = userManager.onlineUsers;
-				//for (var i in usersDict) {
-				//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-				//}
-				console.log("New onlineUsers %s : ", onlineUser);
+				console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
 
 				self.app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
 				self.app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
@@ -224,24 +218,21 @@ handler.getMe = function (msg, session, next) {
 
 function addOnlineUser(app, session, userId: string) {
 	app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
-		let datas = JSON.parse(JSON.stringify(result.data));
+		console.log("joining onlineUser", JSON.stringify(result));
+
+		let datas: Array<User.BOLAccount> = JSON.parse(JSON.stringify(result.data));
 		let my = datas[0];
 		let onlineUser = new User.OnlineUser();
 		onlineUser.uid = my._id;
-		onlineUser.username = my.username;
+		onlineUser.username = my.first_name;
 		onlineUser.serverId = session.frontendId;
-		onlineUser.registrationIds = my.deviceTokens;
+		onlineUser.registrationIds = my.devicesToken;
 
 		let userTransaction = new User.UserTransaction();
 		userTransaction.uid = my._id;
-		userTransaction.username = my.username;
+		userTransaction.username = my.first_name;
 
-		//!-- check uid in onlineUsers list.
-		//var usersDict = userManager.onlineUsers;
-		//for (var i in usersDict) {
-		//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-		//}
-		console.log("New onlineUsers %s : ", onlineUser);
+		console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
 
 		app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
 		app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
@@ -273,7 +264,7 @@ handler.getLastAccessRooms = function (msg, session, next) {
 			}
 		});
 	}], (err, results) => {
-		userManager.getRoomAccessForUser(uid, function (err, res) {
+		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
 			var onAccessRooms = {
 				route: Code.sharedEvents.onAccessRooms,
 				data: res
@@ -592,12 +583,19 @@ handler.leaveRoom = function (msg, session, next) {
 		return;
     }
 
-    var onlineUser = new User.OnlineUser();
+    let onlineUser = new User.OnlineUser();
     onlineUser.username = msg.username;
     onlineUser.uid = uid;
     onlineUser.serverId = sid;
 
     self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+        session.set('rid', null);
+        session.push('rid', function (err) {
+            if (err) {
+                console.error('set rid for session service failed! error is : %j', err.stack);
+            }
+        });
+
         if (err) {
             next(null, { code: Code.FAIL, message: "leaveRoom with error." });
         }
@@ -613,12 +611,12 @@ handler.leaveRoom = function (msg, session, next) {
  * @param {Object} session current session object
  *
  */
-var onUserLeave = function (app, session) {
+const onUserLeave = function (app, session) {
 	if (!session || !session.uid) {
 		return;
 	}
 
-	var onlineUser = new User.OnlineUser();
+	let onlineUser = new User.OnlineUser();
 	onlineUser.username = "";
 	onlineUser.uid = session.uid;
 

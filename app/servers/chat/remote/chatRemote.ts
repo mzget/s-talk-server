@@ -80,7 +80,7 @@ remote.getUsers = function (name, flag) {
 * @param {String} sid server id
 * @param {String} name channel name
 */
-remote.kick = function (user: User.OnlineUser, sid, rid, cb) {
+remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
     let self = this;
     cb();
     if (!rid) {
@@ -89,17 +89,17 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb) {
 
 
     userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
-        var printR = (accessInfo) ? accessInfo.result : null;
+        let printR = (accessInfo) ? accessInfo.result : null;
         console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
 
         userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
             console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
             if (channel) {
-                var targetId = { uid: user.uid, sid: user.serverId };
-                var group = new Array();
+                let targetId = { uid: user.uid, sid: user.serverId };
+                let group = new Array();
                 group.push(targetId);
 
-                var param = {
+                let param = {
                     route: Code.sharedEvents.onUpdatedLastAccessTime,
                     data: res
                 };
@@ -110,7 +110,7 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb) {
     });
 
 
-    var channel = channelService.getChannel(rid, false);
+    let channel = channelService.getChannel(rid, false);
     //<!-- when user leave channel.
     if (!!channel) {
         var username = user.username;

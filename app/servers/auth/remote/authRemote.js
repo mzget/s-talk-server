@@ -1,14 +1,11 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
+/// <reference path="../../../../typings/index.d.ts" />
 "use strict";
 var Code = require('../../../../shared/Code');
-var TokenService = require('../../../services/tokenService');
-var MAuthen = require('../../../controller/AuthenManager');
-var MUser = require('../../../controller/UserManager');
+var tokenService_1 = require('../../../services/tokenService');
+var UserManager_1 = require('../../../controller/UserManager');
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUser.Controller.UserManager.getInstance();
-var authenManager = MAuthen.Controller.AuthenManager.getInstance();
-var tokenService = new TokenService();
+var tokenService = new tokenService_1.default();
 var accountService;
 var channelService;
 module.exports = function (app) {
@@ -41,7 +38,6 @@ var initServer = function () {
  * 2. call when user logout.
  */
 remote.addOnlineUser = function (user, cb) {
-    console.error("addOnlineUser");
     accountService.addOnlineUser(user, cb);
 };
 remote.removeOnlineUser = function (userId, cb) {
@@ -70,7 +66,7 @@ remote.getUserTransaction = function (uid, cb) {
         cb(null, accountService.userTransaction[uid]);
     }
     else {
-        cb(null, null);
+        cb(new Error("No have userTransaction"), null);
     }
 };
 remote.getRoomMap = function (rid, callback) {
@@ -143,18 +139,20 @@ remote.me = function (msg, cb) {
     var username = msg.username;
     var password = msg.password;
     var bearerToken = msg.token;
-    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
-        if (user === null) {
+    var query = { username: username.toLowerCase() };
+    var projection = { roomAccess: 0 };
+    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
+        if (err || res === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
             cb({ code: Code.FAIL, message: errMsg });
             return;
         }
-        cb({ code: Code.OK, data: user });
-    }, { roomAccess: 0 });
+        cb({ code: Code.OK, data: res[0] });
+    });
 };
 remote.myProfile = function (userId, cb) {
-    userManager.getMemberProfile(userId, function (err, res) {
+    UserManager_1.UserManager.getInstance().getMemberProfile(userId, function (err, res) {
         if (res === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
@@ -165,9 +163,11 @@ remote.myProfile = function (userId, cb) {
     });
 };
 remote.auth = function (email, password, callback) {
-    authenManager.GetUsername({ username: email }, function (res) {
+    var query = { username: email };
+    var projection = { username: 1, password: 1 };
+    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
         onAuthentication(password, res, callback);
-    }, { username: 1, password: 1 });
+    });
 };
 var onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
@@ -178,12 +178,12 @@ var onAuthentication = function (_password, userInfo, callback) {
                 if (!user) {
                     // if user is found and password is right
                     // create a token
-                    var token = tokenService.signToken(obj_1);
-                    callback({
-                        code: Code.OK,
-                        uid: obj_1._id,
-                        message: "Authenticate success!",
-                        token: token
+                    tokenService.signToken(obj_1, function (err, encode) {
+                        callback({
+                            code: Code.OK,
+                            uid: obj_1._id,
+                            token: encode
+                        });
                     });
                 }
                 else {

@@ -82,11 +82,11 @@ remote.kick = function (user, sid, rid, cb) {
                 var targetId = { uid: user.uid, sid: user.serverId };
                 var group = new Array();
                 group.push(targetId);
-                var param = {
+                var param_1 = {
                     route: Code.sharedEvents.onUpdatedLastAccessTime,
                     data: res
                 };
-                channelService.pushMessageByUids(param.route, param.data, group);
+                channelService.pushMessageByUids(param_1.route, param_1.data, group);
             }
         });
     });

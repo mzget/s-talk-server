@@ -1,7 +1,6 @@
-
 import Code = require('../../../../shared/Code');
-import TokenService = require('../../../services/tokenService');
-const dispatcher = require('../../../util/dispatcher');
+import TokenService from '../../../services/tokenService';
+import dispatcher from '../../../util/dispatcher';
 const tokenService: TokenService = new TokenService();
 
 module.exports = function(app) {
@@ -39,7 +38,7 @@ handler.queryEntry = function(msg, session, next) {
 		return;
 	}
 	// select connector
-	let res = dispatcher.dispatch(uid, connectors);
+	let res = dispatcher(uid, connectors);
 	next(null, {
 		code: Code.OK,
 		host: res.host,

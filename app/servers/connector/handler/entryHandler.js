@@ -1,21 +1,19 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var CompanyController = require("../../../controller/CompanyManager");
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var Code = require('../../../../shared/Code');
 var User = require('../../../model/User');
 var userDAL = require('../../../dal/userDataAccess');
-var TokenService = require('../../../services/tokenService');
-var MUser = require('../../../controller/UserManager');
+var tokenService_1 = require('../../../services/tokenService');
+var UserManager_1 = require('../../../controller/UserManager');
 var async = require('async');
 var mongodb = require('mongodb');
 var webConfig = require('../../../../config/webConfig.json');
 var ObjectID = mongodb.ObjectID;
 var http = require('http');
-var tokenService = new TokenService();
+var tokenService = new tokenService_1.default();
 var companyManager = CompanyController.CompanyManager.getInstance();
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUser.Controller.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate connector handler.");
@@ -35,6 +33,8 @@ var handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     var self = this;
     var registrationId = msg.registrationId;
+    var email = msg.email.toLowerCase();
+    var pass = msg.password;
     /*
     var url: string = this.webServer + "/?api/login";
     console.log("login", url);
@@ -164,21 +164,16 @@ handler.getMe = function (msg, session, next) {
                 };
                 uidsGroup.push(group);
                 channelService.pushMessageByUids(onGetMe.route, onGetMe.data, uidsGroup);
-                var data = JSON.parse(JSON.stringify(result.data));
+                var profile = JSON.parse(JSON.stringify(result.data));
                 var onlineUser = new User.OnlineUser();
-                onlineUser.uid = data._id;
-                onlineUser.username = data.username;
+                onlineUser.uid = profile._id;
+                onlineUser.username = profile.username;
                 onlineUser.serverId = session.frontendId;
-                onlineUser.registrationIds = data.deviceTokens;
+                onlineUser.registrationIds = profile.deviceTokens;
                 var userTransaction = new User.UserTransaction();
-                userTransaction.uid = data._id;
-                userTransaction.username = data.username;
-                //!-- check uid in onlineUsers list.
-                //var usersDict = userManager.onlineUsers;
-                //for (var i in usersDict) {
-                //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-                //}
-                console.log("New onlineUsers %s : ", onlineUser);
+                userTransaction.uid = profile._id;
+                userTransaction.username = profile.username;
+                console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
                 self.app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
                 self.app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
             });
@@ -187,22 +182,18 @@ handler.getMe = function (msg, session, next) {
 };
 function addOnlineUser(app, session, userId) {
     app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
+        console.log("joining onlineUser", JSON.stringify(result));
         var datas = JSON.parse(JSON.stringify(result.data));
         var my = datas[0];
         var onlineUser = new User.OnlineUser();
         onlineUser.uid = my._id;
-        onlineUser.username = my.username;
+        onlineUser.username = my.first_name;
         onlineUser.serverId = session.frontendId;
-        onlineUser.registrationIds = my.deviceTokens;
+        onlineUser.registrationIds = my.devicesToken;
         var userTransaction = new User.UserTransaction();
         userTransaction.uid = my._id;
-        userTransaction.username = my.username;
-        //!-- check uid in onlineUsers list.
-        //var usersDict = userManager.onlineUsers;
-        //for (var i in usersDict) {
-        //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-        //}
-        console.log("New onlineUsers %s : ", onlineUser);
+        userTransaction.username = my.first_name;
+        console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
         app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
         app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
     });
@@ -231,7 +222,7 @@ handler.getLastAccessRooms = function (msg, session, next) {
                 }
             });
         }], function (err, results) {
-        userManager.getRoomAccessForUser(uid, function (err, res) {
+        UserManager_1.UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
             var onAccessRooms = {
                 route: Code.sharedEvents.onAccessRooms,
                 data: res
@@ -508,6 +499,12 @@ handler.leaveRoom = function (msg, session, next) {
     onlineUser.uid = uid;
     onlineUser.serverId = sid;
     self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+        session.set('rid', null);
+        session.push('rid', function (err) {
+            if (err) {
+                console.error('set rid for session service failed! error is : %j', err.stack);
+            }
+        });
         if (err) {
             next(null, { code: Code.FAIL, message: "leaveRoom with error." });
         }

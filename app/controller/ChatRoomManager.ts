@@ -1,5 +1,4 @@
-﻿/// <reference path="../../typings/tsd.d.ts" />
-import mongodb = require('mongodb');
+﻿import mongodb = require('mongodb');
 import async = require('async');
 import MDb = require('../db/dbClient');
 import Room = require("../model/Room");

@@ -1,4 +1,3 @@
-/// <reference path="../../typings/tsd.d.ts" />
 "use strict";
 var User = require('../model/User');
 var Room = require('../model/Room');
@@ -42,7 +41,7 @@ var Controller;
             UserManager._instance = this;
         }
         UserManager.getInstance = function () {
-            if (UserManager._instance === null) {
+            if (!UserManager._instance) {
                 UserManager._instance = new UserManager();
             }
             return UserManager._instance;
