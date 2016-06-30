@@ -3,29 +3,29 @@
 * for edit user profile info.
 ***********************************************/
 
-/// <reference path="../../../../typings/tsd.d.ts" />
 import Mdb = require('../../../db/dbClient');
-import code = require('../../../../shared/Code');
-import MUser = require('../../../controller/UserManager');
-import User = require('../../../model/User');
+import code from    '../../../../shared/Code';
+import {UserManager}  from   '../../../controller/UserManager';
+import *    as  User from    '../../../model/User';
 import Room = require('../../../model/Room');
 import async = require('async');
-var dbClient = Mdb.DbController.DbClient.GetInstance();
-var ObjectID = require('mongodb').ObjectID;
-var userManager = MUser.Controller.UserManager.getInstance();
+const dbClient = Mdb.DbController.DbClient.GetInstance();
+const ObjectID = require('mongodb').ObjectID;
+const userManager = UserManager.getInstance();
 var channelService;
 
-console.info("instanctiate profileHandler.");
 module.exports = function (app) {
+    console.info("instanctiate profileHandler.");
+
     return new ProfileHandler(app);
 };
 
-var ProfileHandler = function (app) {
+const ProfileHandler = function (app) {
     this.app = app;
     channelService = app.get('channelService');
 };
 
-var profileHandler = ProfileHandler.prototype;
+const profileHandler = ProfileHandler.prototype;
 
 /*
 * update or edit user profile.
@@ -40,7 +40,7 @@ profileHandler.profileUpdate = function (msg, session, next) {
     }
 
     var uid = msg._id;
-    var updateParams = new User.User();
+    var updateParams = new User.StalkAccount();
 
     if (msg.displayname && msg.displayname !== "")//updateParams = { displayname: msg.displayname, lastEditProfile: new Date() };
         updateParams.displayname = msg.displayname;
@@ -54,7 +54,7 @@ profileHandler.profileUpdate = function (msg, session, next) {
         updateParams.tel = msg.tel;
     if (msg.status && msg.status !== "") // updateParams = { status: msg.status, lastEditProfile: new Date() };
         updateParams.status = msg.status;
-    
+
     if (!updateParams) {
         next(null, { code: code.FAIL, message: "Fail to update user profile." });
         return;
@@ -62,7 +62,7 @@ profileHandler.profileUpdate = function (msg, session, next) {
 
     //<!-- Finally  add last edit time to params.
     updateParams.lastEditProfile = new Date();
-    
+
     dbClient.UpdateDocuments(Mdb.DbController.userColl, function (result) {
         if (!result) {
             console.error("profileUpdate fail.!");
@@ -75,7 +75,7 @@ profileHandler.profileUpdate = function (msg, session, next) {
 
             channelService.broadcast("connector", param.route, param.data);
         }
-    }, { _id: new ObjectID(uid) },{ $set: updateParams}, { w: 1 });
+    }, { _id: new ObjectID(uid) }, { $set: updateParams }, { w: 1 });
 
     next(null, { code: code.OK });
 }
@@ -87,7 +87,7 @@ profileHandler.profileUpdate = function (msg, session, next) {
  * - user_id
  *  who update image. 
  */
-profileHandler.profileImageChanged = function(msg, session, next) {
+profileHandler.profileImageChanged = function (msg, session, next) {
     var uid = msg.userId;
     if (!uid) {
         next(null, { code: code.FAIL, message: "profile info is empty or null." });
@@ -99,11 +99,11 @@ profileHandler.profileImageChanged = function(msg, session, next) {
         next(null, { code: code.FAIL, message: "newUrl of profileImage is empty or null." });
         return;
     }
-    
+
     userManager.updateImageProfile(uid, newUrl, function (err, res) {
-        if(err) {
+        if (err) {
             console.error("updateImageProfile fail.", err);
-        } 
+        }
         else {
             var param = {
                 route: code.sharedEvents.onUserUpdateImgProfile,
@@ -112,7 +112,7 @@ profileHandler.profileImageChanged = function(msg, session, next) {
             channelService.broadcast("connector", param.route, param.data);
         }
     });
-    
+
     next(null);
 }
 
@@ -139,7 +139,7 @@ profileHandler.getMemberProfile = function (msg, session, next) {
 
     userManager.getMemberProfile(targetId, function (err, res) {
         if (err || res === null) {
-            var message = "fail to getMemberProfile of " + targetId; 
+            var message = "fail to getMemberProfile of " + targetId;
             next(null, { code: code.FAIL, message: message });
         }
         else {
@@ -159,7 +159,7 @@ profileHandler.editFavoriteMembers = function (msg, session, next) {
     if (!uid || !editType || !member || !token) {
         var _errMsg = "editFavoriteMembers: some params is invalid.";
         console.error(_errMsg);
-        next(null, { code: code.FAIL , message: _errMsg });
+        next(null, { code: code.FAIL, message: _errMsg });
         return;
     }
 

@@ -47,7 +47,10 @@ var Code = (function () {
         onNewGroupCreated: "onNewGroupCreated",
         onUpdateMemberInfoInProjectBase: "onUpdateMemberInfoInProjectBase"
     };
+    Code.friendEvents = {
+        addFriendEvent: "addFriendEvent"
+    };
     return Code;
 }());
-;
-module.exports = Code;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Code;

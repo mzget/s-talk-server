@@ -1,21 +1,19 @@
-/// <reference path="../../../../typings/tsd.d.ts" />
 "use strict";
 var Mcontroller = require('../../../controller/ChatRoomManager');
-var MUserManager = require("../../../controller/UserManager");
+var UserManager_1 = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
 var MRoom = require('../../../model/Room');
 var MMessage = require('../../../model/Message');
-var Code = require('../../../../shared/Code');
+var Code_1 = require('../../../../shared/Code');
 var MPushService = require('../../../services/ParsePushService');
 var mongodb = require('mongodb');
 var async = require('async');
 var webConfig = require('../../../../config/webConfig.json');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUserManager.Controller.UserManager.getInstance();
-var channelService;
-var chatService;
+var userManager = UserManager_1.UserManager.getInstance();
 var pushService = new MPushService.ParsePushService();
 var ObjectID = mongodb.ObjectID;
+var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatHandler.");
     return new Handler(app);
@@ -23,7 +21,6 @@ module.exports = function (app) {
 var Handler = function (app) {
     this.app = app;
     channelService = this.app.get('channelService');
-    chatService = this.app.get('chatService');
 };
 var handler = Handler.prototype;
 /**
@@ -41,108 +38,115 @@ var handler = Handler.prototype;
 handler.send = function (msg, session, next) {
     var self = this;
     var rid = session.get('rid');
+    var clientUUID = msg.uuid;
+    var target = msg.target;
     if (!rid) {
         var errMsg = "rid is invalid please chaeck.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
         return;
     }
     //<!-- Get online members of room.
     var thisRoom = null;
-    var onlineMembers = new Array();
-    var offlineMembers = new Array();
-    self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
-        if (err || res === false) {
-            next(null, { code: Code.FAIL, message: "cannot access your request room." });
+    self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
+        console.log("get members from room: %s name: %s members: %s", rid, room.name, room.members.length);
+        thisRoom = room;
+        if (!thisRoom.members) {
+            var errMsg = "Room no have a members.";
+            next(null, { code: Code_1.default.FAIL, message: errMsg });
+            return;
         }
         else {
-            chatService.getRoom(rid, function (err, room) {
-                console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
-                thisRoom = room;
-                if (!room.members) {
-                    console.warn("RoomMembers is empty.");
+            var _msg = new MMessage.Message();
+            _msg.rid = msg.rid,
+                _msg.type = msg.type,
+                _msg.body = msg.content,
+                _msg.sender = msg.sender,
+                _msg.createTime = new Date(),
+                _msg.meta = msg.meta;
+            chatRoomManager.AddChatRecord(_msg, function (err, docs) {
+                if (docs !== null) {
+                    var resultMsg = JSON.parse(JSON.stringify(docs[0]));
+                    //<!-- send callback to user who send chat msg.
+                    var params = {
+                        messageId: resultMsg._id,
+                        type: resultMsg.type,
+                        createTime: resultMsg.createTime,
+                        uuid: clientUUID
+                    };
+                    next(null, { code: Code_1.default.OK, data: params });
+                    pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
                 }
                 else {
-                    room.members.forEach(function (value) {
-                        self.app.rpc.chat.chatRemote.getOnlineUser(session, value.id, function (err2, user) {
-                            if (err2 || user === null) {
-                                offlineMembers.push(value.id);
-                            }
-                            else {
-                                onlineMembers.push(user);
-                            }
-                        });
-                    });
-                    var _msg = new MMessage.Message();
-                    _msg.rid = msg.rid,
-                        _msg.type = msg.type,
-                        _msg.body = msg.content,
-                        _msg.sender = msg.sender,
-                        _msg.createTime = new Date(),
-                        _msg.meta = msg.meta;
-                    chatRoomManager.AddChatRecord(_msg, function (err, docs) {
-                        if (docs !== null) {
-                            var resultMsg = JSON.parse(JSON.stringify(docs[0]));
-                            //<!-- send callback to user who send chat msg.
-                            var params = {
-                                messageId: resultMsg._id,
-                                type: resultMsg.type,
-                                createTime: resultMsg.createTime
-                            };
-                            next(null, { code: Code.OK, data: params });
-                            //<!-- push chat data to other members in room.
-                            var onChat = {
-                                route: Code.sharedEvents.onChat,
-                                data: resultMsg
-                            };
-                            //the target is all users
-                            if (msg.target === '*') {
-                                //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
-                                async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
-                                        uid: val.uid,
-                                        sid: val.serverId
-                                    };
-                                    uidsGroup.push(group);
-                                    console.info("online member:", val.username);
-                                    cb();
-                                }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-                                    //<!-- Push message to off line users via parse.
-                                    callPushNotification(thisRoom, resultMsg.sender, offlineMembers);
-                                });
-                            }
-                            else if (msg.target === "bot") {
-                                //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
-                                async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
-                                        uid: val.uid,
-                                        sid: val.serverId
-                                    };
-                                    uidsGroup.push(group);
-                                    cb();
-                                }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-                                });
-                            }
-                            else {
-                            }
-                        }
-                        else {
-                            next(null, { code: Code.FAIL, message: "AddChatRecord fail please try to resend your message." });
-                        }
-                    });
+                    next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please try to resend your message." });
                 }
             });
         }
     });
 };
+function pushMessage(app, session, room, message, clientUUID, target) {
+    var onlineMembers = new Array();
+    var offlineMembers = new Array();
+    //@ Try to push message to other ...
+    async.map(room.members, function (item, resultCallback) {
+        app.rpc.auth.authRemote.getOnlineUser(session, item.id, function (err2, user) {
+            if (err2 || user === null) {
+                offlineMembers.push(item.id);
+            }
+            else {
+                onlineMembers.push(user);
+            }
+            resultCallback(null, item);
+        });
+    }, function (err, results) {
+        console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
+        //<!-- push chat data to other members in room.
+        message.uuid = clientUUID;
+        var onChat = {
+            route: Code_1.default.sharedEvents.onChat,
+            data: message
+        };
+        //the target is all users
+        if (target === '*') {
+            //<!-- Push new message to online users.
+            var uidsGroup_1 = new Array();
+            async.eachSeries(onlineMembers, function iterator(val, cb) {
+                var group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup_1.push(group);
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup_1);
+                //<!-- Push message to off line users via parse.
+                if (!!offlineMembers && offlineMembers.length > 0) {
+                    // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                    simplePushNotification(app, session, offlineMembers, room, message.sender);
+                }
+            });
+        }
+        else if (target === "bot") {
+            //<!-- Push new message to online users.
+            var uidsGroup_2 = new Array();
+            async.eachSeries(onlineMembers, function iterator(val, cb) {
+                var group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup_2.push(group);
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup_2);
+            });
+        }
+        else {
+        }
+    });
+}
 handler.getSyncDateTime = function (msg, session, next) {
     var date = new Date();
     var param = {
-        code: Code.OK,
+        code: Code_1.default.OK,
         data: date
     };
     next(null, param);
@@ -159,7 +163,7 @@ handler.uploadImageFinished = function (msg, session, next) {
     var contentUrl = msg.contentUrl;
     var ownerMessageId = msg.ownerMessageId;
     if (!contentUrl || !ownerMessageId) {
-        next(null, { code: Code.FAIL, message: "path or ownerMessageId is invalid..." });
+        next(null, { code: Code_1.default.FAIL, message: "path or ownerMessageId is invalid..." });
         return;
     }
     chatRoomManager.updateChatRecordContent(ownerMessageId, contentUrl, function (err, res) {
@@ -181,7 +185,7 @@ handler.uploadImageFinished = function (msg, session, next) {
                 }
             });
         }
-        next(null, { code: Code.OK, data: res });
+        next(null, { code: Code_1.default.OK, data: res });
     });
 };
 /**
@@ -196,15 +200,15 @@ handler.getChatHistory = function (msg, session, next) {
     var rid = msg.rid;
     var lastMessageTime = msg.lastAccessTime;
     if (!rid) {
-        next(null, { code: Code.FAIL, message: "room_id field is in valid." });
+        next(null, { code: Code_1.default.FAIL, message: "room_id field is in valid." });
         return;
     }
     if (!lastMessageTime) {
-        next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
+        next(null, { code: Code_1.default.FAIL, message: "lastAccessTime field is in valid." });
         return;
     }
     var _timeOut = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "getChatHistory request timeout." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "getChatHistory request timeout." });
         return;
     }, webConfig.timeout);
     var utc = new Date(lastMessageTime);
@@ -213,13 +217,13 @@ handler.getChatHistory = function (msg, session, next) {
         if (result !== null) {
             clearTimeout(_timeOut);
             var chatrecords = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code.OK, data: chatrecords });
+            next(null, { code: Code_1.default.OK, data: chatrecords });
             //<!-- When get chat history complete. System will update roomAccess data for user.
             self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL, message: "have no a chatrecord for this room." });
+            next(null, { code: Code_1.default.FAIL, message: "have no a chatrecord for this room." });
         }
     });
 };
@@ -231,22 +235,22 @@ handler.getOlderMessageChunk = function (msg, session, next) {
     var rid = msg.rid;
     var topEdgeMessageTime = msg.topEdgeMessageTime;
     if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        next(null, { code: Code_1.default.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
     var _timeOut = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
     }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
             clearTimeout(_timeOut);
-            next(null, { code: Code.OK, data: res });
+            next(null, { code: Code_1.default.OK, data: res });
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
     });
 };
@@ -255,22 +259,22 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
     var rid = msg.rid;
     var topEdgeMessageTime = msg.topEdgeMessageTime;
     if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        next(null, { code: Code_1.default.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
     var _timeOut = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
+        next(null, { code: Code_1.default.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
         return;
     }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
             clearTimeout(_timeOut);
-            next(null, { code: Code.OK, data: res.length });
+            next(null, { code: Code_1.default.OK, data: res.length });
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
     });
 };
@@ -289,14 +293,14 @@ handler.getMessagesReaders = function (msg, session, next) {
     var errMsg = "uid or rid is invalid. or may be some params i missing.";
     if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
     chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             var onGetMessagesReaders = {
-                route: Code.sharedEvents.onGetMessagesReaders,
+                route: Code_1.default.sharedEvents.onGetMessagesReaders,
                 data: res
             };
             var memberInfo = channel.getMember(uid);
@@ -311,7 +315,7 @@ handler.getMessagesReaders = function (msg, session, next) {
             }
         }
     });
-    next(null, { code: Code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 /**
 * get log message content by message_id.
@@ -324,16 +328,16 @@ handler.getMessageContent = function (msg, session, next) {
     if (!messageId) {
         var err = "messageId connot be null or empty.";
         console.warn(err);
-        next(null, { code: Code.FAIL, message: err });
+        next(null, { code: Code_1.default.FAIL, message: err });
     }
     chatRoomManager.GetChatContent(messageId, function (err, result) {
         console.log("GetChatContent: ", result);
         if (result !== null) {
             var content = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code.OK, data: content });
+            next(null, { code: Code_1.default.OK, data: content });
         }
         else {
-            next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
+            next(null, { code: Code_1.default.FAIL, message: "have no a content for this message_id." });
         }
     });
 };
@@ -351,14 +355,14 @@ handler.updateWhoReadMessage = function (msg, session, next) {
     if (!messageId || !uid || !rid) {
         var errMsg = "messageId or uid or rid data field is invalid.";
         console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
     if (!channel) {
         var message = "no have room for your request.";
         console.warn(message);
-        next(null, { code: Code.FAIL, message: message });
+        next(null, { code: Code_1.default.FAIL, message: message });
         return;
     }
     else {
@@ -372,7 +376,7 @@ handler.updateWhoReadMessage = function (msg, session, next) {
                 chatRoomManager.getWhoReadMessage(messageId, function (err, res) {
                     if (!err) {
                         var onMessageRead = {
-                            route: Code.sharedEvents.onMessageRead,
+                            route: Code_1.default.sharedEvents.onMessageRead,
                             data: res
                         };
                         var senderInfo = channel.getMember(res.sender);
@@ -390,7 +394,7 @@ handler.updateWhoReadMessage = function (msg, session, next) {
             }
         });
     }
-    next(null, { code: Code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 /*
 * Update who read message by specific message_id.
@@ -406,14 +410,14 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     if (!messages || !uid || !rid) {
         var errMsg = "messageId or uid or rid data field is invalid.";
         console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     var channel = channelService.getChannel(rid, false);
     if (!channel) {
         var errMsg = "no have room for your request.";
         console.warn(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
+        next(null, { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
     else {
@@ -431,7 +435,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
             getWhoReadMessages(messages, channel);
         });
     }
-    next(null, { code: Code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 //<!-- Push who read message to sender.
 function getWhoReadMessages(messages, channel) {
@@ -439,7 +443,7 @@ function getWhoReadMessages(messages, channel) {
         chatRoomManager.getWhoReadMessage(item, function (err, res) {
             if (!err) {
                 var onMessageRead = {
-                    route: Code.sharedEvents.onMessageRead,
+                    route: Code_1.default.sharedEvents.onMessageRead,
                     data: res
                 };
                 var senderInfo = channel.getMember(res.sender);
@@ -462,7 +466,7 @@ function getWhoReadMessages(messages, channel) {
         console.log("getWhoReadMessages. done");
     });
 }
-function callPushNotification(room, sender, offlineMembers) {
+function callPushNotification(app, session, room, sender, offlineMembers) {
     //<!-- Push message to off line users via parse.
     /**<!-- Before push message via parse.
     * Todo
@@ -472,91 +476,184 @@ function callPushNotification(room, sender, offlineMembers) {
     * 4. Know installationsId of receiver users.
     */
     var pushTitle = room.name;
+    var alertMessage = "";
     if (!pushTitle) {
-        var userTrans = chatService.userTransaction[sender];
-        pushTitle = userTrans.username;
-    }
-    var alertMessage = pushTitle + " has a new message.";
-    var targetDevices = new Array();
-    var targetMemberWhoSubscribeRoom = new Array();
-    //<-- To push only user who subscribe this room. This process need a some logic.
-    /**
-     * - check the offline user who subscribe this room or not.
-     * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
-     * - if one of list has contain room_id dont push message for them.
-     *  */
-    async.waterfall([function (t) {
-            //<!-- checking roomType
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, function (result) {
-                if (!result) {
-                    var errMsg = "checkedRoomType fail.";
-                    console.error(errMsg);
-                    t(new Error(errMsg), null);
-                }
-                else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
-                    t(null, {});
-                }
-                else {
-                    t(null, result.type);
-                }
+        new Promise(function (resolve, reject) {
+            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
+                pushTitle = userTrans.username;
+                resolve(pushTitle);
             });
-        }, function (arg1, cb) {
-            if (arg1 === null) {
-                cb(null, null);
-            }
-            else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
-                /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
-                //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
-                var roomType = JSON.parse(JSON.stringify(arg1));
-                async.eachSeries(offlineMembers, function iterrator(item, callback) {
-                    //                console.warn("offline member _id: ", item);
-                    userManager.checkUnsubscribeRoom(item, roomType, room._id, function (err, results) {
-                        //<!-- if result is contain in unsubscribe list. we ignore this member.
-                        if (!err && results !== null) {
-                        }
-                        else {
-                            var objId = new ObjectID(item);
-                            targetMemberWhoSubscribeRoom.push(objId);
-                        }
-                        callback();
-                    });
-                }, function callback(err) {
-                    if (err) {
-                        cb(err, null);
+        }).then(function (value) {
+            alertMessage = value + " has a new message.";
+            call();
+        });
+    }
+    else {
+        alertMessage = pushTitle + " has a new message.";
+        call();
+    }
+    function call() {
+        console.warn("alertMessage is ", alertMessage, offlineMembers);
+        var targetDevices = new Array();
+        var targetMemberWhoSubscribeRoom = new Array();
+        //<-- To push only user who subscribe this room. This process need a some logic.
+        /**
+         * - check the offline user who subscribe this room or not.
+         * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
+         * - if one of list has contain room_id dont push message for them.
+         *  */
+        async.waterfall([function (t) {
+                //<!-- checking roomType
+                chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, function (result) {
+                    if (!result) {
+                        var errMsg = "checkedRoomType fail.";
+                        console.error(errMsg);
+                        t(new Error(errMsg), null);
+                    }
+                    else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+                        t(null, {});
                     }
                     else {
-                        cb(null, {});
+                        t(null, result.type);
                     }
                 });
+            }, function (arg1, cb) {
+                if (arg1 === null) {
+                    cb(null, null);
+                }
+                else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
+                    /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
+                    //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
+                    var roomType_1 = JSON.parse(JSON.stringify(arg1));
+                    async.eachSeries(offlineMembers, function iterrator(item, callback) {
+                        //                console.warn("offline member _id: ", item);
+                        userManager.checkUnsubscribeRoom(item, roomType_1, room._id, function (err, results) {
+                            //<!-- if result is contain in unsubscribe list. we ignore this member.
+                            if (!err && results !== null) {
+                            }
+                            else {
+                                var objId = new ObjectID(item);
+                                targetMemberWhoSubscribeRoom.push(objId);
+                            }
+                            callback();
+                        });
+                    }, function callback(err) {
+                        if (err) {
+                            cb(err, null);
+                        }
+                        else {
+                            cb(null, {});
+                        }
+                    });
+                }
+                else {
+                    offlineMembers.forEach(function (offline) {
+                        var objId = new ObjectID(offline);
+                        targetMemberWhoSubscribeRoom.push(objId);
+                    });
+                    cb(null, {});
+                }
+            }], function (err, result) {
+            if (err || result === null) {
+                console.error(err);
             }
             else {
-                offlineMembers.forEach(function (offline) {
-                    var objId = new ObjectID(offline);
-                    targetMemberWhoSubscribeRoom.push(objId);
+                var promise = new Promise(function (resolve, reject) {
+                    //<!-- Query all deviceTokens for each members.
+                    UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
+                        if (!!res) {
+                            var memberTokens = res; // array of deviceTokens for each member.
+                            async.mapSeries(memberTokens, function iterator(item, cb) {
+                                if (!!item.deviceTokens) {
+                                    var deviceTokens = item.deviceTokens;
+                                    async.mapSeries(deviceTokens, function (token, resultCb) {
+                                        targetDevices.push(token);
+                                        resultCb(null, {});
+                                    }, function done(err, results) {
+                                        if (err) {
+                                            cb(err, null);
+                                        }
+                                        else {
+                                            cb(null, null);
+                                        }
+                                    });
+                                }
+                                else {
+                                    cb(null, null);
+                                }
+                            }, function done(err, results) {
+                                if (err) {
+                                    reject(err);
+                                }
+                                else {
+                                    resolve(results);
+                                }
+                            });
+                        }
+                    });
+                }).then(function onfulfill(value) {
+                    console.warn("Push", targetDevices, alertMessage);
+                    pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+                }).catch(function onRejected(err) {
+                    console.error("push to target deviceTokens fail.", err);
                 });
-                cb(null, {});
             }
-        }], function (err, result) {
-        if (err || result === null) {
-            console.error(err);
-        }
-        else {
-            var promise_1 = new Promise(function (resolve, reject) {
+        });
+    }
+}
+function simplePushNotification(app, session, offlineMembers, room, sender) {
+    var pushTitle = room.name;
+    var alertMessage = "";
+    var targetMemberWhoSubscribeRoom = new Array();
+    var targetDevices = new Array();
+    if (!!pushTitle) {
+        alertMessage = pushTitle + " sent you message.";
+        call();
+    }
+    else {
+        new Promise(function (resolve, reject) {
+            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
+                console.warn("getUserTransaction", err, userTrans);
+                if (!!err) {
+                    console.warn(err);
+                    reject(err);
+                }
+                else {
+                    pushTitle = userTrans.username;
+                    resolve(pushTitle);
+                }
+            });
+        }).then(function (value) {
+            alertMessage = value + " sent you message.";
+            call();
+        }).catch(function (err) {
+            alertMessage = "You have a new message";
+            call();
+        });
+    }
+    function call() {
+        async.map(offlineMembers, function iterator(item, result) {
+            result(null, new ObjectID(item));
+        }, function done(err, results) {
+            targetMemberWhoSubscribeRoom = results.slice();
+            var promise = new Promise(function (resolve, reject) {
                 //<!-- Query all deviceTokens for each members.
                 UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
+                    console.warn("DeviceToken", err, res);
+                    //DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
                     if (!!res) {
                         var memberTokens = res; // array of deviceTokens for each member.
                         async.mapSeries(memberTokens, function iterator(item, cb) {
                             if (!!item.deviceTokens) {
                                 var deviceTokens = item.deviceTokens;
                                 async.mapSeries(deviceTokens, function (token, resultCb) {
-                                    targetDevices.push(token);
-                                    resultCb(null, {});
+                                    resultCb(null, token);
                                 }, function done(err, results) {
-                                    if (err) {
+                                    if (!!err) {
                                         cb(err, null);
                                     }
                                     else {
+                                        targetDevices = results.slice();
                                         cb(null, null);
                                     }
                                 });
@@ -566,19 +663,20 @@ function callPushNotification(room, sender, offlineMembers) {
                             }
                         }, function done(err, results) {
                             if (err) {
-                                reject();
+                                reject(err);
                             }
                             else {
-                                resolve();
+                                resolve(results);
                             }
                         });
                     }
                 });
             }).then(function onfulfill(value) {
+                console.warn("Push", targetDevices, alertMessage);
                 pushService.sendPushToTargetDevices(targetDevices, alertMessage);
             }).catch(function onRejected(err) {
                 console.error("push to target deviceTokens fail.", err);
             });
-        }
-    });
+        });
+    }
 }

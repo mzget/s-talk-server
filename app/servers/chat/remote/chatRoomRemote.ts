@@ -1,28 +1,21 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
-
-import MChatService = require('../../../services/chatService');
-import Mcontroller = require('../../../controller/ChatRoomManager');
+﻿import Mcontroller = require('../../../controller/ChatRoomManager');
 import Room = require('../../../model/Room');
 import mongodb = require('mongodb');
 import ObjectID = mongodb.ObjectID;
-var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var chatService: MChatService.ChatService;
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
     return new ChatRoomRemote(app);
 };
 
-var ChatRoomRemote = function (app) {
+const ChatRoomRemote = function (app) {
     this.app = app;
 
-    if (app.getServerType() === 'chat') {
-        channelService = app.get('channelService');
-        chatService = app.get('chatService');
-    }
+    channelService = app.get('channelService');
 }
 
-var remote = ChatRoomRemote.prototype;
+const remote = ChatRoomRemote.prototype;
 
 remote.checkedRoomType = function (roomId: string, cb: (err, res) => void) {
     chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, { type: 1 }, (result) => {

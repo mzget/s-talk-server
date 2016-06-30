@@ -1,5 +1,4 @@
 "use strict";
-/// <reference path="../../typings/mongodb/mongodb.d.ts" />
 var Mdb = require('../db/dbClient');
 var room = require('../model/Room');
 var mongodb = require('mongodb');

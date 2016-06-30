@@ -1,17 +1,15 @@
-﻿/// <reference path="./typings/tsd.d.ts" />
-
-var pomelo = require('pomelo');
-var routeUtil = require('./app/util/routeUtil');
-import MChatService = require('./app/services/chatService');
+﻿const pomelo = require('pomelo');
+import routeUtil from   './app/util/routeUtil';
+import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-var webConfig = require('./config/webConfig');
+const webConfig = require('./config/webConfig');
 
 /**
  * Init app for client.
  */
-var app = pomelo.createApp();
-app.set('name', 'the-spartanchat-node');
+const app = pomelo.createApp();
+app.set('name', 'stalk-node-server');
 
 // app configure
 app.configure('production|development', function () {
@@ -20,27 +18,44 @@ app.configure('production|development', function () {
     //    app.filter(pomelo.filters.serial(5000));
 
     // route configures
-    app.route('chat', routeUtil.chat);
+    app.route('chat', routeUtil);
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
     app.filter(pomelo.filters.timeout(webConfig.timeout));
+
+    // app.set('connectorConfig',
+    // {
+    //     connector : pomelo.connectors.hybridconnector,
+    //     // connector : pomelo.connectors.sioconnector,
+    //     //websocket, polling
+    //     transports : ['websocket'],
+    //     heartbeatTimeout : 60,
+    //     heartbeatInterval : 25
+    // });
+
+    //@ require monitor in pomelo@2x
+    //   app.set('monitorConfig',
+    //     {
+    //       monitor : pomelo.monitors.zookeepermonitor,
+    //       servers: "git.animation-genius.com:2181"
+    //     });
 });
 
 // Configure for auth server
 app.configure('production|development', 'auth', function () {
-
+    app.set('accountService', new AccountService(app));
 });
 
 app.configure('production|development', 'chat', function () {
-    app.set('chatService', new MChatService.ChatService(app));
+
 });
 
 //app.configure('production|development', 'master', function () {
-    //var http = new HttpDebug();
-    //http.start();
-    //var net = new netserver.NetServer();
-    //net.Start();
+//var http = new HttpDebug();
+//http.start();
+//var net = new netserver.NetServer();
+//net.Start();
 //});
 
 // start app

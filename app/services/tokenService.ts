@@ -1,11 +1,12 @@
-/// <reference path="../../typings/jsonwebtoken/jsonwebtoken.d.ts" />
-import jwt = require('jsonwebtoken');
-var sessionConfig = require('../../config/session.json');
+/// <reference path="../../typings/index.d.ts" />
 
-class TokenService {
+import jwt = require('jsonwebtoken');
+const sessionConfig = require('../../config/session.json');
+
+export default class TokenService {
 	private secret = "";
 	private DEFAULT_SECRET = 'ahoostudio_session_secret';
-	private expire: number;
+	private expire: string | number;
 //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
 	
 	constructor() {
@@ -13,12 +14,8 @@ class TokenService {
         this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
 	}
 	
-	public signToken(signObj) : string {
-		var token = jwt.sign(signObj, this.secret, {
-            expiresInMinutes: this.expire // expires in 24 hours
-        });
-				
-		return token;
+	public signToken(signObj , callback:(err, encode) => void) {
+		jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
 	}
 	
 	/**
@@ -48,4 +45,3 @@ class TokenService {
 	    }
 	}
 }
-export = TokenService;

@@ -1,8 +1,9 @@
-﻿import Code = require('../../shared/Code');
-var dispatcher = require('../util/dispatcher');
+﻿import Code from '../../shared/Code';
 import Collection = require('../util/collections');
 import User = require('../model/User');
 import Room = require('../model/Room');
+
+const dispatcher = require('../util/dispatcher');
 
 interface IRoomsMap {
     [rid: string]: Room.Room;
@@ -10,7 +11,8 @@ interface IRoomsMap {
 interface IUsersMap {
     [uid: string]: User.UserTransaction
 }
-export class ChatService {
+
+export class AccountService {
 
     private app: any;
     private uidMap = {};

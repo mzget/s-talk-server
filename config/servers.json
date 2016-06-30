@@ -7,6 +7,34 @@
         "port": 4050,
         "clientPort": 3050,
         "frontend": true
+      },
+      {
+        "id": "connector-server-2",
+        "host": "127.0.0.1",
+        "port": 4051,
+        "clientPort": 3051,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-3",
+        "host": "127.0.0.1",
+        "port": 4052,
+        "clientPort": 3052,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-4",
+        "host": "127.0.0.1",
+        "port": 4053,
+        "clientPort": 3053,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-5",
+        "host": "127.0.0.1",
+        "port": 4054,
+        "clientPort": 3054,
+        "frontend": true
       }
     ],
     "chat": [
@@ -14,6 +42,26 @@
         "id": "chat-server-1",
         "host": "127.0.0.1",
         "port": 6050
+      },
+      {
+        "id": "chat-server-2",
+        "host": "127.0.0.1",
+        "port": 6051
+      },
+      {
+        "id": "chat-server-3",
+        "host": "127.0.0.1",
+        "port": 6052
+      },
+      {
+        "id": "chat-server-4",
+        "host": "127.0.0.1",
+        "port": 6053
+      },
+      {
+        "id": "chat-server-5",
+        "host": "127.0.0.1",
+        "port": 6054
       }
     ],
     "auth": [
@@ -37,8 +85,71 @@
       {
         "id": "connector-server-1",
         "host": "127.0.0.1",
+        "port": 4050,
+        "clientPort": 3050,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-2",
+        "host": "127.0.0.1",
+        "port": 4051,
+        "clientPort": 3051,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-3",
+        "host": "127.0.0.1",
+        "port": 4052,
+        "clientPort": 3052,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-4",
+        "host": "127.0.0.1",
+        "port": 4053,
+        "clientPort": 3053,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-5",
+        "host": "127.0.0.1",
+        "port": 4054,
+        "clientPort": 3054,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-6",
+        "host": "127.0.0.1",
         "port": 4055,
         "clientPort": 3055,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-7",
+        "host": "127.0.0.1",
+        "port": 4056,
+        "clientPort": 3056,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-8",
+        "host": "127.0.0.1",
+        "port": 4057,
+        "clientPort": 3057,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-9",
+        "host": "127.0.0.1",
+        "port": 4058,
+        "clientPort": 3058,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-10",
+        "host": "127.0.0.1",
+        "port": 4059,
+        "clientPort": 3059,
         "frontend": true
       }
     ],
@@ -46,7 +157,52 @@
       {
         "id": "chat-server-1",
         "host": "127.0.0.1",
+        "port": 6050
+      },
+      {
+        "id": "chat-server-2",
+        "host": "127.0.0.1",
+        "port": 6051
+      },
+      {
+        "id": "chat-server-3",
+        "host": "127.0.0.1",
+        "port": 6052
+      },
+      {
+        "id": "chat-server-4",
+        "host": "127.0.0.1",
+        "port": 6053
+      },
+      {
+        "id": "chat-server-5",
+        "host": "127.0.0.1",
+        "port": 6054
+      },
+      {
+        "id": "chat-server-6",
+        "host": "127.0.0.1",
         "port": 6055
+      },
+      {
+        "id": "chat-server-7",
+        "host": "127.0.0.1",
+        "port": 6056
+      },
+      {
+        "id": "chat-server-8",
+        "host": "127.0.0.1",
+        "port": 6057
+      },
+      {
+        "id": "chat-server-9",
+        "host": "127.0.0.1",
+        "port": 6058
+      },
+      {
+        "id": "chat-server-10",
+        "host": "127.0.0.1",
+        "port": 6059
       }
     ],
     "auth": [

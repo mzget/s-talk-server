@@ -1,5 +1,4 @@
-﻿/// <reference path="../../typings/mongodb/mongodb.d.ts" />
-import Mdb = require('../db/dbClient');
+﻿import Mdb = require('../db/dbClient');
 import room = require('../model/Room');
 import mongodb = require('mongodb');
 import assert = require('assert');

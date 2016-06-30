@@ -1,10 +1,9 @@
 "use strict";
-/// <reference path="../../typings/tsd.d.ts" />
 var mongodb = require('mongodb');
 var async = require('async');
 var MDb = require('../db/dbClient');
 var Room = require("../model/Room");
-var UserManager = require('./UserManager');
+var UserManager_1 = require('./UserManager');
 var ObjectID = mongodb.ObjectID;
 var dbClient = MDb.DbController.DbClient.GetInstance();
 var Db = mongodb.Db, MongoClient = mongodb.MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
@@ -12,7 +11,7 @@ var Controller;
 (function (Controller) {
     var ChatRoomManager = (function () {
         function ChatRoomManager() {
-            this.userManager = UserManager.Controller.UserManager.getInstance();
+            this.userManager = UserManager_1.UserManager.getInstance();
             this.roomDAL = new RoomDataAccess();
             if (ChatRoomManager._Instance) {
                 console.warn("Error: Instantiation failed: Use SingletonDemo.getInstance() instead of new.");
@@ -189,7 +188,7 @@ var Controller;
     Controller.ChatRoomManager = ChatRoomManager;
     var RoomDataAccess = (function () {
         function RoomDataAccess() {
-            this.userManager = UserManager.Controller.UserManager.getInstance();
+            this.userManager = UserManager_1.UserManager.getInstance();
         }
         RoomDataAccess.prototype.findProjectBaseGroups = function (userId, callback) {
             dbClient.FindDocuments(MDb.DbController.roomColl, function (res) {
