@@ -201,7 +201,7 @@ remote.auth = function (email, password, callback) {
     let query = { username: email };
     let projection = { username: 1, password: 1 };
     new UserDataAccessService().getUserProfile(query, projection, (err, res) => {
-        onAuthentication(password, res, callback);
+        onAuthentication(password, res[0], callback);
     });
 }
 
@@ -209,9 +209,9 @@ const onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
 
     if (userInfo !== null) {
-        let obj = JSON.parse(JSON.stringify(userInfo));
+        let obj : User.StalkAccount = JSON.parse(JSON.stringify(userInfo));
 
-        if (obj.password === _password) {
+        if (obj.password == _password) {
             accountService.getOnlineUser(obj._id, (error, user) => {
                 if (!user) {
                     // if user is found and password is right

@@ -166,14 +166,14 @@ remote.auth = function (email, password, callback) {
     var query = { username: email };
     var projection = { username: 1, password: 1 };
     new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
-        onAuthentication(password, res, callback);
+        onAuthentication(password, res[0], callback);
     });
 };
 var onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
         var obj_1 = JSON.parse(JSON.stringify(userInfo));
-        if (obj_1.password === _password) {
+        if (obj_1.password == _password) {
             accountService.getOnlineUser(obj_1._id, function (error, user) {
                 if (!user) {
                     // if user is found and password is right
