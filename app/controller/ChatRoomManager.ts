@@ -3,9 +3,9 @@ import async = require('async');
 import MDb = require('../db/dbClient');
 import Room = require("../model/Room");
 import message = require("../model/Message");
-import UserManager = require('./UserManager');
-var ObjectID = mongodb.ObjectID;
-var dbClient = MDb.DbController.DbClient.GetInstance();
+import {UserManager} from './UserManager';
+const ObjectID = mongodb.ObjectID;
+const dbClient = MDb.DbController.DbClient.GetInstance();
 var Db = mongodb.Db,
     MongoClient = mongodb.MongoClient,
     Server = require('mongodb').Server,
@@ -21,7 +21,7 @@ module Controller {
     export class ChatRoomManager {
 
         private static _Instance: ChatRoomManager = null;
-        private userManager = UserManager.Controller.UserManager.getInstance();
+        private userManager = UserManager.getInstance();
         private roomDAL = new RoomDataAccess();
 
         constructor() {
@@ -223,7 +223,7 @@ module Controller {
     }
     
     class RoomDataAccess {
-        private userManager = UserManager.Controller.UserManager.getInstance();
+        private userManager = UserManager.getInstance();
 
         findProjectBaseGroups(userId: string, callback: (err, res) => void) {
             dbClient.FindDocuments(MDb.DbController.roomColl, function (res) {

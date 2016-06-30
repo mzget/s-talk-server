@@ -52,4 +52,5 @@ var Code = (function () {
     };
     return Code;
 }());
-exports.Code = Code;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Code;

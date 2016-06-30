@@ -32,6 +32,8 @@
     <Content Include="config\servers.json" />
     <Content Include="config\session.json" />
     <Content Include="config\webConfig.json" />
+    <TypeScriptCompile Include="app\controller\friendManager.ts" />
+    <TypeScriptCompile Include="app\util\routeUtil.ts" />
     <TypeScriptCompile Include="config\WebConfig.ts" />
     <Compile Include="config\WebConfig.js" />
     <TypeScriptCompile Include="shared\Code.ts" />
@@ -225,7 +227,6 @@
     <TypeScriptCompile Include="typings\mongoose\mongoose.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
     <TypeScriptCompile Include="typings\parse\parse.d.ts" />
-    <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />

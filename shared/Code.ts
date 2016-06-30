@@ -1,4 +1,4 @@
-﻿export class Code  {
+﻿export  default class Code  {
     static OK = 200;
     static RequestTimeout = 408;
     static FAIL = 500;
