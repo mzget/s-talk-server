@@ -14,24 +14,25 @@ var UserManager = (function () {
     function UserManager() {
         this.userDataAccess = new UserDataAccessService();
         this.onInsertRoomAccessInfoDone = function (uid, rid, callback) {
-            DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
-                var printR = (result !== null) ? result : null;
-                console.log("find roomAccessInfo of uid %s", uid, printR);
-                if (result === null) {
-                    callback(new Error("cannot find roomAccess info of target uid."), null);
-                }
-                else {
-                    DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+                var collection = db.collection(Mdb.DbController.userColl);
+                collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(function (docs) {
+                    console.log("find roomAccessInfo of uid %s", uid, docs[0]);
+                    collection.updateOne({ _id: new ObjectID(docs[0]._id), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": new Date() } }, { w: 1 }).then(function (result) {
                         console.log("updated roomAccess.accessTime: ", result.result);
-                        if (result === null) {
-                            callback(new Error("cannot update roomAccess.accessTime."), null);
-                        }
-                        else {
-                            callback(null, result);
-                        }
-                    }, { _id: new ObjectID(result._id), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": new Date() } }, { w: 1 });
-                }
-            }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+                        db.close();
+                        callback(null, result);
+                    }).catch(function (err) {
+                        db.close();
+                        callback(new Error("cannot update roomAccess.accessTime."), null);
+                    });
+                }).catch(function (err) {
+                    db.close();
+                    callback(new Error("cannot find roomAccess info of target uid."), null);
+                });
+            }).catch(function (err) {
+                console.error("Cannot connect database", err);
+            });
         };
         if (UserManager._instance) {
             console.warn("Error: Instantiation failed: Use SingletonDemo.getInstance() instead of new.");
@@ -59,14 +60,18 @@ var UserManager = (function () {
     UserManager.prototype.updateLastAccessTimeOfRoom = function (uid, rid, date, callback) {
         var self = this;
         async.waterfall([function (cb) {
-                DbClient.FindDocument(Mdb.DbController.userColl, function (roomAccessResult) {
-                    if (roomAccessResult === null) {
+                MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+                    var collection = db.collection(Mdb.DbController.userColl);
+                    collection.find({ _id: new ObjectID(uid) }).limit(1).project({ roomAccess: 1 }).toArray().then(function (docs) {
+                        cb(null, docs[0]);
+                        db.close();
+                    }).catch(function (error) {
                         cb(new Error("cannot find roomAccess info of target uid."), null);
-                    }
-                    else {
-                        cb(null, roomAccessResult);
-                    }
-                }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+                        db.close();
+                    });
+                }).catch(function (err) {
+                    console.error("Cannot connect database", err);
+                });
             },
             function (arg, cb) {
                 if (arg && arg.roomAccess) {
@@ -76,7 +81,7 @@ var UserManager = (function () {
                     //<!-- insert roomAccess info field in user data collection.
                     self.userDataAccess.insertRoomAccessInfoField(uid, rid, cb);
                 }
-            }], function (err, result) {
+            }], function done(err, result) {
             callback(err, result);
         });
     };
@@ -208,41 +213,47 @@ var UserDataAccessService = (function () {
                         var newRoomAccessInfo = new RoomAccessData_1.default();
                         newRoomAccessInfo.roomId = rid.toString();
                         newRoomAccessInfo.accessTime = date;
-                        DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
+                        collection.updateOne({ _id: new ObjectID(uid) }, { $push: { roomAccess: newRoomAccessInfo } }, { w: 1 }).then(function (result) {
                             console.log("Push new roomAccess.: ", result.result);
-                            if (result === null) {
-                                callback(new Error("cannot update roomAccess.accessTime."), null);
-                            }
-                            else {
-                                callback(null, result);
-                            }
-                        }, { _id: new ObjectID(uid) }, { $push: { roomAccess: newRoomAccessInfo } }, { w: 1 });
+                            db.close();
+                            callback(null, result);
+                        }).catch(function (err) {
+                            db.close();
+                            callback(new Error("cannot update roomAccess.accessTime."), null);
+                        });
                     }
                     else {
                         //<!-- Update if data exist.
-                        DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
+                        collection.updateOne({ _id: new ObjectID(uid), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": date } }, { w: 1 }).then(function (result) {
                             console.log("Updated roomAccess.accessTime: ", result.result);
-                            if (result === null) {
-                                callback(new Error("cannot update roomAccess.accessTime."), null);
-                            }
-                            else {
-                                callback(null, result);
-                            }
-                        }, { _id: new ObjectID(uid), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": date } }, { w: 1 });
+                            db.close();
+                            callback(null, result);
+                        }).catch(function (err) {
+                            db.close();
+                            callback(new Error("cannot update roomAccess.accessTime."), null);
+                        });
                     }
-                    db.close();
                 });
             });
         };
-        this.insertRoomAccessInfoField = function (id, rid, callback) {
+        this.insertRoomAccessInfoField = function (uid, rid, callback) {
             var newRoomAccessInfos = new Array();
             newRoomAccessInfos[0] = new RoomAccessData_1.default();
             newRoomAccessInfos[0].roomId = rid;
             newRoomAccessInfos[0].accessTime = new Date();
-            DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
-                console.log("Upsert roomAccess array field.", result.result);
-                UserManager.getInstance().onInsertRoomAccessInfoDone(id, rid, callback);
-            }, { _id: new ObjectID(id) }, { $set: { roomAccess: newRoomAccessInfos } }, { w: 1, upsert: true });
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+                // Get a collection
+                var collection = db.collection(Mdb.DbController.userColl);
+                collection.updateOne({ _id: new ObjectID(uid) }, { $set: { roomAccess: newRoomAccessInfos } }, { upsert: true, w: 1 }).then(function (result) {
+                    console.log("Upsert roomAccess array field.", result.result);
+                    UserManager.getInstance().onInsertRoomAccessInfoDone(uid, rid, callback);
+                    db.close();
+                }).catch(function (err) {
+                    db.close();
+                });
+            }).catch(function (err) {
+                console.error("Cannot connect database", err);
+            });
         };
     }
     UserDataAccessService.prototype.getLastProfileChanged = function (uid, callback) {
@@ -295,25 +306,22 @@ var UserDataAccessService = (function () {
         }, { _id: new ObjectID(uid) }, { $set: { image: newUrl, lastEditProfile: new Date() } }, { w: 1, upsert: true });
     };
     UserDataAccessService.prototype.getRoomAccessOfRoom = function (uid, rid, callback) {
-        console.log("getRoomAccess for room %s of user %s", rid, uid);
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
-            if (err) {
-                return console.dir(err);
-            }
-            assert.equal(null, err);
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
             // Get the documents collection
             var collection = db.collection(Mdb.DbController.userColl);
-            collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray(function (err, docs) {
-                if (err) {
-                    console.error("getRoomAccessOfRoom: ", err);
-                    callback(err, null);
-                }
-                else {
-                    console.log("getRoomAccessOfRoom", docs);
-                    callback(null, docs[0]);
-                }
+            collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
+                .then(function (docs) {
                 db.close();
+                console.log("getRoomAccessOfRoom", docs);
+                callback(null, docs[0]);
+            })
+                .catch(function (err) {
+                console.error("getRoomAccessOfRoom: ", err);
+                db.close();
+                callback(err, null);
             });
+        }).catch(function (err) {
+            console.error("Cannot connect database", err);
         });
     };
     UserDataAccessService.prototype.getUserProfile = function (query, projection, callback) {

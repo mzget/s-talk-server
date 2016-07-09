@@ -51,17 +51,21 @@ export class UserManager {
     }
 
     public updateLastAccessTimeOfRoom(uid: string, rid: string, date: Date, callback: (err: any, res: any) => void) {
-        var self = this;
+        let self = this;
 
         async.waterfall([function (cb) {
-            DbClient.FindDocument(Mdb.DbController.userColl, function (roomAccessResult) {
-                if (roomAccessResult === null) {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+                let collection = db.collection(Mdb.DbController.userColl);
+                collection.find({ _id: new ObjectID(uid) }).limit(1).project({ roomAccess: 1 }).toArray().then(docs => {
+                    cb(null, docs[0]);
+                    db.close();
+                }).catch(error => {
                     cb(new Error("cannot find roomAccess info of target uid."), null);
-                }
-                else {
-                    cb(null, roomAccessResult);
-                }
-            }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+                    db.close();
+                });
+            }).catch(err => {
+                console.error("Cannot connect database", err);
+            });
         }
             , function (arg, cb) {
                 if (arg && arg.roomAccess) {
@@ -72,31 +76,32 @@ export class UserManager {
                     self.userDataAccess.insertRoomAccessInfoField(uid, rid, cb);
                 }
             }],
-            function (err, result) {
+            function done(err, result) {
                 callback(err, result);
             });
     }
 
     onInsertRoomAccessInfoDone = function (uid: string, rid: string, callback): void {
-        DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
-            var printR = (result !== null) ? result : null;
-            console.log("find roomAccessInfo of uid %s", uid, printR);
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+            let collection = db.collection(Mdb.DbController.userColl);
+            collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(docs => {
+                console.log("find roomAccessInfo of uid %s", uid, docs[0]);
 
-            if (result === null) {
-                callback(new Error("cannot find roomAccess info of target uid."), null);
-            }
-            else {
-                DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
+                collection.updateOne({ _id: new ObjectID(docs[0]._id), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": new Date() } }, { w: 1 }).then(result => {
                     console.log("updated roomAccess.accessTime: ", result.result);
-                    if (result === null) {
-                        callback(new Error("cannot update roomAccess.accessTime."), null);
-                    }
-                    else {
-                        callback(null, result);
-                    }
-                }, { _id: new ObjectID(result._id), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": new Date() } }, { w: 1 });
-            }
-        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+                    db.close();
+                    callback(null, result);
+                }).catch(err => {
+                    db.close();
+                    callback(new Error("cannot update roomAccess.accessTime."), null);
+                });
+            }).catch(err => {
+                db.close();
+                callback(new Error("cannot find roomAccess info of target uid."), null);
+            })
+        }).catch(err => {
+            console.error("Cannot connect database", err);
+        });
     }
 
     public AddRoomIdToRoomAccessField(roomId: string, memberIds: string[], date: Date, callback: (err, res: boolean) => void) {
@@ -283,58 +288,65 @@ export class UserDataAccessService {
 
         MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
 
-            var collection = db.collection(Mdb.DbController.userColl);
+            let collection = db.collection(Mdb.DbController.userColl);
 
             // Peform a simple find and return all the documents
             collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
-                var printR = (docs) ? docs : null;
+                let printR = (docs) ? docs : null;
                 console.log("find roomAccessInfo of uid: %s match with rid: %s :: ", uid, rid, printR);
 
                 if (!docs || !docs[0].roomAccess) {
                     //<!-- Push new roomAccess data. 
-                    var newRoomAccessInfo = new RoomAccessData();
+                    let newRoomAccessInfo = new RoomAccessData();
                     newRoomAccessInfo.roomId = rid.toString();
                     newRoomAccessInfo.accessTime = date;
 
-                    DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
+                    collection.updateOne({ _id: new ObjectID(uid) }, { $push: { roomAccess: newRoomAccessInfo } }, { w: 1 }).then(result => {
                         console.log("Push new roomAccess.: ", result.result);
-                        if (result === null) {
-                            callback(new Error("cannot update roomAccess.accessTime."), null);
-                        }
-                        else {
-                            callback(null, result);
-                        }
-                    }, { _id: new ObjectID(uid) }, { $push: { roomAccess: newRoomAccessInfo } }, { w: 1 });
+                        db.close();
+                        callback(null, result);
+                    }).catch(err => {
+                        db.close();
+                        callback(new Error("cannot update roomAccess.accessTime."), null);
+                    });
                 }
                 else {
                     //<!-- Update if data exist.
-                    DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
+                    collection.updateOne({ _id: new ObjectID(uid), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": date } }, { w: 1 }).then(result => {
                         console.log("Updated roomAccess.accessTime: ", result.result);
-                        if (result === null) {
-                            callback(new Error("cannot update roomAccess.accessTime."), null);
-                        }
-                        else {
-                            callback(null, result);
-                        }
-                    }, { _id: new ObjectID(uid), "roomAccess.roomId": rid }, { $set: { "roomAccess.$.accessTime": date } }, { w: 1 });
+                        db.close();
+                        callback(null, result);
+                    }).catch(err => {
+                        db.close();
+                        callback(new Error("cannot update roomAccess.accessTime."), null);
+                    });
                 }
-
-                db.close();
             });
         });
     }
 
-    insertRoomAccessInfoField = function (id: string, rid: string, callback): void {
-        var newRoomAccessInfos: RoomAccessData[] = new Array<RoomAccessData>();
+    insertRoomAccessInfoField = function (uid: string, rid: string, callback): void {
+        let newRoomAccessInfos: RoomAccessData[] = new Array<RoomAccessData>();
         newRoomAccessInfos[0] = new RoomAccessData();
         newRoomAccessInfos[0].roomId = rid;
         newRoomAccessInfos[0].accessTime = new Date();
 
-        DbClient.UpdateDocument(Mdb.DbController.userColl, function (result) {
-            console.log("Upsert roomAccess array field.", result.result);
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+            // Get a collection
+            let collection = db.collection(Mdb.DbController.userColl);
+            collection.updateOne({ _id: new ObjectID(uid) }, { $set: { roomAccess: newRoomAccessInfos } }, { upsert: true, w: 1 }).then(result => {
 
-            UserManager.getInstance().onInsertRoomAccessInfoDone(id, rid, callback);
-        }, { _id: new ObjectID(id) }, { $set: { roomAccess: newRoomAccessInfos } }, { w: 1, upsert: true });
+                console.log("Upsert roomAccess array field.", result.result);
+
+                UserManager.getInstance().onInsertRoomAccessInfoDone(uid, rid, callback);
+
+                db.close();
+            }).catch(err => {
+                db.close();
+            });
+        }).catch(err => {
+            console.error("Cannot connect database", err);
+        });
     }
 
     public updateImageProfile(uid: string, newUrl: string, callback: (err, res) => void) {
@@ -344,25 +356,22 @@ export class UserDataAccessService {
     }
 
     public getRoomAccessOfRoom(uid: string, rid: string, callback: (err, res) => void) {
-        console.log("getRoomAccess for room %s of user %s", rid, uid);
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err: Error, db: mongodb.Db) {
-            if (err) { return console.dir(err); }
-            assert.equal(null, err);
-
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
             // Get the documents collection
-            var collection = db.collection(Mdb.DbController.userColl);
-
-            collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray((err, docs) => {
-                if (err) {
-                    console.error("getRoomAccessOfRoom: ", err);
-                    callback(err, null);
-                }
-                else {
-                    console.log("getRoomAccessOfRoom", docs);
-                    callback(null, docs[0]);
-                }
+            let collection = db.collection(Mdb.DbController.userColl);
+            collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
+            .then(docs => {
                 db.close();
+                console.log("getRoomAccessOfRoom", docs);
+                callback(null, docs[0]);
+            })
+            .catch(err => {
+                console.error("getRoomAccessOfRoom: ", err);
+                db.close();
+                callback(err, null);
             });
+        }).catch(err => {
+            console.error("Cannot connect database", err);
         });
     }
 
