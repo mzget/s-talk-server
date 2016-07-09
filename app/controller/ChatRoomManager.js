@@ -74,7 +74,17 @@ var Controller;
             this.roomDAL.editGroupName(roomId, newGroupName, callback);
         };
         ChatRoomManager.prototype.AddChatRecord = function (object, callback) {
-            dbClient.InsertDocument(MDb.DbController.messageColl, callback, object);
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+                // Get the collection
+                var col = db.collection(MDb.DbController.messageColl);
+                col.insertOne(object, { w: 1 }).then(function (r) {
+                    callback(null, r.ops);
+                    db.close();
+                }).catch(function (err) {
+                    callback(err, null);
+                    db.close();
+                });
+            });
         };
         ChatRoomManager.prototype.createProjectBaseGroup = function (groupName, members, callback) {
             this.roomDAL.createProjectBaseGroup(groupName, members, callback);

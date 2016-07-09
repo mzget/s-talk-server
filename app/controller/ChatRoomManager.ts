@@ -6,7 +6,7 @@ import message = require("../model/Message");
 import {UserManager} from './UserManager';
 const ObjectID = mongodb.ObjectID;
 const dbClient = MDb.DbController.DbClient.GetInstance();
-var Db = mongodb.Db,
+const Db = mongodb.Db,
     MongoClient = mongodb.MongoClient,
     Server = require('mongodb').Server,
     ReplSetServers = require('mongodb').ReplSetServers,
@@ -46,7 +46,7 @@ module Controller {
             this.roomDAL.findProjectBaseGroups(userId, callback);
         }
 
-        public getPrivateGroupChat(uid: string, callback: (err, res) =>void) {
+        public getPrivateGroupChat(uid: string, callback: (err, res) => void) {
             this.roomDAL.findPrivateGroupChat(uid, callback);
         }
 
@@ -67,8 +67,8 @@ module Controller {
             _room.createTime = new Date();
 
             dbClient.InsertDocument(MDb.DbController.roomColl, (err, res) => {
-                if(err) {
-                   console.error("CreatePrivateRoom fail.", err); 
+                if (err) {
+                    console.error("CreatePrivateRoom fail.", err);
                 }
                 else {
                     callback(null, res[0]);
@@ -98,17 +98,27 @@ module Controller {
         }
 
         public AddChatRecord(object: message.Message, callback: (err, docs) => void) {
-            dbClient.InsertDocument(MDb.DbController.messageColl, callback, object);
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+                // Get the collection
+                let col = db.collection(MDb.DbController.messageColl);
+                col.insertOne(object, { w: 1 }).then(function (r) {
+                    callback(null, r.ops);
+                    db.close();
+                }).catch(err => {
+                    callback(err, null);
+                    db.close();
+                });
+            });
         }
 
-        
+
         public createProjectBaseGroup(groupName: string, members: Room.Member[], callback: (err, res) => void) {
             this.roomDAL.createProjectBaseGroup(groupName, members, callback);
         }
 
         public editMemberInfoInProjectBase(roomId: string, member: Room.Member, callback: (Error, res) => void) {
             this.roomDAL.editMemberInfoInProjectBase(roomId, member, callback);
-        } 
+        }
 
         /*
         * Require 
@@ -155,8 +165,8 @@ module Controller {
         * Get last limit query messages of specific user and room then return messages info. 
         */
         public getMessagesReaders(userId: string, roomId: string, topEdgeMessageTime: string, callback: (err, res) => void) {
-           let utc = new Date(topEdgeMessageTime);
-           
+            let utc = new Date(topEdgeMessageTime);
+
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
@@ -164,21 +174,21 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) }  })
-                .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
-                    if (!docs) {
-                        callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
-                    }
-                    else {
-                        console.log("getMessagesReaders found the following records", docs.length);
-                        callback(null, docs);
-                    }
-                    db.close();
-                });
+                collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) } })
+                    .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
+                        assert.equal(null, err);
+                        if (!docs) {
+                            callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
+                        }
+                        else {
+                            console.log("getMessagesReaders found the following records", docs.length);
+                            callback(null, docs);
+                        }
+                        db.close();
+                    });
             });
         }
-        
+
         /**
          * Require: message_id.
          * **************************
@@ -197,9 +207,9 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ _id: new ObjectID(messageId)}).toArray((err : Error, results: any[]) => {
+                collection.find({ _id: new ObjectID(messageId) }).toArray((err: Error, results: any[]) => {
                     callback(err, results);
-                    
+
                     db.close();
                 });
             });
@@ -210,7 +220,7 @@ module Controller {
 
             this.roomDAL.getUnreadMsgCountAndLastMsgContentInRoom(roomId, isoDate, callback);
         }
-        
+
         /**
          * Retrive all room in db and then get all members from each room. 
          */
@@ -221,7 +231,7 @@ module Controller {
         }
 
     }
-    
+
     class RoomDataAccess {
         private userManager = UserManager.getInstance();
 
@@ -230,11 +240,11 @@ module Controller {
                 callback(null, res);
             }, { type: Room.RoomType.projectBaseGroup, status: Room.RoomStatus.active, members: { $elemMatch: { id: userId } } });
         }
-        
+
         findPrivateGroupChat(uid: string, callback: (err, res) => void) {
             dbClient.FindDocuments(MDb.DbController.roomColl, function (res) {
                 callback(null, res);
-            },  { type: Room.RoomType.privateGroup, members: {$elemMatch: {id:uid}} });
+            }, { type: Room.RoomType.privateGroup, members: { $elemMatch: { id: uid } } });
         }
 
         /**
@@ -254,7 +264,7 @@ module Controller {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
-                collection.find({ _id: new ObjectID(lastDoc._id)}).limit(1).toArray(function (err, docs) {
+                collection.find({ _id: new ObjectID(lastDoc._id) }).limit(1).toArray(function (err, docs) {
                     if (!docs) {
                         callback(new Error("getLastMsgContentInMessagesIdArray error."), docs);
                     }
@@ -301,7 +311,7 @@ module Controller {
                 // Find some documents
                 collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }).project({ _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
                     assert.equal(null, err);
-                    
+
                     if (!docs) {
                         callback(new Error("GetUnreadMsgOfRoom by query date is no response."), docs);
                     }
@@ -355,7 +365,7 @@ module Controller {
         /**
          * Get all rooms and then return all info of { _id, members } to array of roomModel;.
          */
-        getAllRooms(callback:(result:Array<any>)=>void) {
+        getAllRooms(callback: (result: Array<any>) => void) {
             dbClient.FindDocuments(MDb.DbController.roomColl, function (res) {
                 callback(res);
             }, {});
@@ -364,7 +374,7 @@ module Controller {
         public createPrivateGroup(groupName: string, memberIds: string[], callback: (err, res) => void) {
             var self = this;
             var members: Array<Room.Member> = new Array<Room.Member>();
-            
+
             memberIds.forEach((val, id, arr) => {
                 var member: Room.Member = new Room.Member();
                 member.id = val;
@@ -504,7 +514,7 @@ module Controller {
                     db.close();
                 });
             });
-        } 
+        }
 
         public updateWhoReadMessage(messageId: string, uid: string, callback: (err, res) => void) {
             dbClient.UpdateDocument(MDb.DbController.messageColl, function (res2) {
@@ -514,9 +524,9 @@ module Controller {
                 else {
                     callback(null, res2);
                 }
-            }, { _id: new ObjectID(messageId) }, { $addToSet: { readers: uid } }); 
+            }, { _id: new ObjectID(messageId) }, { $addToSet: { readers: uid } });
         }
-        
+
         /*
          * Require: message_id.
          * **************************
@@ -524,15 +534,15 @@ module Controller {
          */
         public getWhoReadMessage(messageId: string, callback: (err, res) => void) {
             dbClient.FindDocument(MDb.DbController.messageColl, (result) => {
-                if(!result) {
+                if (!result) {
                     callback(new Error("getWhoReadMessage fail."), null);
                 }
-                else{
+                else {
                     callback(null, result);
                 }
             },
-            { _id: new ObjectID(messageId) },
-            { sender: 1, readers: 1});
+                { _id: new ObjectID(messageId) },
+                { sender: 1, readers: 1 });
         }
     }
 }

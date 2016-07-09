@@ -19,11 +19,11 @@ var channelService;
 
 
 module.exports = function (app) {
-    console.info("instanctiate ChatHandler.");
     return new Handler(app);
 }
 
 const Handler = function (app) {
+    console.info("ChatHandler construc...");
     this.app = app;
     channelService = this.app.get('channelService');
 }
