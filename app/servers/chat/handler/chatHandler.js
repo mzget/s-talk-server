@@ -45,6 +45,9 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
         return;
     }
+    var timeout_id = setTimeout(function () {
+        next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
+    }, webConfig.timeout);
     //<!-- Get online members of room.
     var thisRoom = null;
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
@@ -53,6 +56,7 @@ handler.send = function (msg, session, next) {
         if (!thisRoom.members) {
             var errMsg = "Room no have a members.";
             next(null, { code: Code_1.default.FAIL, message: errMsg });
+            clearTimeout(timeout_id);
             return;
         }
         else {
@@ -64,7 +68,7 @@ handler.send = function (msg, session, next) {
                 _msg.createTime = new Date(),
                 _msg.meta = msg.meta;
             chatRoomManager.AddChatRecord(_msg, function (err, docs) {
-                if (docs !== null) {
+                if (!err && docs !== null) {
                     var resultMsg = JSON.parse(JSON.stringify(docs[0]));
                     //<!-- send callback to user who send chat msg.
                     var params = {
@@ -74,10 +78,12 @@ handler.send = function (msg, session, next) {
                         uuid: clientUUID
                     };
                     next(null, { code: Code_1.default.OK, data: params });
+                    clearTimeout(timeout_id);
                     pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
                 }
                 else {
-                    next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please try to resend your message." });
+                    next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                    clearTimeout(timeout_id);
                 }
             });
         }

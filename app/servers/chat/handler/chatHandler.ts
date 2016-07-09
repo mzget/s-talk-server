@@ -54,6 +54,11 @@ handler.send = function (msg, session, next) {
         return;
     }
 
+
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+    }, webConfig.timeout);
+
     //<!-- Get online members of room.
     let thisRoom: MRoom.Room = null;
 
@@ -64,6 +69,7 @@ handler.send = function (msg, session, next) {
         if (!thisRoom.members) {
             let errMsg = "Room no have a members.";
             next(null, { code: Code.FAIL, message: errMsg });
+            clearTimeout(timeout_id);
             return;
         }
         else {
@@ -76,7 +82,7 @@ handler.send = function (msg, session, next) {
                 _msg.meta = msg.meta;
 
             chatRoomManager.AddChatRecord(_msg, function (err, docs) {
-                if (docs !== null) {
+                if (!err && docs !== null) {
                     let resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
                     //<!-- send callback to user who send chat msg.
                     let params = {
@@ -86,11 +92,13 @@ handler.send = function (msg, session, next) {
                         uuid: clientUUID
                     };
                     next(null, { code: Code.OK, data: params });
+                    clearTimeout(timeout_id);
 
                     pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
                 }
                 else {
-                    next(null, { code: Code.FAIL, message: "AddChatRecord fail please try to resend your message." });
+                    next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                    clearTimeout(timeout_id);
                 }
             });
         }

@@ -19,7 +19,8 @@ app.configure('production|development', function () {
     app.route('chat', routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
-    app.filter(pomelo.filters.timeout(webConfig.timeout));
+    var timeout = webConfig.timeout + 1000;
+    app.filter(pomelo.filters.timeout(timeout));
     // app.set('connectorConfig',
     // {
     //     connector : pomelo.connectors.hybridconnector,
