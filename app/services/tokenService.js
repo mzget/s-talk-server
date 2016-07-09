@@ -6,8 +6,7 @@ var TokenService = (function () {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
     function TokenService() {
         this.secret = "";
-        this.DEFAULT_SECRET = 'ahoostudio_session_secret';
-        this.secret = sessionConfig.secret || this.DEFAULT_SECRET;
+        this.secret = sessionConfig.secret; // || this.DEFAULT_SECRET;
         this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
     }
     TokenService.prototype.signToken = function (signObj, callback) {

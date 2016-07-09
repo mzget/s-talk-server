@@ -39,8 +39,8 @@ profileHandler.profileUpdate = function (msg, session, next) {
         console.info("profileUpdate: ", msg);
     }
 
-    var uid = msg._id;
-    var updateParams = new User.StalkAccount();
+    let uid = msg._id;
+    let updateParams = new User.StalkAccount();
 
     if (msg.displayname && msg.displayname !== "")//updateParams = { displayname: msg.displayname, lastEditProfile: new Date() };
         updateParams.displayname = msg.displayname;

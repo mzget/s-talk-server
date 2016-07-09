@@ -8,6 +8,7 @@ module.exports = function(app) {
 };
 
 const Handler = function (app) {
+	console.log("gateHandler construc..");
 	this.app = app;
 };
 

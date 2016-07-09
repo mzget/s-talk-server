@@ -1,4 +1,4 @@
 {
-  "expire": "1 days",
+  "expire": "5 days",
   "secret": "ahoostudio_session_secret"
 }
