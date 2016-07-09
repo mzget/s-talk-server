@@ -225,7 +225,22 @@ handler.getChatHistory = function (msg, session, next) {
             var chatrecords = JSON.parse(JSON.stringify(result));
             next(null, { code: Code_1.default.OK, data: chatrecords });
             //<!-- When get chat history complete. System will update roomAccess data for user.
-            self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);
+            self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), function (err, res) {
+                self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, function (err, user) {
+                    if (user) {
+                        userManager.getRoomAccessOfRoom(user.uid, rid, function (err, res) {
+                            var targetId = { uid: user.uid, sid: user.serverId };
+                            var group = new Array();
+                            group.push(targetId);
+                            var param = {
+                                route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
+                                data: res
+                            };
+                            channelService.pushMessageByUids(param.route, param.data, group);
+                        });
+                    }
+                });
+            });
         }
         else {
             clearTimeout(_timeOut);
