@@ -216,7 +216,7 @@ module Controller {
         }
 
         public getUnreadMsgCountAndLastMsgContentInRoom(roomId: string, lastAccessTime: string, callback: Function) {
-            var isoDate = new Date(lastAccessTime).toISOString();
+            let isoDate = new Date(lastAccessTime).toISOString();
 
             this.roomDAL.getUnreadMsgCountAndLastMsgContentInRoom(roomId, isoDate, callback);
         }
