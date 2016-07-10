@@ -299,46 +299,46 @@ module Controller {
         }
 
         public getUnreadMsgCountAndLastMsgContentInRoom(rid: string, isoDate: string, callback: Function) {
-            var self = this;
+            let self = this;
 
             // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
-                if (err) { return console.dir(err); }
-                assert.equal(null, err);
-
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(db => {
                 // Get the documents collection
-                var collection = db.collection(MDb.DbController.messageColl);
-                // Find some documents
-                collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }).project({ _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
-
-                    if (!docs) {
-                        callback(new Error("GetUnreadMsgOfRoom by query date is no response."), docs);
-                    }
-                    else {
-                        if (docs.length > 0) {
-                            self.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
-                                if (!!res) {
-                                    callback(null, { count: docs.length, message: res });
-                                }
-                                else {
-                                    callback(null, { count: docs.length });
-                                }
-                            });
-                        }
-                        else {
-                            self.getLastMessageContentOfRoom(rid, function (err, res) {
-                                if (!!res) {
-                                    callback(null, { count: docs.length, message: res });
-                                }
-                                else {
-                                    callback(null, { count: docs.length });
-                                }
-                            });
-                        }
-                    }
+                let collection = db.collection(MDb.DbController.messageColl);
+                collection.createIndex({ rid: 1 }, { background: true, w: 1 }).then(indexName => {
+                    collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } })
+                        .project({ _id: 1 }).sort({ createTime: 1 }).toArray().then(docs => {
+                            db.close();
+                            if (docs.length > 0) {
+                                self.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
+                                    if (!!res) {
+                                        callback(null, { count: docs.length, message: res });
+                                    }
+                                    else {
+                                        callback(null, { count: docs.length });
+                                    }
+                                });
+                            }
+                            else {
+                                self.getLastMessageContentOfRoom(rid, function (err, res) {
+                                    if (!!res) {
+                                        callback(null, { count: docs.length, message: res });
+                                    }
+                                    else {
+                                        callback(null, { count: docs.length });
+                                    }
+                                });
+                            }
+                        }).catch(err => {
+                            db.close();
+                            callback(new Error("GetUnreadMsgOfRoom by query date is no response."), null);
+                        });
+                }).catch(err => {
                     db.close();
+                    console.error("createIndex fail...");
                 });
+            }).catch(err => {
+                console.error("Cannot connect database.");
             });
         }
 

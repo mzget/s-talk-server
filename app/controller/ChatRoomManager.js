@@ -263,20 +263,13 @@ var Controller;
         RoomDataAccess.prototype.getUnreadMsgCountAndLastMsgContentInRoom = function (rid, isoDate, callback) {
             var self = this;
             // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
-                if (err) {
-                    return console.dir(err);
-                }
-                assert.equal(null, err);
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(function (db) {
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
-                // Find some documents
-                collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } }).project({ _id: 1 }).sort({ createTime: 1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
-                    if (!docs) {
-                        callback(new Error("GetUnreadMsgOfRoom by query date is no response."), docs);
-                    }
-                    else {
+                collection.createIndex({ rid: 1 }, { background: true, w: 1 }).then(function (indexName) {
+                    collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } })
+                        .project({ _id: 1 }).sort({ createTime: 1 }).toArray().then(function (docs) {
+                        db.close();
                         if (docs.length > 0) {
                             self.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
                                 if (!!res) {
@@ -297,9 +290,16 @@ var Controller;
                                 }
                             });
                         }
-                    }
+                    }).catch(function (err) {
+                        db.close();
+                        callback(new Error("GetUnreadMsgOfRoom by query date is no response."), null);
+                    });
+                }).catch(function (err) {
                     db.close();
+                    console.error("createIndex fail...");
                 });
+            }).catch(function (err) {
+                console.error("Cannot connect database.");
             });
         };
         RoomDataAccess.prototype.getNewerMessageRecords = function (rid, isoDate, callback) {
