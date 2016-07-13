@@ -11,7 +11,7 @@ var TokenService = (function () {
         this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
     }
     TokenService.prototype.signToken = function (signObj, callback) {
-        jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
+        jwt.sign(signObj, this.secret, {}, callback);
     };
     /**
      * reture token decoded.
