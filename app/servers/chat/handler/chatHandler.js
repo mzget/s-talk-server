@@ -329,9 +329,9 @@ handler.getMessagesReaders = function (msg, session, next) {
                 return;
             }
             else {
+                console.info("Push messages readers to owner msg.", memberInfo);
                 var uidsGroup = new Array();
                 uidsGroup.push(memberInfo);
-                console.info("Push messages readers to owner msg.", memberInfo);
                 channelService.pushMessageByUids(onGetMessagesReaders.route, onGetMessagesReaders, uidsGroup);
             }
         }

@@ -98,7 +98,29 @@ var Controller;
         *@lastAccessTime for query only message who newer than lastAccessTime.
         */
         ChatRoomManager.prototype.getNewerMessageOfChatRoom = function (roomId, isoDate, callback) {
-            this.roomDAL.getNewerMessageRecords(roomId, isoDate, callback);
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(function (db) {
+                // Get the documents collection
+                var collection = db.collection(MDb.DbController.messageColl);
+                // Create an index on the a field
+                collection.createIndex({ rid: 1, createTime: 1 }, { background: true, w: 1 }).then(function (indexName) {
+                    // Find some documents
+                    collection.find({ rid: roomId, createTime: { $gt: new Date(isoDate.toISOString()) } })
+                        .limit(100).sort({ createTime: 1 }).toArray(function (err, docs) {
+                        if (err) {
+                            callback(new Error(err.message), docs);
+                        }
+                        else {
+                            callback(null, docs);
+                        }
+                        db.close();
+                    });
+                }).catch(function (err) {
+                    db.close();
+                    console.error("Create index fail.", err);
+                });
+            }).catch(function (err) {
+                console.error("Cannot connect database", err);
+            });
         };
         ChatRoomManager.prototype.getOlderMessageChunkOfRid = function (rid, topEdgeMessageTime, callback) {
             var utc = new Date(topEdgeMessageTime);
@@ -136,23 +158,28 @@ var Controller;
             var utc = new Date(topEdgeMessageTime);
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
-                    return console.dir(err);
+                    return console.error(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
-                // Find some documents
-                collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) } })
-                    .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
-                    if (!docs) {
-                        callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
+                // Create an index on the a field
+                collection.createIndex({ rid: 1, sender: 1, createTime: 1 }, { background: true, w: 1 }, function (err, indexName) {
+                    if (err) {
+                        db.close();
+                        return console.error("Create index fail.", err);
                     }
-                    else {
-                        console.log("getMessagesReaders found the following records", docs.length);
-                        callback(null, docs);
-                    }
-                    db.close();
+                    // Find some documents
+                    collection.find({ rid: roomId, sender: userId, createTime: { $gt: new Date(utc.toISOString()) } })
+                        .project({ readers: 1 }).sort({ createTime: -1 }).toArray(function (err, docs) {
+                        if (!docs || err) {
+                            callback(new Error("getMessagesInfoOfUserXInRoomY is no response."), err);
+                        }
+                        else {
+                            console.log("getMessagesReaders found the following records", docs.length);
+                            callback(null, docs);
+                        }
+                        db.close();
+                    });
                 });
             });
         };
@@ -300,26 +327,6 @@ var Controller;
                 });
             }).catch(function (err) {
                 console.error("Cannot connect database.");
-            });
-        };
-        RoomDataAccess.prototype.getNewerMessageRecords = function (rid, isoDate, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
-                if (err) {
-                    return console.dir(err);
-                }
-                // Get the documents collection
-                var collection = db.collection(MDb.DbController.messageColl);
-                // Find some documents
-                collection.find({ rid: rid, createTime: { $gt: new Date(isoDate.toISOString()) } }).limit(100).sort({ createTime: 1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
-                    if (err) {
-                        callback(new Error(err.message), docs);
-                    }
-                    else {
-                        callback(null, docs);
-                    }
-                    db.close();
-                });
             });
         };
         /**

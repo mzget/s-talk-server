@@ -372,22 +372,22 @@ handler.getMessagesReaders = function (msg, session, next) {
     }
 
     let channel = channelService.getChannel(rid, false);
-
     chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
-            var onGetMessagesReaders = {
+            let onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
                 data: res
             };
 
-            var memberInfo = channel.getMember(uid);
+            let memberInfo = channel.getMember(uid);
             if (!memberInfo) {
                 return;
             }
             else {
-                var uidsGroup = new Array();
-                uidsGroup.push(memberInfo);
                 console.info("Push messages readers to owner msg.", memberInfo);
+
+                let uidsGroup = new Array();
+                uidsGroup.push(memberInfo);
                 channelService.pushMessageByUids(onGetMessagesReaders.route, onGetMessagesReaders, uidsGroup);
             }
         }
