@@ -208,8 +208,47 @@ var Controller;
             });
         };
         ChatRoomManager.prototype.getUnreadMsgCountAndLastMsgContentInRoom = function (roomId, lastAccessTime, callback) {
+            var self = this;
             var isoDate = new Date(lastAccessTime).toISOString();
-            this.roomDAL.getUnreadMsgCountAndLastMsgContentInRoom(roomId, isoDate, callback);
+            // Use connect method to connect to the Server
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(function (db) {
+                // Get the documents collection
+                var collection = db.collection(MDb.DbController.messageColl);
+                collection.createIndex({ rid: 1, createTime: 1 }, { background: true, w: 1 }).then(function (indexName) {
+                    collection.find({ rid: roomId.toString(), createTime: { $gt: new Date(isoDate) } })
+                        .project({ _id: 1 }).sort({ createTime: 1 }).toArray().then(function (docs) {
+                        db.close();
+                        if (docs.length > 0) {
+                            self.roomDAL.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
+                                if (!!res) {
+                                    callback(null, { count: docs.length, message: res });
+                                }
+                                else {
+                                    callback(null, { count: docs.length });
+                                }
+                            });
+                        }
+                        else {
+                            self.roomDAL.getLastMessageContentOfRoom(roomId, function (err, res) {
+                                if (!!res) {
+                                    callback(null, { count: docs.length, message: res });
+                                }
+                                else {
+                                    callback(null, { count: docs.length });
+                                }
+                            });
+                        }
+                    }).catch(function (err) {
+                        db.close();
+                        callback(new Error("GetUnreadMsgOfRoom by query date is no response."), null);
+                    });
+                }).catch(function (err) {
+                    db.close();
+                    console.error("createIndex fail...");
+                });
+            }).catch(function (err) {
+                console.error("Cannot connect database.");
+            });
         };
         /**
          * Retrive all room in db and then get all members from each room.
@@ -274,59 +313,21 @@ var Controller;
                 assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
-                // Find newest message documents
-                collection.find({ rid: rid.toString() }).sort({ createTime: -1 }).limit(1).toArray(function (err, docs) {
-                    assert.equal(null, err);
-                    if (!docs) {
-                        callback(new Error("getLastMessageContentOfRoom by query date is no response."), docs);
-                    }
-                    else {
-                        callback(null, docs[0]);
-                    }
-                    db.close();
-                });
-            });
-        };
-        RoomDataAccess.prototype.getUnreadMsgCountAndLastMsgContentInRoom = function (rid, isoDate, callback) {
-            var self = this;
-            // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(function (db) {
-                // Get the documents collection
-                var collection = db.collection(MDb.DbController.messageColl);
                 collection.createIndex({ rid: 1 }, { background: true, w: 1 }).then(function (indexName) {
-                    collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } })
-                        .project({ _id: 1 }).sort({ createTime: 1 }).toArray().then(function (docs) {
-                        db.close();
-                        if (docs.length > 0) {
-                            self.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
-                                if (!!res) {
-                                    callback(null, { count: docs.length, message: res });
-                                }
-                                else {
-                                    callback(null, { count: docs.length });
-                                }
-                            });
+                    // Find newest message documents
+                    collection.find({ rid: rid.toString() }).sort({ createTime: -1 }).limit(1).toArray(function (err, docs) {
+                        if (!docs || err) {
+                            callback(err, null);
                         }
                         else {
-                            self.getLastMessageContentOfRoom(rid, function (err, res) {
-                                if (!!res) {
-                                    callback(null, { count: docs.length, message: res });
-                                }
-                                else {
-                                    callback(null, { count: docs.length });
-                                }
-                            });
+                            callback(null, docs[0]);
                         }
-                    }).catch(function (err) {
                         db.close();
-                        callback(new Error("GetUnreadMsgOfRoom by query date is no response."), null);
                     });
                 }).catch(function (err) {
                     db.close();
-                    console.error("createIndex fail...");
+                    console.error("Create index fail.", err);
                 });
-            }).catch(function (err) {
-                console.error("Cannot connect database.");
             });
         };
         /**

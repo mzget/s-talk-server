@@ -422,7 +422,6 @@ handler.getUnreadRoomMessage = function (msg, session, next) {
         }
         else {
             chatRoomManager.getUnreadMsgCountAndLastMsgContentInRoom(roomId, lastAccessTime, function (err, res) {
-                console.log("GetUnreadMsgOfRoom response: ", res);
                 if (err) {
                     clearTimeout(_timeOut);
                     next(null, { code: Code.FAIL, message: err });

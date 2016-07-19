@@ -246,9 +246,48 @@ module Controller {
         }
 
         public getUnreadMsgCountAndLastMsgContentInRoom(roomId: string, lastAccessTime: string, callback: Function) {
+            let self = this;
             let isoDate = new Date(lastAccessTime).toISOString();
 
-            this.roomDAL.getUnreadMsgCountAndLastMsgContentInRoom(roomId, isoDate, callback);
+            // Use connect method to connect to the Server
+            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(db => {
+                // Get the documents collection
+                let collection = db.collection(MDb.DbController.messageColl);
+                collection.createIndex({ rid: 1, createTime: 1 }, { background: true, w: 1 }).then(indexName => {
+                    collection.find({ rid: roomId.toString(), createTime: { $gt: new Date(isoDate) } })
+                        .project({ _id: 1 }).sort({ createTime: 1 }).toArray().then(docs => {
+                            db.close();
+                            if (docs.length > 0) {
+                                self.roomDAL.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
+                                    if (!!res) {
+                                        callback(null, { count: docs.length, message: res });
+                                    }
+                                    else {
+                                        callback(null, { count: docs.length });
+                                    }
+                                });
+                            }
+                            else {
+                                self.roomDAL.getLastMessageContentOfRoom(roomId, function (err, res) {
+                                    if (!!res) {
+                                        callback(null, { count: docs.length, message: res });
+                                    }
+                                    else {
+                                        callback(null, { count: docs.length });
+                                    }
+                                });
+                            }
+                        }).catch(err => {
+                            db.close();
+                            callback(new Error("GetUnreadMsgOfRoom by query date is no response."), null);
+                        });
+                }).catch(err => {
+                    db.close();
+                    console.error("createIndex fail...");
+                });
+            }).catch(err => {
+                console.error("Cannot connect database.");
+            });
         }
 
         /**
@@ -283,7 +322,7 @@ module Controller {
         * type of msg, 
         * msg.body
         */
-        private getLastMsgContentInMessagesIdArray(docs: any[], callback: Function) {
+        public getLastMsgContentInMessagesIdArray(docs: any[], callback: Function) {
             var lastDoc = docs[docs.length - 1];
 
             // Use connect method to connect to the Server
@@ -292,7 +331,7 @@ module Controller {
                 assert.equal(null, err);
 
                 // Get the documents collection
-                var collection = db.collection(MDb.DbController.messageColl);
+                let collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
                 collection.find({ _id: new ObjectID(lastDoc._id) }).limit(1).toArray(function (err, docs) {
                     if (!docs) {
@@ -306,69 +345,29 @@ module Controller {
             });
         }
 
-        private getLastMessageContentOfRoom(rid: string, callback: Function) {
+        public getLastMessageContentOfRoom(rid: string, callback: Function) {
             // Use connect method to connect to the Server
             MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
 
                 // Get the documents collection
-                var collection = db.collection(MDb.DbController.messageColl);
-                // Find newest message documents
-                collection.find({ rid: rid.toString() }).sort({ createTime: -1 }).limit(1).toArray(function (err, docs) {
-                    assert.equal(null, err);
-                    if (!docs) {
-                        callback(new Error("getLastMessageContentOfRoom by query date is no response."), docs);
-                    }
-                    else {
-                        callback(null, docs[0]);
-                    }
-                    db.close();
-                });
-            });
-        }
-
-        public getUnreadMsgCountAndLastMsgContentInRoom(rid: string, isoDate: string, callback: Function) {
-            let self = this;
-
-            // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(db => {
-                // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
                 collection.createIndex({ rid: 1 }, { background: true, w: 1 }).then(indexName => {
-                    collection.find({ rid: rid.toString(), createTime: { $gt: new Date(isoDate) } })
-                        .project({ _id: 1 }).sort({ createTime: 1 }).toArray().then(docs => {
-                            db.close();
-                            if (docs.length > 0) {
-                                self.getLastMsgContentInMessagesIdArray(docs, function (err, res) {
-                                    if (!!res) {
-                                        callback(null, { count: docs.length, message: res });
-                                    }
-                                    else {
-                                        callback(null, { count: docs.length });
-                                    }
-                                });
-                            }
-                            else {
-                                self.getLastMessageContentOfRoom(rid, function (err, res) {
-                                    if (!!res) {
-                                        callback(null, { count: docs.length, message: res });
-                                    }
-                                    else {
-                                        callback(null, { count: docs.length });
-                                    }
-                                });
-                            }
-                        }).catch(err => {
-                            db.close();
-                            callback(new Error("GetUnreadMsgOfRoom by query date is no response."), null);
-                        });
+                    // Find newest message documents
+                    collection.find({ rid: rid.toString() }).sort({ createTime: -1 }).limit(1).toArray(function (err, docs) {
+                        if (!docs || err) {
+                            callback(err, null);
+                        }
+                        else {
+                            callback(null, docs[0]);
+                        }
+                        db.close();
+                    });
                 }).catch(err => {
                     db.close();
-                    console.error("createIndex fail...");
+                    console.error("Create index fail.", err);
                 });
-            }).catch(err => {
-                console.error("Cannot connect database.");
             });
         }
 
