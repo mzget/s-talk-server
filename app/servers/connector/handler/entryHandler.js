@@ -39,24 +39,30 @@ handler.login = function (msg, session, next) {
     var id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
-    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
-        if (result.code === Code_1.default.OK) {
-            //@ Signing success.
-            session.bind(result.uid);
-            session.on('closed', onUserLeave.bind(null, self.app));
-            if (!!registrationId) {
-                userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (err, result) {
+        if (!!result) {
+            if (result.code === Code_1.default.OK) {
+                //@ Signing success.
+                session.bind(result.uid);
+                session.on('closed', onUserLeave.bind(null, self.app));
+                if (!!registrationId) {
+                    userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+                }
+                var param = {
+                    route: Code_1.default.sharedEvents.onUserLogin,
+                    data: { _id: result.uid }
+                };
+                channelService.broadcast("connector", param.route, param.data);
             }
-            var param = {
-                route: Code_1.default.sharedEvents.onUserLogin,
-                data: { _id: result.uid }
-            };
-            channelService.broadcast("connector", param.route, param.data);
+            else if (result.code === Code_1.default.DuplicatedLogin) {
+            }
+            clearTimeout(id);
+            next(null, result);
         }
-        else if (result.code === Code_1.default.DuplicatedLogin) {
+        else {
+            clearTimeout(id);
+            next(null, { code: Code_1.default.FAIL, message: err });
         }
-        clearTimeout(id);
-        next(null, result);
     });
     /*
     var url: string = this.webServer + "/?api/login";

@@ -325,11 +325,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.getUserProfile = function (query, projection, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
-            if (err) {
-                return console.dir(err);
-            }
-            assert.equal(null, err);
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
             // Get the documents collection
             var collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
@@ -342,6 +338,9 @@ var UserDataAccessService = (function () {
                 }
                 db.close();
             });
+        }).catch(function (err) {
+            console.error("Cannot connect database", err);
+            callback(err, null);
         });
     };
     UserDataAccessService.prototype.getRole = function (creator, callback) {

@@ -8,6 +8,8 @@ var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var tokenService = new tokenService_1.default();
 var accountService;
 var channelService;
+var failedPassword = "Authentication failed.";
+var userNotFound = "Authentication failed. User not found.";
 module.exports = function (app) {
     return new AuthenRemote(app);
 };
@@ -162,15 +164,19 @@ remote.myProfile = function (userId, cb) {
         cb({ code: Code_1.default.OK, data: res });
     });
 };
-remote.auth = function (email, password, callback) {
-    var query = { username: email };
+remote.auth = function (username, password, callback) {
+    var query = { username: username };
     var projection = { username: 1, password: 1 };
     new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
-        onAuthentication(password, res[0], callback);
+        if (!err && res.length > 0) {
+            onAuthentication(password, res[0], callback);
+        }
+        else {
+            callback(userNotFound, null);
+        }
     });
 };
 var onAuthentication = function (_password, userInfo, callback) {
-    console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
         var obj_1 = JSON.parse(JSON.stringify(userInfo));
         if (obj_1.password == _password) {
@@ -179,34 +185,20 @@ var onAuthentication = function (_password, userInfo, callback) {
                     // if user is found and password is right
                     // create a token
                     tokenService.signToken(obj_1, function (err, encode) {
-                        callback({
-                            code: Code_1.default.OK,
-                            uid: obj_1._id,
-                            token: encode
-                        });
+                        callback(null, { code: Code_1.default.OK, uid: obj_1._id, token: encode });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback({
-                        code: Code_1.default.DuplicatedLogin,
-                        message: "duplicate log in.",
-                        uid: obj_1._id,
-                    });
+                    callback(null, { code: Code_1.default.DuplicatedLogin, message: "duplicate log in.", uid: obj_1._id, });
                 }
             });
         }
         else {
-            callback({
-                code: Code_1.default.FAIL,
-                message: "Authentication failed. User not found."
-            });
+            callback(null, { code: Code_1.default.FAIL, message: failedPassword });
         }
     }
     else {
-        callback({
-            code: Code_1.default.FAIL,
-            message: "Authentication failed. User not found."
-        });
+        callback(null, { code: Code_1.default.FAIL, message: userNotFound });
     }
 };

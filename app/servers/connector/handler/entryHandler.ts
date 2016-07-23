@@ -49,32 +49,38 @@ handler.login = function (msg, session, next) {
         next(null, { code: Code.RequestTimeout, message: "login timeout..." });
     }, webConfig.timeout);
 
-    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (result) {
-		if (result.code === Code.OK) {
-			//@ Signing success.
-			session.bind(result.uid);
-			session.on('closed', onUserLeave.bind(null, self.app));
+    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (err, result) {
+		if (!!result) {
+			if (result.code === Code.OK) {
+				//@ Signing success.
+				session.bind(result.uid);
+				session.on('closed', onUserLeave.bind(null, self.app));
 
-			if (!!registrationId) {
-				userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+				if (!!registrationId) {
+					userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+				}
+
+				let param = {
+					route: Code.sharedEvents.onUserLogin,
+					data: { _id: result.uid }
+				};
+
+				channelService.broadcast("connector", param.route, param.data);
+
+				//@ Comment this line when we dont want to force user to online-list when loged-in.
+				//			addOnlineUser(self.app, session, result.uid);
+			}
+			else if (result.code === Code.DuplicatedLogin) {
+				// session.__sessionService__.kick()
 			}
 
-			let param = {
-				route: Code.sharedEvents.onUserLogin,
-				data: { _id: result.uid }
-			};
-
-			channelService.broadcast("connector", param.route, param.data);
-
-			//@ Comment this line when we dont want to force user to online-list when loged-in.
-			//			addOnlineUser(self.app, session, result.uid);
+			clearTimeout(id);
+			next(null, result);
 		}
-		else if (result.code === Code.DuplicatedLogin) {
-			// session.__sessionService__.kick()
+		else{
+			clearTimeout(id);
+        	next(null, { code: Code.FAIL, message: err });
 		}
-
-		clearTimeout(id);
-		next(null, result);
 	});
 
 	/*

@@ -15,6 +15,9 @@ const tokenService: TokenService = new TokenService();
 var accountService: AccountService;
 var channelService;
 
+const failedPassword = "Authentication failed.";
+const userNotFound = "Authentication failed. User not found.";
+
 module.exports = function (app) {
     return new AuthenRemote(app);
 }
@@ -197,19 +200,22 @@ remote.myProfile = function (userId: string, cb: Function) {
 }
 
 
-remote.auth = function (email, password, callback) {
-    let query = { username: email };
+remote.auth = function (username, password, callback: (err, res) => void) {
+    let query = { username: username };
     let projection = { username: 1, password: 1 };
     new UserDataAccessService().getUserProfile(query, projection, (err, res) => {
-        onAuthentication(password, res[0], callback);
+        if (!err && res.length > 0) {
+            onAuthentication(password, res[0], callback);
+        }
+        else {
+            callback(userNotFound, null);
+        }
     });
 }
 
-const onAuthentication = function (_password, userInfo, callback) {
-    console.log("onAuthentication: ", userInfo);
-
+const onAuthentication = function (_password, userInfo, callback: (err, res) => void) {
     if (userInfo !== null) {
-        let obj : User.StalkAccount = JSON.parse(JSON.stringify(userInfo));
+        let obj: User.StalkAccount = JSON.parse(JSON.stringify(userInfo));
 
         if (obj.password == _password) {
             accountService.getOnlineUser(obj._id, (error, user) => {
@@ -217,34 +223,20 @@ const onAuthentication = function (_password, userInfo, callback) {
                     // if user is found and password is right
                     // create a token
                     tokenService.signToken(obj, (err, encode) => {
-                        callback({
-                            code: Code.OK,
-                            uid: obj._id,
-                            token: encode
-                        });
+                        callback(null, { code: Code.OK, uid: obj._id, token: encode });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback({
-                        code: Code.DuplicatedLogin,
-                        message: "duplicate log in.",
-                        uid: obj._id,
-                    });
+                    callback(null, { code: Code.DuplicatedLogin, message: "duplicate log in.", uid: obj._id, });
                 }
             });
         }
         else {
-            callback({
-                code: Code.FAIL,
-                message: "Authentication failed. User not found."
-            });
+            callback(null, { code: Code.FAIL, message: failedPassword });
         }
     }
     else {
-        callback({
-            code: Code.FAIL,
-            message: "Authentication failed. User not found."
-        });
+        callback(null, { code: Code.FAIL, message: userNotFound });
     }
 };

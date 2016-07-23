@@ -360,26 +360,23 @@ export class UserDataAccessService {
             // Get the documents collection
             let collection = db.collection(Mdb.DbController.userColl);
             collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
-            .then(docs => {
-                db.close();
-                console.log("getRoomAccessOfRoom", docs);
-                callback(null, docs[0]);
-            })
-            .catch(err => {
-                console.error("getRoomAccessOfRoom: ", err);
-                db.close();
-                callback(err, null);
-            });
+                .then(docs => {
+                    db.close();
+                    console.log("getRoomAccessOfRoom", docs);
+                    callback(null, docs[0]);
+                })
+                .catch(err => {
+                    console.error("getRoomAccessOfRoom: ", err);
+                    db.close();
+                    callback(err, null);
+                });
         }).catch(err => {
             console.error("Cannot connect database", err);
         });
     }
 
     public getUserProfile(query: any, projection: any, callback: (err, res: Array<any>) => void) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
-            if (err) { return console.dir(err); }
-            assert.equal(null, err);
-
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
             // Get the documents collection
             let collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
@@ -393,6 +390,9 @@ export class UserDataAccessService {
 
                 db.close();
             });
+        }).catch(err => {
+            console.error("Cannot connect database", err);
+            callback(err, null);
         });
     }
 
