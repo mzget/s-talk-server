@@ -127,7 +127,7 @@ handler.kickMe = function (msg, session, next) {
     //!-- log user out.
     this.app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
     userDAL.prototype.removeAllRegistrationId(session.uid);
-    next(null, null);
+    next(null, { message: "kicked! " + msg.uid });
 };
 /**
 * require user, password, and token.
