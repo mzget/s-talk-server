@@ -148,8 +148,8 @@ handler.kickMe = function (msg, session, next) {
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
 
 	//!-- log user out.
-	this.app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-	userDAL.prototype.removeAllRegistrationId(session.uid);
+	this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
+	userDAL.prototype.removeAllRegistrationId(msg.uid);
 
 	next(null, {message: "kicked! " + msg.uid});
 }
