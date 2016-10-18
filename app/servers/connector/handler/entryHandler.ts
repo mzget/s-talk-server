@@ -1,12 +1,12 @@
 ﻿import CompanyController = require("../../../controller/CompanyManager");
 import Mcontroller = require("../../../controller/ChatRoomManager");
-import Code = require('../../../../shared/Code');
+import Code from '../../../../shared/Code';
 import User = require('../../../model/User');
 import userDAL = require('../../../dal/userDataAccess');
 import Room = require('../../../model/Room');
 import TokenService from '../../../services/tokenService';
 import generic = require('../../../util/collections');
-import MUser = require('../../../controller/UserManager');
+import { UserManager } from '../../../controller/UserManager';
 import async = require('async');
 import mongodb = require('mongodb');
 
@@ -16,7 +16,6 @@ import request = require('request');
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-const userManager = MUser.Controller.UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
@@ -207,17 +206,17 @@ function addOnlineUser(app, session, userId: string) {
 	app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
 		console.log("joining onlineUser", JSON.stringify(result));
 
-		let datas: Array<User.User> = JSON.parse(JSON.stringify(result.data));
+		let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.data));
 		let my = datas[0];
 		let onlineUser = new User.OnlineUser();
 		onlineUser.uid = my._id;
-		onlineUser.username = my.first_name;
+		onlineUser.username = my.firstname;
 		onlineUser.serverId = session.frontendId;
-		onlineUser.registrationIds = my.devicesToken;
+		onlineUser.registrationIds = my.deviceTokens;
 
 		let userTransaction = new User.UserTransaction();
 		userTransaction.uid = my._id;
-		userTransaction.username = my.first_name;
+		userTransaction.username = my.firstname;
 
 		//!-- check uid in onlineUsers list.
 		//var usersDict = userManager.onlineUsers;
@@ -256,7 +255,7 @@ handler.getLastAccessRooms = function (msg, session, next) {
 			}
 		});
 	}], (err, results) => {
-		userManager.getRoomAccessForUser(uid, function (err, res) {
+		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
 			var onAccessRooms = {
 				route: Code.sharedEvents.onAccessRooms,
 				data: res
