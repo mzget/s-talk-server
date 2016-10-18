@@ -5,7 +5,6 @@ const routeUtil = require('./app/util/routeUtil');
 import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-const webConfig = require('./config/webConfig');
 
 /**
  * Init app for client.

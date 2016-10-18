@@ -5,7 +5,6 @@ var routeUtil = require('./app/util/routeUtil');
 var accountService_1 = require('./app/services/accountService');
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-var webConfig = require('./config/webConfig');
 /**
  * Init app for client.
  */
