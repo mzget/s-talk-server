@@ -1,5 +1,5 @@
 "use strict";
-var Code = require('../../shared/Code');
+var Code_1 = require('../../shared/Code');
 var dispatcher = require('../util/dispatcher');
 var AccountService = (function () {
     function AccountService(app) {
@@ -158,18 +158,18 @@ var AccountService = (function () {
     AccountService.prototype.add = function (uid, playerName, channelName) {
         var sid = this.getSidByUid(uid, this.app);
         if (!sid) {
-            return Code.CHAT.FA_UNKNOWN_CONNECTOR;
+            return Code_1.default.CHAT.FA_UNKNOWN_CONNECTOR;
         }
         if (this.checkDuplicate(this, uid, channelName)) {
-            return Code.OK;
+            return Code_1.default.OK;
         }
         var channel = this.app.get('channelService').getChannel(channelName, true);
         if (!channel) {
-            return Code.CHAT.FA_CHANNEL_CREATE;
+            return Code_1.default.CHAT.FA_CHANNEL_CREATE;
         }
         channel.add(uid, sid);
         this.addRecord(this, uid, playerName, sid, channelName);
-        return Code.OK;
+        return Code_1.default.OK;
     };
     /**
      * User leaves the channel
@@ -232,7 +232,7 @@ var AccountService = (function () {
     AccountService.prototype.pushByPlayerName = function (playerName, msg, cb) {
         var record = this.nameMap[playerName];
         if (!record) {
-            cb(null, Code.CHAT.FA_USER_NOT_ONLINE);
+            cb(null, Code_1.default.CHAT.FA_USER_NOT_ONLINE);
             return;
         }
         //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);

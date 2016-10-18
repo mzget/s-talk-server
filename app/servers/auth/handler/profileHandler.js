@@ -4,13 +4,13 @@
 ***********************************************/
 "use strict";
 var Mdb = require('../../../db/dbClient');
-var code = require('../../../../shared/Code');
-var MUser = require('../../../controller/UserManager');
+var Code_1 = require('../../../../shared/Code');
+var UserManager_1 = require('../../../controller/UserManager');
 var User = require('../../../model/User');
 var Room = require('../../../model/Room');
 var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
-var userManager = MUser.Controller.UserManager.getInstance();
+var userManager = UserManager_1.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate profileHandler.");
@@ -26,14 +26,14 @@ var profileHandler = ProfileHandler.prototype;
 */
 profileHandler.profileUpdate = function (msg, session, next) {
     if (!msg._id) {
-        next(null, { code: code.FAIL, message: "profile info is empty or null." });
+        next(null, { code: Code_1.default.FAIL, message: "profile info is empty or null." });
         return;
     }
     else {
         console.info("profileUpdate: ", msg);
     }
     var uid = msg._id;
-    var updateParams = new User.User();
+    var updateParams = new User.StalkAccount();
     if (msg.displayname && msg.displayname !== "")
         updateParams.displayname = msg.displayname;
     //if (msg.firstname && msg.firstname !== "")
@@ -41,13 +41,13 @@ profileHandler.profileUpdate = function (msg, session, next) {
     //if (msg.lastname && msg.lastname !== "")
     //    updateParams.lastname = msg.lastname;
     if (msg.mail && msg.mail !== "")
-        updateParams.email = msg.mail;
+        updateParams.mail = msg.mail;
     if (msg.tel && msg.tel !== "")
-        updateParams.mobile = msg.tel;
+        updateParams.tel = msg.tel;
     if (msg.status && msg.status !== "")
         updateParams.status = msg.status;
     if (!updateParams) {
-        next(null, { code: code.FAIL, message: "Fail to update user profile." });
+        next(null, { code: Code_1.default.FAIL, message: "Fail to update user profile." });
         return;
     }
     //<!-- Finally  add last edit time to params.
@@ -58,13 +58,13 @@ profileHandler.profileUpdate = function (msg, session, next) {
         }
         else {
             var param = {
-                route: code.sharedEvents.onUserUpdateProfile,
+                route: Code_1.default.sharedEvents.onUserUpdateProfile,
                 data: { _id: uid, params: updateParams }
             };
             channelService.broadcast("connector", param.route, param.data);
         }
     }, { _id: new ObjectID(uid) }, { $set: updateParams }, { w: 1 });
-    next(null, { code: code.OK });
+    next(null, { code: Code_1.default.OK });
 };
 /**
  * Call this func. when user upload new "ProfileImage" complete via Http server.
@@ -76,12 +76,12 @@ profileHandler.profileUpdate = function (msg, session, next) {
 profileHandler.profileImageChanged = function (msg, session, next) {
     var uid = msg.userId;
     if (!uid) {
-        next(null, { code: code.FAIL, message: "profile info is empty or null." });
+        next(null, { code: Code_1.default.FAIL, message: "profile info is empty or null." });
         return;
     }
     var newUrl = msg.path;
     if (!newUrl) {
-        next(null, { code: code.FAIL, message: "newUrl of profileImage is empty or null." });
+        next(null, { code: Code_1.default.FAIL, message: "newUrl of profileImage is empty or null." });
         return;
     }
     userManager.updateImageProfile(uid, newUrl, function (err, res) {
@@ -90,7 +90,7 @@ profileHandler.profileImageChanged = function (msg, session, next) {
         }
         else {
             var param = {
-                route: code.sharedEvents.onUserUpdateImgProfile,
+                route: Code_1.default.sharedEvents.onUserUpdateImgProfile,
                 data: { _id: uid, path: newUrl }
             };
             channelService.broadcast("connector", param.route, param.data);
@@ -112,16 +112,16 @@ profileHandler.passwordChange = function (msg, session, next) {
 profileHandler.getMemberProfile = function (msg, session, next) {
     var targetId = msg.userId;
     if (!targetId) {
-        next(null, { code: code.FAIL, message: "target id of member is invalid." });
+        next(null, { code: Code_1.default.FAIL, message: "target id of member is invalid." });
         return;
     }
     userManager.getMemberProfile(targetId, function (err, res) {
         if (err || res === null) {
             var message = "fail to getMemberProfile of " + targetId;
-            next(null, { code: code.FAIL, message: message });
+            next(null, { code: Code_1.default.FAIL, message: message });
         }
         else {
-            next(null, { code: code.OK, data: res });
+            next(null, { code: Code_1.default.OK, data: res });
         }
     });
 };
@@ -134,15 +134,15 @@ profileHandler.editFavoriteMembers = function (msg, session, next) {
     if (!uid || !editType || !member || !token) {
         var _errMsg = "editFavoriteMembers: some params is invalid.";
         console.error(_errMsg);
-        next(null, { code: code.FAIL, message: _errMsg });
+        next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
     userManager.updateFavoriteMembers(editType, member, uid, function (err, res) {
         if (err || res === null) {
-            next(null, { code: code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
         else {
-            next(null, { code: code.OK });
+            next(null, { code: Code_1.default.OK });
         }
     });
 };
@@ -155,15 +155,15 @@ profileHandler.updateFavoriteGroups = function (msg, session, next) {
     if (!uid || !editType || !group || !token) {
         var _errMsg = "updateFavoriteGroups: some params is invalid.";
         console.error(_errMsg);
-        next(null, { code: code.FAIL, message: _errMsg });
+        next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
     userManager.updateFavoriteGroups(editType, group, uid, function (err, res) {
         if (err || res === null) {
-            next(null, { code: code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
         else {
-            next(null, { code: code.OK });
+            next(null, { code: Code_1.default.OK });
         }
     });
 };
@@ -178,15 +178,15 @@ profileHandler.updateClosedNoticeUsers = function (msg, session, next) {
     if (!uid || !editType || !member || !token) {
         var _errMsg = "updateClosedNoticeUsers: some params is invalid.";
         console.error(_errMsg);
-        next(null, { code: code.FAIL, message: _errMsg });
+        next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
     userManager.updateClosedNoticeUsersList(editType, member, uid, function (err, res) {
         if (err || res === null) {
-            next(null, { code: code.FAIL });
+            next(null, { code: Code_1.default.FAIL });
         }
         else {
-            next(null, { code: code.OK });
+            next(null, { code: Code_1.default.OK });
         }
     });
 };
@@ -202,27 +202,27 @@ profileHandler.updateClosedNoticeGroups = function (msg, session, next) {
     if (!uid || !editType || !group || !token) {
         var _errMsg = "updateClosedNoticeGroups: some params is invalid.";
         console.error(_errMsg);
-        next(null, { code: code.FAIL, message: _errMsg });
+        next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
     this.app.rpc.chat.chatRoomRemote.checkedRoomType(session, group, function (err, res) {
         if (err || res === null) {
             console.error("checkedRoomType fail.");
-            next(null, { code: code.FAIL, message: "checkedRoomType fail." });
+            next(null, { code: Code_1.default.FAIL, message: "checkedRoomType fail." });
         }
         else if (res.type === Room.RoomType.privateGroup) {
             userManager.updateClosedNoticeGroups(editType, group, uid, function (err, res) {
                 if (err || res === null) {
-                    next(null, { code: code.FAIL });
+                    next(null, { code: Code_1.default.FAIL });
                 }
                 else {
-                    next(null, { code: code.OK });
+                    next(null, { code: Code_1.default.OK });
                 }
             });
         }
         else {
             console.warn("RoomType is not a private group chat.");
-            next(null, { code: code.FAIL, message: "RoomType is not a private group chat." });
+            next(null, { code: Code_1.default.FAIL, message: "RoomType is not a private group chat." });
         }
     });
 };

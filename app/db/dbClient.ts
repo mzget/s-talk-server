@@ -13,7 +13,6 @@ var Db = mongodb.Db,
 import { Config } from '../../config/config';
 
 export module DbController {
-
     // Connection URL
     //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
     export var spartanChatDb_URL = Config.chatDB;

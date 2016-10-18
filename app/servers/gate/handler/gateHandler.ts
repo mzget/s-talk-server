@@ -1,4 +1,4 @@
-import Code = require('../../../../shared/Code');
+import Code from'../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import dispatcher from '../../../util/dispatcher';
 const tokenService: TokenService = new TokenService();
@@ -8,6 +8,7 @@ module.exports = function(app) {
 };
 
 const Handler = function (app) {
+	console.log("gateHandler construc..");
 	this.app = app;
 };
 

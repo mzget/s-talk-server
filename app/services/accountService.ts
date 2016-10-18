@@ -1,4 +1,4 @@
-﻿import Code = require('../../shared/Code');
+﻿import Code from '../../shared/Code';
 import Collection = require('../util/collections');
 import User = require('../model/User');
 import Room = require('../model/Room');

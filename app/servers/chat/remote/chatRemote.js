@@ -1,8 +1,8 @@
 "use strict";
-var MUser = require('../../../controller/UserManager');
-var Code = require('../../../../shared/Code');
+var UserManager_1 = require('../../../controller/UserManager');
+var Code_1 = require('../../../../shared/Code');
 var ObjectID = require('mongodb').ObjectID;
-var userManager = MUser.Controller.UserManager.getInstance();
+var userManager = UserManager_1.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
@@ -78,16 +78,14 @@ remote.kick = function (user, sid, rid, cb) {
         console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
         userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
             console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
-            if (channel) {
-                var targetId = { uid: user.uid, sid: user.serverId };
-                var group = new Array();
-                group.push(targetId);
-                var param_1 = {
-                    route: Code.sharedEvents.onUpdatedLastAccessTime,
-                    data: res
-                };
-                channelService.pushMessageByUids(param_1.route, param_1.data, group);
-            }
+            var targetId = { uid: user.uid, sid: user.serverId };
+            var group = new Array();
+            group.push(targetId);
+            var param = {
+                route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
+                data: res
+            };
+            channelService.pushMessageByUids(param.route, param.data, group);
         });
     });
     var channel = channelService.getChannel(rid, false);

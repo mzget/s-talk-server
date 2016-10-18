@@ -1,10 +1,8 @@
-﻿//import UserRole = require("UserRole");
-//import JobLevel = require("JobLevel");
-import MAccess = require('./RoomAccessData');
-import UserRole = require('./UserRole');
-var generic = require('../util/collections');
+﻿import RoomAccessData from './RoomAccessData';
+import UserRole from './UserRole';
+import JobLevel from './JobLevel';
 
-interface IUser { 
+interface IUser {
     uid: string;
 };
 export class OnlineUser implements IUser {
@@ -21,35 +19,27 @@ export interface IOnlineUser {
     [uid: string]: OnlineUser;
 };
 
-export class User {
+export class StalkAccount {
     _id: string;
-    password : string;
-    first_name: string;
-    last_name: string;
-    mobile: string;
-    gender: string;
-    birthday: string;
-    occupation: string;
-    facebookId: string;
-    email: string;
-    avatar: string; //!-- mean image url.    
+    displayname: string;
+    username: string;
+    password: string;
+    firstname: string;
+    lastname: string;
+    tel: string;
+    mail: string;
+    image: string; //!-- mean image url.
+    role: UserRole;
+    department: string;
+    jobLevel: JobLevel;
+    jobPosition: string;
+    status: string;
+    roomAccess: RoomAccessData[];
+    memberOfRooms: string[];
+    lastEditProfile: Date;
     favoriteUsers: string[]; // user_id
     favoriteGroups: string[]; // room_id
     closedNoticeUsers: string[]; // user_id
     closedNoticeGroups: string[]; // room_id
-    devicesToken: string[];
-    registerDate: string;
-    linkeds: string[];
-    follower: string[];
-    sharedBy: string[];
-    companies: string[];
-    link_requests: string[];
-    trash_link_requests: string[];
-
-    roomAccess: MAccess.RoomAccessData[];
-    memberOfRooms: string[];
-    
-    toString() {
-        return generic.collections.makeString(this);
-    }
+    deviceTokens: string[];
 };

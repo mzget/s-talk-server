@@ -1,5 +1,4 @@
 "use strict";
-var generic = require('../util/collections');
 ;
 var OnlineUser = (function () {
     function OnlineUser() {
@@ -15,13 +14,10 @@ var UserTransaction = (function () {
 }());
 exports.UserTransaction = UserTransaction;
 ;
-var User = (function () {
-    function User() {
+var StalkAccount = (function () {
+    function StalkAccount() {
     }
-    User.prototype.toString = function () {
-        return generic.collections.makeString(this);
-    };
-    return User;
+    return StalkAccount;
 }());
-exports.User = User;
+exports.StalkAccount = StalkAccount;
 ;

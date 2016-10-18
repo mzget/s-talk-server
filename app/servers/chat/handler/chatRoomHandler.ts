@@ -1,19 +1,19 @@
 ﻿import Mcontroller = require("../../../controller/ChatRoomManager");
-import MUserManager = require("../../../controller/UserManager");
-import Code = require("../../../../shared/Code");
+import { UserManager } from "../../../controller/UserManager";
+import Code from "../../../../shared/Code";
 import TokenService from "../../../services/tokenService";
 import mongodb = require('mongodb');
 import crypto = require('crypto');
 import { AccountService } from '../../../services/accountService';
 import User = require('../../../model/User');
 import Room = require('../../../model/Room');
-import UserRole = require('../../../model/UserRole');
+import UserRole from '../../../model/UserRole';
 import async = require('async');
 
 import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-const userManager = MUserManager.Controller.UserManager.getInstance();
+const userManager = UserManager.getInstance();
 const tokenService: TokenService = new TokenService();
 var channelService;
 
@@ -57,7 +57,7 @@ handler.requestCreateProjectBase = function (msg, session, next) {
             return;
         }
         else {
-            if (res.role !== UserRole.UserRole.personnel) {
+            if (res.role !== UserRole.personnel) {
                 chatRoomManager.createProjectBaseGroup(groupName, members, function (err, result) {
                     console.info("createProjectBaseGroup response: ", result);
 
@@ -422,7 +422,6 @@ handler.getUnreadRoomMessage = function (msg, session, next) {
         }
         else {
             chatRoomManager.getUnreadMsgCountAndLastMsgContentInRoom(roomId, lastAccessTime, function (err, res) {
-                console.log("GetUnreadMsgOfRoom response: ", res);
                 if (err) {
                     clearTimeout(_timeOut);
                     next(null, { code: Code.FAIL, message: err });

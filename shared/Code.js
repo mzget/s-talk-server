@@ -52,5 +52,5 @@ var Code = (function () {
     };
     return Code;
 }());
-;
-module.exports = Code;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Code;

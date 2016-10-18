@@ -1,6 +1,4 @@
-﻿export class RoomAccessData {
+﻿export default class RoomAccessData {
     roomId: string;
     accessTime: Date;
-    
-    constructor() {}
 };

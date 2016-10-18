@@ -1,10 +1,10 @@
-﻿import MUser = require('../../../controller/UserManager');
+﻿import { UserManager } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import generic = require('../../../util/collections');
-import Code = require('../../../../shared/Code');
+import Code from '../../../../shared/Code';
 import Room = require('../../../model/Room');
 const ObjectID = require('mongodb').ObjectID;
-const userManager = MUser.Controller.UserManager.getInstance();
+const userManager = UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
@@ -87,25 +87,22 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
         return;
     }
 
-
     userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
         let printR = (accessInfo) ? accessInfo.result : null;
         console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
 
         userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
             console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
-            if (channel) {
-                let targetId = { uid: user.uid, sid: user.serverId };
-                let group = new Array();
-                group.push(targetId);
+            let targetId = { uid: user.uid, sid: user.serverId };
+            let group = new Array();
+            group.push(targetId);
 
-                let param = {
-                    route: Code.sharedEvents.onUpdatedLastAccessTime,
-                    data: res
-                };
+            let param = {
+                route: Code.sharedEvents.onUpdatedLastAccessTime,
+                data: res
+            };
 
-                channelService.pushMessageByUids(param.route, param.data, group);
-            }
+            channelService.pushMessageByUids(param.route, param.data, group);
         });
     });
 

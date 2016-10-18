@@ -1,4 +1,4 @@
-﻿class Code  {
+﻿export  default class Code  {
     static OK = 200;
     static RequestTimeout = 408;
     static FAIL = 500;
@@ -59,5 +59,4 @@
     public static friendEvents = {
         addFriendEvent : "addFriendEvent"
     }
-};
-export = Code;
+}

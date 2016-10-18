@@ -2,7 +2,7 @@
  *  friend Manager.
  */
 "use strict";
-var Mdb = require('../db/dbClient');
+var Mdb = require('../../app/db/dbClient');
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;

@@ -4,13 +4,13 @@
 ***********************************************/
 
 import Mdb = require('../../../db/dbClient');
-import code = require('../../../../shared/Code');
+import code from '../../../../shared/Code';
 import MUser = require('../../../controller/UserManager');
 import User = require('../../../model/User');
 import Room = require('../../../model/Room');
 import async = require('async');
 import { AccountService } from '../../../services/accountService';
-import FriendManager from "../../../controller/friendManager";
+import FriendManager from "../../../../smelinkApp/appLayer/friendManager";
 
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;

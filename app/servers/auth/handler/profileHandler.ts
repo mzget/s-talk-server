@@ -4,14 +4,14 @@
 ***********************************************/
 
 import Mdb = require('../../../db/dbClient');
-import code = require('../../../../shared/Code');
-import MUser = require('../../../controller/UserManager');
-import User = require('../../../model/User');
+import code from    '../../../../shared/Code';
+import {UserManager}  from   '../../../controller/UserManager';
+import *    as  User from    '../../../model/User';
 import Room = require('../../../model/Room');
 import async = require('async');
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;
-const userManager = MUser.Controller.UserManager.getInstance();
+const userManager = UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
@@ -39,8 +39,8 @@ profileHandler.profileUpdate = function (msg, session, next) {
         console.info("profileUpdate: ", msg);
     }
 
-    var uid = msg._id;
-    var updateParams = new User.User();
+    let uid = msg._id;
+    let updateParams = new User.StalkAccount();
 
     if (msg.displayname && msg.displayname !== "")//updateParams = { displayname: msg.displayname, lastEditProfile: new Date() };
         updateParams.displayname = msg.displayname;
@@ -49,9 +49,9 @@ profileHandler.profileUpdate = function (msg, session, next) {
     //if (msg.lastname && msg.lastname !== "")
     //    updateParams.lastname = msg.lastname;
     if (msg.mail && msg.mail !== "") //updateParams = { mail: msg.mail, lastEditProfile: new Date() };
-        updateParams.email = msg.mail;
+        updateParams.mail = msg.mail;
     if (msg.tel && msg.tel !== "") //updateParams = { tel: msg.tel, lastEditProfile: new Date() };
-        updateParams.mobile = msg.tel;
+        updateParams.tel = msg.tel;
     if (msg.status && msg.status !== "") // updateParams = { status: msg.status, lastEditProfile: new Date() };
         updateParams.status = msg.status;
 
