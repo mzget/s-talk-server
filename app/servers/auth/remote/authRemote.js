@@ -1,14 +1,15 @@
 "use strict";
-var Code_1 = require('../../../../shared/Code');
+var Code = require('../../../../shared/Code');
 var tokenService_1 = require('../../../services/tokenService');
-var UserManager_1 = require('../../../controller/UserManager');
+var MAuthen = require('../../../controller/AuthenManager');
+var MUser = require('../../../controller/UserManager');
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+var userManager = MUser.Controller.UserManager.getInstance();
+var authenManager = MAuthen.Controller.AuthenManager.getInstance();
 var tokenService = new tokenService_1.default();
 var accountService;
 var channelService;
-var failedPassword = "Authentication failed.";
-var userNotFound = "Authentication failed. User not found.";
 module.exports = function (app) {
     return new AuthenRemote(app);
 };
@@ -88,7 +89,7 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
             accountService.addRoom(room);
             //<!-- Notice all member of new room to know they have a new room.   
             var param = {
-                route: Code_1.default.sharedEvents.onNewGroupCreated,
+                route: Code.sharedEvents.onNewGroupCreated,
                 data: room
             };
             var pushGroup_1 = new Array();
@@ -125,10 +126,10 @@ remote.tokenService = function (bearerToken, cb) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
             console.info("ensureAuthorized error: ", err);
-            cb(err, { code: Code_1.default.FAIL, message: err });
+            cb(err, { code: Code.FAIL, message: err });
         }
         else {
-            cb(null, { code: Code_1.default.OK, decoded: res.decoded });
+            cb(null, { code: Code.OK, decoded: res.decoded });
         }
     });
 };
@@ -140,64 +141,70 @@ remote.me = function (msg, cb) {
     var username = msg.username;
     var password = msg.password;
     var bearerToken = msg.token;
-    var query = { username: username.toLowerCase() };
-    var projection = { roomAccess: 0 };
-    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
-        if (err || res === null) {
+    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
+        if (user === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
-            cb({ code: Code_1.default.FAIL, message: errMsg });
+            cb({ code: Code.FAIL, message: errMsg });
             return;
         }
-        cb({ code: Code_1.default.OK, data: res[0] });
-    });
+        cb({ code: Code.OK, data: user });
+    }, { roomAccess: 0 });
 };
 remote.myProfile = function (userId, cb) {
-    UserManager_1.UserManager.getInstance().getMemberProfile(userId, function (err, res) {
+    userManager.getMemberProfile(userId, function (err, res) {
         if (res === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
-            cb({ code: Code_1.default.FAIL, message: errMsg });
+            cb({ code: Code.FAIL, message: errMsg });
             return;
         }
-        cb({ code: Code_1.default.OK, data: res });
+        cb({ code: Code.OK, data: res });
     });
 };
-remote.auth = function (username, password, callback) {
-    var query = { username: username };
-    var projection = { username: 1, password: 1 };
-    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
-        if (!err && res.length > 0) {
-            onAuthentication(password, res[0], callback);
-        }
-        else {
-            callback(userNotFound, null);
-        }
-    });
+remote.auth = function (email, password, callback) {
+    authenManager.GetUsername({ email: email }, function (res) {
+        onAuthentication(password, res, callback);
+    }, { email: 1, password: 1 });
 };
 var onAuthentication = function (_password, userInfo, callback) {
+    console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
         var obj_1 = JSON.parse(JSON.stringify(userInfo));
-        if (obj_1.password == _password) {
+        if (obj_1.password === _password) {
             accountService.getOnlineUser(obj_1._id, function (error, user) {
                 if (!user) {
                     // if user is found and password is right
                     // create a token
                     tokenService.signToken(obj_1, function (err, encode) {
-                        callback(null, { code: Code_1.default.OK, uid: obj_1._id, token: encode });
+                        callback({
+                            code: Code.OK,
+                            uid: obj_1._id,
+                            token: encode
+                        });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback(null, { code: Code_1.default.DuplicatedLogin, message: "duplicate log in.", uid: obj_1._id, });
+                    callback({
+                        code: Code.DuplicatedLogin,
+                        message: "duplicate log in.",
+                        uid: obj_1._id,
+                    });
                 }
             });
         }
         else {
-            callback(null, { code: Code_1.default.FAIL, message: failedPassword });
+            callback({
+                code: Code.FAIL,
+                message: "Authentication failed. User not found."
+            });
         }
     }
     else {
-        callback(null, { code: Code_1.default.FAIL, message: userNotFound });
+        callback({
+            code: Code.FAIL,
+            message: "Authentication failed. User not found."
+        });
     }
 };
