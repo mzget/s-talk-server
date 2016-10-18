@@ -47,7 +47,6 @@ handler.login = function (msg, session, next) {
             next(error, null);
         }
         else if (!error && response.statusCode == 200) {
-            console.log("AuthenBody", body);
             // {"success":true,
             // "decoded":{
             // 	"_id":"57fd5a6405686a5a06890481",
@@ -58,6 +57,7 @@ handler.login = function (msg, session, next) {
             // }}
             var data = JSON.parse(body);
             var decoded_1 = data.decoded;
+            console.log("AuthenBody", decoded_1);
             self.app.rpc.auth.authRemote.getOnlineUser(session, decoded_1._id, function (err, user) {
                 if (!user) {
                     next(null, { code: Code_1.default.OK, data: body });
