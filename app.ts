@@ -1,5 +1,5 @@
 ﻿const pomelo = require('pomelo');
-const routeUtil = require('./app/util/routeUtil');
+import routeUtil from './app/util/routeUtil';
 import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
@@ -17,7 +17,7 @@ app.configure('production|development', function () {
     //    app.filter(pomelo.filters.serial(5000));
 
     // route configures
-    app.route('chat', routeUtil.chat);
+    app.route('chat', routeUtil);
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures

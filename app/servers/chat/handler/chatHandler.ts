@@ -1,10 +1,10 @@
 ﻿import Mcontroller = require('../../../controller/ChatRoomManager');
-import {UserManager} from"../../../controller/UserManager";
+import { UserManager } from "../../../controller/UserManager";
 import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
 import MRoom = require('../../../model/Room');
 import MMessage = require('../../../model/Message');
-import Code from    '../../../../shared/Code';
+import Code from '../../../../shared/Code';
 import MPushService = require('../../../services/ParsePushService');
 import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
@@ -57,7 +57,7 @@ handler.send = function (msg, session, next) {
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
-    }, webConfig.timeout);
+    }, Config.timeout);
 
     //<!-- Get online members of room.
     let thisRoom: MRoom.Room = null;

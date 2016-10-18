@@ -47,7 +47,7 @@ handler.send = function (msg, session, next) {
     }
     var timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     //<!-- Get online members of room.
     var thisRoom = null;
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {

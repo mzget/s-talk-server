@@ -79,19 +79,20 @@ handler.login = function (msg, session, next) {
         }
     }
     request.post(options, callback);
-    // let id = setTimeout(function () {
-    // 	next(null, { code: Code.RequestTimeout, message: "login timeout..." });
-    // }, Config.timeout);
     /*
-        self.app.rpc.auth.authRemote.auth(session, email, pass, function (result) {
+        let id = setTimeout(function () {
+            next(null, { code: Code.RequestTimeout, message: "login timeout..." });
+        }, Config.timeout);
+        
+            self.app.rpc.auth.authRemote.auth(session, "test@ahoo.com", "25d55ad283aa400af464c76d713c07ad", function (result) {
             if (result.code === Code.OK) {
                 //@ Signing success.
                 session.bind(result.uid);
                 session.on('closed', onUserLeave.bind(null, self.app));
     
-                if (!!registrationId) {
-                    userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-                }
+                // if (!!registrationId) {
+                // 	userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+                // }
     
                 let param = {
                     route: Code.sharedEvents.onUserLogin,
@@ -106,10 +107,10 @@ handler.login = function (msg, session, next) {
                 // session.__sessionService__.kick()
             }
     
-            clearTimeout(id);
+            // clearTimeout(id);
             next(null, result);
         });
-        */
+    */
 };
 handler.logout = function (msg, session, next) {
     console.log("logout", msg);

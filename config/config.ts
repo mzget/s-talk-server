@@ -3,6 +3,7 @@
         authen: "http://git.animation-genius.com:3002/api/authenticate/verify"
     },
     chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
+    userDB: "mongodb://git.animation-genius.com:27017/smelink",
     fileDB: "",
     port: 80,
     timeout: 10000,

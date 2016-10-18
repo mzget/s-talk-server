@@ -1,20 +1,18 @@
 ﻿import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
-import MAuthen = require('../../../controller/AuthenManager');
-import MUser = require('../../../controller/UserManager');
+import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import { Room } from "../../../model/Room";
 import Generic = require('../../../util/collections');
-import code = require('../../../../shared/Code');
 import { AccountService } from '../../../services/accountService';
 import Mcontroller = require('../../../controller/ChatRoomManager');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-
-const userManager = MUser.Controller.UserManager.getInstance();
-const authenManager = MAuthen.Controller.AuthenManager.getInstance();
 const tokenService: TokenService = new TokenService();
 var accountService: AccountService;
 var channelService;
+
+const failedPassword = "Authentication failed.";
+const userNotFound = "Authentication failed. User not found.";
 
 module.exports = function (app) {
     return new AuthenRemote(app);
@@ -166,27 +164,29 @@ remote.tokenService = function (bearerToken: string, cb: Function) {
  * require => username, password, bearerToken
  */
 remote.me = function (msg, cb) {
-    var username = msg.username;
-    var password = msg.password;
-    var bearerToken = msg.token;
+    let username = msg.username;
+    let password = msg.password;
+    let bearerToken = msg.token;
 
-    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
-        if (user === null) {
-            var errMsg = "Get my user data is invalid.";
+    let query = { username: username.toLowerCase() };
+    let projection = { roomAccess: 0 };
+    new UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
+        if (err || res === null) {
+            let errMsg = "Get my user data is invalid.";
             console.error(errMsg);
             cb({ code: Code.FAIL, message: errMsg });
             return;
         }
 
-        cb({ code: Code.OK, data: user });
-    }, { roomAccess: 0 });
+        cb({ code: Code.OK, data: res[0] });
+    });
 }
 
 remote.myProfile = function (userId: string, cb: Function) {
-    userManager.getMemberProfile(userId, (err, res) => {
-        if (res === null) {
-            var errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
+    UserManager.getInstance().getMemberProfile(userId, (err, res) => {
+        if (res === null || res.length == 0) {
+            let errMsg = "Get my user data is invalid.";
+            console.warn(errMsg);
             cb({ code: Code.FAIL, message: errMsg });
             return;
         }
@@ -196,9 +196,16 @@ remote.myProfile = function (userId: string, cb: Function) {
 }
 
 remote.auth = function (email, password, callback) {
-    authenManager.GetUsername({ email: email }, function (res) {
-        onAuthentication(password, res, callback);
-    }, { email: 1, password: 1 });
+    let query = { email: email };
+    let projection = { email: 1, password: 1 };
+    new UserDataAccessService().getUserProfile(query, projection, (err, res) => {
+        if (!err && res.length > 0) {
+            onAuthentication(password, res[0], callback);
+        }
+        else {
+            callback(userNotFound, null);
+        }
+    });
 }
 
 const onAuthentication = function (_password, userInfo, callback) {

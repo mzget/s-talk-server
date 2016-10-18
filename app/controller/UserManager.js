@@ -325,7 +325,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.getUserProfile = function (query, projection, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+        MongoClient.connect(Mdb.DbController.user_DB).then(function (db) {
             // Get the documents collection
             var collection = db.collection(Mdb.DbController.userColl);
             // Find some documents

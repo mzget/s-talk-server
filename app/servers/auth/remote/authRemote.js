@@ -1,15 +1,14 @@
 "use strict";
 var Code_1 = require('../../../../shared/Code');
 var tokenService_1 = require('../../../services/tokenService');
-var MAuthen = require('../../../controller/AuthenManager');
-var MUser = require('../../../controller/UserManager');
+var UserManager_1 = require('../../../controller/UserManager');
 var Mcontroller = require('../../../controller/ChatRoomManager');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUser.Controller.UserManager.getInstance();
-var authenManager = MAuthen.Controller.AuthenManager.getInstance();
 var tokenService = new tokenService_1.default();
 var accountService;
 var channelService;
+var failedPassword = "Authentication failed.";
+var userNotFound = "Authentication failed. User not found.";
 module.exports = function (app) {
     return new AuthenRemote(app);
 };
@@ -141,21 +140,23 @@ remote.me = function (msg, cb) {
     var username = msg.username;
     var password = msg.password;
     var bearerToken = msg.token;
-    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
-        if (user === null) {
+    var query = { username: username.toLowerCase() };
+    var projection = { roomAccess: 0 };
+    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
+        if (err || res === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
             cb({ code: Code_1.default.FAIL, message: errMsg });
             return;
         }
-        cb({ code: Code_1.default.OK, data: user });
-    }, { roomAccess: 0 });
+        cb({ code: Code_1.default.OK, data: res[0] });
+    });
 };
 remote.myProfile = function (userId, cb) {
-    userManager.getMemberProfile(userId, function (err, res) {
-        if (res === null) {
+    UserManager_1.UserManager.getInstance().getMemberProfile(userId, function (err, res) {
+        if (res === null || res.length == 0) {
             var errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
+            console.warn(errMsg);
             cb({ code: Code_1.default.FAIL, message: errMsg });
             return;
         }
@@ -163,9 +164,16 @@ remote.myProfile = function (userId, cb) {
     });
 };
 remote.auth = function (email, password, callback) {
-    authenManager.GetUsername({ email: email }, function (res) {
-        onAuthentication(password, res, callback);
-    }, { email: 1, password: 1 });
+    var query = { email: email };
+    var projection = { email: 1, password: 1 };
+    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
+        if (!err && res.length > 0) {
+            onAuthentication(password, res[0], callback);
+        }
+        else {
+            callback(userNotFound, null);
+        }
+    });
 };
 var onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);

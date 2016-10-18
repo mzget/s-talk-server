@@ -15,12 +15,13 @@ import { Config } from '../../config/config';
 export module DbController {
     // Connection URL
     //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
-    export var spartanChatDb_URL = Config.chatDB;
+    export const spartanChatDb_URL = Config.chatDB;
+    export const user_DB = Config.userDB;
     //    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
-    export var roomColl: string = "rooms";
-    export var messageColl: string = "messages";
-    export var userColl: string = "users";
-    export var companyColl: string = "company";
+    export const roomColl: string = "rooms";
+    export const messageColl: string = "messages";
+    export const userColl: string = "users";
+    export const companyColl: string = "company";
 
     export class DbClient {
         private static _Instance: DbClient;

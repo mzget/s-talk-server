@@ -1,6 +1,6 @@
 "use strict";
 var pomelo = require('pomelo');
-var routeUtil = require('./app/util/routeUtil');
+var routeUtil_1 = require('./app/util/routeUtil');
 var accountService_1 = require('./app/services/accountService');
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
@@ -15,7 +15,7 @@ app.configure('production|development', function () {
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
     // route configures
-    app.route('chat', routeUtil.chat);
+    app.route('chat', routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // filter configures
     // app.filter(pomelo.filters.timeout(webConfig.timeout));

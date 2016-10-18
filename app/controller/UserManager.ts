@@ -1,8 +1,8 @@
 ﻿/// <reference path="../../typings/index.d.ts" />
 
 import * as  User from '../model/User';
-import *as Room from'../model/Room';
-import RoomAccessData from  '../model/RoomAccessData';
+import *as Room from '../model/Room';
+import RoomAccessData from '../model/RoomAccessData';
 import Mdb = require('../db/dbClient');
 import mongodb = require('mongodb');
 import async = require('async');
@@ -376,7 +376,7 @@ export class UserDataAccessService {
     }
 
     public getUserProfile(query: any, projection: any, callback: (err, res: Array<any>) => void) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+        MongoClient.connect(Mdb.DbController.user_DB).then(db => {
             // Get the documents collection
             let collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
