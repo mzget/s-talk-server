@@ -3,7 +3,7 @@ var config = {
     api: {
         authen: "http://git.animation-genius.com:3005/api/authenticate/verify"
     },
-    chatDB: "mongodb://git.animation-genius.com:27017/smelink",
+    chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
     fileDB: "",
     port: 80,
     timeout: 10000,
