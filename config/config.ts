@@ -1,6 +1,6 @@
 ﻿const config = {
     api: {
-        authen: "http://git.animation-genius.com:3005/api/authenticate/verify"
+        authen: "http://git.animation-genius.com:3002/api/authenticate/verify"
     },
     chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
     fileDB: "",

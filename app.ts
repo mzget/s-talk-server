@@ -1,6 +1,4 @@
-﻿/// <reference path="./typings/index.d.ts" />
-
-const pomelo = require('pomelo');
+﻿const pomelo = require('pomelo');
 const routeUtil = require('./app/util/routeUtil');
 import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
