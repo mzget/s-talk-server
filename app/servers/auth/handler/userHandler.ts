@@ -14,7 +14,7 @@ import FriendManager from "../../../controller/friendManager";
 
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;
-import { Config } from '../../../../config/webConfig';
+import { Config } from '../../../../config/config';
 var channelService;
 var chatService: AccountService;
 

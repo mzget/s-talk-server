@@ -8,7 +8,7 @@ var tokenService_1 = require('../../../services/tokenService');
 var MUser = require('../../../controller/UserManager');
 var async = require('async');
 var mongodb = require('mongodb');
-var webConfig_1 = require('../../../../config/webConfig');
+var config_1 = require('../../../../config/config');
 var ObjectID = mongodb.ObjectID;
 var request = require('request');
 var tokenService = new tokenService_1.default();
@@ -34,7 +34,7 @@ handler.login = function (msg, session, next) {
     var self = this;
     var token = msg.token;
     var options = {
-        url: webConfig_1.Config.api.authen,
+        url: config_1.Config.api.authen,
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -129,7 +129,7 @@ handler.getMe = function (msg, session, next) {
     }
     var timeOut = setTimeout(function () {
         next(null, { code: Code.FAIL, message: "getMe timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
         if (err) {
             console.log(err);
@@ -243,7 +243,7 @@ handler.getCompanyInfo = function (msg, session, next) {
     var token = msg.token;
     var timeout = setTimeout(function () {
         next(null, { code: Code.FAIL, message: "getCompanyInfo timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
         if (err) {
             console.log(err);
@@ -444,7 +444,7 @@ handler.enterRoom = function (msg, session, next) {
     var timeOut_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "enterRoom timeout" });
         return;
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
         self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
         self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {

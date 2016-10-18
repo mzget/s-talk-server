@@ -10,7 +10,7 @@ import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
 import async = require('async');
 
-import { Config } from '../../../../config/webConfig';
+import { Config } from '../../../../config/config';
 const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = MUserManager.Controller.UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();

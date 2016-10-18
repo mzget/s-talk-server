@@ -1,5 +1,5 @@
 import jwt = require('jsonwebtoken');
-import { Config } from '../../config/webConfig';
+import { Config } from '../../config/config';
 
 export default class TokenService {
 	private secret = "";

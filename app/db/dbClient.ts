@@ -10,7 +10,7 @@ var Db = mongodb.Db,
     Code = require('mongodb').Code,
     BSON = require('mongodb').Bson,
     assert = require('assert');
-import { Config } from '../../config/webConfig';
+import { Config } from '../../config/config';
 
 export module DbController {
 

@@ -10,7 +10,7 @@ import MUser = require('../../../controller/UserManager');
 import async = require('async');
 import mongodb = require('mongodb');
 
-import { Config } from '../../../../config/webConfig';
+import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
 import request = require('request');
 const tokenService: TokenService = new TokenService();
@@ -152,7 +152,7 @@ handler.getMe = function (msg, session, next) {
 
 	let timeOut = setTimeout(function () {
 		next(null, { code: Code.FAIL, message: "getMe timeout..." });
-	}, webConfig.timeout);
+	}, Config.timeout);
 
 	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
 		if (err) {
@@ -283,7 +283,7 @@ handler.getCompanyInfo = function (msg, session, next) {
 
 	let timeout = setTimeout(() => {
 		next(null, { code: Code.FAIL, message: "getCompanyInfo timeout..." });
-	}, webConfig.timeout);
+	}, Config.timeout);
 
 	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
 		if (err) {
@@ -519,7 +519,7 @@ handler.enterRoom = function (msg, session, next) {
 	let timeOut_id = setTimeout(() => {
 		next(null, { code: Code.RequestTimeout, message: "enterRoom timeout" });
 		return;
-	}, webConfig.timeout);
+	}, Config.timeout);
 
 	chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
 		self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);

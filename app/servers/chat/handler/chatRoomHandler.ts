@@ -10,7 +10,7 @@ import Room = require('../../../model/Room');
 import UserRole = require('../../../model/UserRole');
 import async = require('async');
 
-import { Config } from '../../../../config/webConfig';
+import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = MUserManager.Controller.UserManager.getInstance();

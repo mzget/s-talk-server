@@ -1,12 +1,12 @@
 "use strict";
 var mongodb = require('mongodb');
 var Db = mongodb.Db, MongoClient = require('mongodb').MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, ObjectID = mongodb.ObjectID, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
-var webConfig_1 = require('../../config/webConfig');
+var config_1 = require('../../config/config');
 var DbController;
 (function (DbController) {
     // Connection URL
     //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
-    DbController.spartanChatDb_URL = webConfig_1.Config.chatDB;
+    DbController.spartanChatDb_URL = config_1.Config.chatDB;
     //    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
     DbController.roomColl = "rooms";
     DbController.messageColl = "messages";

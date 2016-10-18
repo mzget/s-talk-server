@@ -1,8 +1,7 @@
 ﻿import https = require('https');
 import http = require("http");
-import MWebConfig = require('../../config/WebConfig');
 
-import { Config } from '../../config/webConfig';
+import { Config } from '../../config/config';
 
 export class ParsePushService {
 
@@ -71,7 +70,7 @@ export class ParsePushService {
             res.on('data', function (data) {
                 console.log('Response: ' + data);
 
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -122,7 +121,7 @@ export class ParsePushService {
             res.on('data', function (data) {
                 console.log('Response: ' + data);
 
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -176,7 +175,7 @@ export class ParsePushService {
             res.on('data', function (data) {
                 console.log('Response: ' + data);
 
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
