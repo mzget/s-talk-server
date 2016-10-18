@@ -10,9 +10,9 @@ import MUser = require('../../../controller/UserManager');
 import async = require('async');
 import mongodb = require('mongodb');
 
-const webConfig = require('../../../../config/webConfig.json');
+import { Config } from '../../../../config/webConfig';
 const ObjectID = mongodb.ObjectID;
-const http = require('http');
+import request = require('request');
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -20,13 +20,12 @@ const userManager = MUser.Controller.UserManager.getInstance();
 var channelService;
 
 module.exports = function (app) {
-    console.info("instanctiate connector handler.");
+	console.info("instanctiate connector handler.");
 	return new Handler(app);
 };
 
 const Handler = function (app) {
 	this.app = app;
-	this.webServer = webConfig.webserver;
 
 	channelService = app.get('channelService');
 };
@@ -39,86 +38,69 @@ const handler = Handler.prototype;
 * Return back token bearer.
 */
 handler.login = function (msg, session, next) {
-    let self = this;
-    let registrationId: string = msg.registrationId;
-	let email = msg.email.toLowerCase();
-	let pass = msg.password;
+	let self = this;
+	let token = msg.token;
+
+	let options = {
+		url: Config.api.authen,
+		headers: {
+			'Accept': 'application/json',
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			token: token
+		})
+	};
+
+	function callback(error, response, body) {
+		if (error) {
+			next(error, null);
+		}
+		else if (!error && response.statusCode == 200) {
+			console.log(body);
+			next(null, body);
+		}
+	}
+
+	request.post(options, callback);
+
+
+	// let id = setTimeout(function () {
+	// 	next(null, { code: Code.RequestTimeout, message: "login timeout..." });
+	// }, Config.timeout);
 
 	/*
-	var url: string = this.webServer + "/?api/login";
-	console.log("login", url);
-
-	var data = {
-		username: msg.username,
-		password: msg.password
-	};
-	var querystring = require("querystring");
-	var qs = querystring.stringify(data);
-	var qslength = qs.length;
-	var options = {
-		hostname: this.webServer,
-		port: 80,
-		path: "/?r=site/login",
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			'Content-Length': qslength
-		}
-	};
+		self.app.rpc.auth.authRemote.auth(session, email, pass, function (result) {
+			if (result.code === Code.OK) {
+				//@ Signing success.
+				session.bind(result.uid);
+				session.on('closed', onUserLeave.bind(null, self.app));
 	
-	var req = http.request(options, function (res) {
-		res.on('data', function (data) {
-			console.log('Response: ' + data);
-			var json = JSON.parse(data);
-			if (json.result === false) {
-				next(null, { code: code.FAIL, message: "login fail from authen server." });
+				if (!!registrationId) {
+					userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+				}
+	
+				let param = {
+					route: Code.sharedEvents.onUserLogin,
+					data: { _id: result.uid }
+				}; 
+	
+				channelService.broadcast("connector", param.route, param.data);
+	
+				addOnlineUser(self.app, session, result.uid);
 			}
-			else {
-
+			else if (result.code === Code.DuplicatedLogin) {
+				// session.__sessionService__.kick()
 			}
+	
+			clearTimeout(id);
+			next(null, result);
 		});
-		res.on('end', function () {
-			console.log(res.statusCode);
-		});
-	});
-	req.write(qs);
-	req.end();
-	*/
-
-    let id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "login timeout..." });
-    }, webConfig.timeout);
-
-	self.app.rpc.auth.authRemote.auth(session, email, pass, function (result) {
-		if (result.code === Code.OK) {
-			//@ Signing success.
-			session.bind(result.uid);
-			session.on('closed', onUserLeave.bind(null, self.app));
-
-			if (!!registrationId) {
-				userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-			}
-
-			let param = {
-				route: Code.sharedEvents.onUserLogin,
-				data: { _id: result.uid }
-			};
-
-			channelService.broadcast("connector", param.route, param.data);
-
-			addOnlineUser(self.app, session, result.uid);
-		}
-		else if (result.code === Code.DuplicatedLogin) {
-			// session.__sessionService__.kick()
-		}
-
-		clearTimeout(id);
-		next(null, result);
-	});
+		*/
 }
 
 handler.logout = function (msg, session, next) {
-    console.log("logout", msg);
+	console.log("logout", msg);
 
 	let username = msg.username;
 	let registrationId = msg.registrationId;
@@ -151,7 +133,7 @@ handler.kickMe = function (msg, session, next) {
 	this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
 	userDAL.prototype.removeAllRegistrationId(msg.uid);
 
-	next(null, {message: "kicked! " + msg.uid});
+	next(null, { message: "kicked! " + msg.uid });
 }
 
 /**
@@ -521,58 +503,58 @@ handler.enterRoom = function (msg, session, next) {
 	let token = msg.token;
 	let rid = msg.rid;
 	let uname = msg.username;
-    let uid = session.uid;
+	let uid = session.uid;
 
 	if (!uid) {
-        let errMsg = "session.uid is empty or null.!";
+		let errMsg = "session.uid is empty or null.!";
 		next(null, { code: Code.FAIL, message: errMsg });
 		return;
 	}
 
 	if (!rid || !msg.username) {
-        next(null, { code: Code.FAIL, message: "rid or username is null." });
+		next(null, { code: Code.FAIL, message: "rid or username is null." });
 		return;
 	}
 
-    let timeOut_id = setTimeout(() => {
-        next(null, { code: Code.RequestTimeout, message: "enterRoom timeout" });
-        return;
-    }, webConfig.timeout);
+	let timeOut_id = setTimeout(() => {
+		next(null, { code: Code.RequestTimeout, message: "enterRoom timeout" });
+		return;
+	}, webConfig.timeout);
 
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
-        self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
+	chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
+		self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
 
-        self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-            console.log("checkedCanAccessRoom: ", res);
+		self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
+			console.log("checkedCanAccessRoom: ", res);
 
-            if (err || res === false) {
-                clearTimeout(timeOut_id);
-                next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-            }
-            else {
-                session.set('rid', rid);
-                session.push('rid', function (err) {
-                    if (err) {
-                        console.error('set rid for session service failed! error is : %j', err.stack);
-                    }
-                });
+			if (err || res === false) {
+				clearTimeout(timeOut_id);
+				next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+			}
+			else {
+				session.set('rid', rid);
+				session.push('rid', function (err) {
+					if (err) {
+						console.error('set rid for session service failed! error is : %j', err.stack);
+					}
+				});
 
-                let onlineUser = new User.OnlineUser();
-                onlineUser.username = uname;
-                onlineUser.uid = uid;
+				let onlineUser = new User.OnlineUser();
+				onlineUser.username = uname;
+				onlineUser.uid = uid;
 
-                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
-                    clearTimeout(timeOut_id);
-                    next(null, { code: Code.OK, data: result });
-                });
-            }
-        });
-    });
+				addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+					clearTimeout(timeOut_id);
+					next(null, { code: Code.OK, data: result });
+				});
+			}
+		});
+	});
 };
 
 const addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next) {
-    //put user into channel
-    app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
+	//put user into channel
+	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 }
 
 /**
@@ -589,30 +571,30 @@ handler.leaveRoom = function (msg, session, next) {
 	let sid = self.app.get('serverId');
 
 	if (!rid || !msg.username) {
-        next(null, { code: Code.FAIL, message: "rid or username is null." });
+		next(null, { code: Code.FAIL, message: "rid or username is null." });
 		return;
-    }
+	}
 
-    let onlineUser = new User.OnlineUser();
-    onlineUser.username = msg.username;
-    onlineUser.uid = uid;
-    onlineUser.serverId = sid;
+	let onlineUser = new User.OnlineUser();
+	onlineUser.username = msg.username;
+	onlineUser.uid = uid;
+	onlineUser.serverId = sid;
 
-    self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
-        session.set('rid', null);
-        session.push('rid', function (err) {
-            if (err) {
-                console.error('set rid for session service failed! error is : %j', err.stack);
-            }
-        });
+	self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+		session.set('rid', null);
+		session.push('rid', function (err) {
+			if (err) {
+				console.error('set rid for session service failed! error is : %j', err.stack);
+			}
+		});
 
-        if (err) {
-            next(null, { code: Code.FAIL, message: "leaveRoom with error." });
-        }
-        else {
-            next(null, { code: Code.OK });
-        }
-    });
+		if (err) {
+			next(null, { code: Code.FAIL, message: "leaveRoom with error." });
+		}
+		else {
+			next(null, { code: Code.OK });
+		}
+	});
 }
 
 /**
@@ -832,5 +814,5 @@ handler.theLineIsBusy = function (msg, session, next) {
 const updateRoomsMap = function (app, session, roomsData: Array<Room.Room>) {
 	let rooms: Array<Room.Room> = JSON.parse(JSON.stringify(roomsData));
 
-    app.rpc.auth.authRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
+	app.rpc.auth.authRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
 }

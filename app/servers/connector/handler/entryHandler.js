@@ -8,9 +8,9 @@ var tokenService_1 = require('../../../services/tokenService');
 var MUser = require('../../../controller/UserManager');
 var async = require('async');
 var mongodb = require('mongodb');
-var webConfig = require('../../../../config/webConfig.json');
+var webConfig_1 = require('../../../../config/webConfig');
 var ObjectID = mongodb.ObjectID;
-var http = require('http');
+var request = require('request');
 var tokenService = new tokenService_1.default();
 var companyManager = CompanyController.CompanyManager.getInstance();
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -22,7 +22,6 @@ module.exports = function (app) {
 };
 var Handler = function (app) {
     this.app = app;
-    this.webServer = webConfig.webserver;
     channelService = app.get('channelService');
 };
 var handler = Handler.prototype;
@@ -33,72 +32,58 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
     var self = this;
-    var registrationId = msg.registrationId;
-    var email = msg.email.toLowerCase();
-    var pass = msg.password;
-    /*
-    var url: string = this.webServer + "/?api/login";
-    console.log("login", url);
-
-    var data = {
-        username: msg.username,
-        password: msg.password
-    };
-    var querystring = require("querystring");
-    var qs = querystring.stringify(data);
-    var qslength = qs.length;
+    var token = msg.token;
     var options = {
-        hostname: this.webServer,
-        port: 80,
-        path: "/?r=site/login",
-        method: 'POST',
+        url: webConfig_1.Config.api.authen,
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': qslength
-        }
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            token: token
+        })
     };
+    function callback(error, response, body) {
+        if (error) {
+            next(error, null);
+        }
+        else if (!error && response.statusCode == 200) {
+            console.log(body);
+            next(null, body);
+        }
+    }
+    request.post(options, callback);
+    // let id = setTimeout(function () {
+    // 	next(null, { code: Code.RequestTimeout, message: "login timeout..." });
+    // }, Config.timeout);
+    /*
+        self.app.rpc.auth.authRemote.auth(session, email, pass, function (result) {
+            if (result.code === Code.OK) {
+                //@ Signing success.
+                session.bind(result.uid);
+                session.on('closed', onUserLeave.bind(null, self.app));
     
-    var req = http.request(options, function (res) {
-        res.on('data', function (data) {
-            console.log('Response: ' + data);
-            var json = JSON.parse(data);
-            if (json.result === false) {
-                next(null, { code: code.FAIL, message: "login fail from authen server." });
+                if (!!registrationId) {
+                    userDAL.prototype.saveRegistrationId(result.uid, registrationId);
+                }
+    
+                let param = {
+                    route: Code.sharedEvents.onUserLogin,
+                    data: { _id: result.uid }
+                };
+    
+                channelService.broadcast("connector", param.route, param.data);
+    
+                addOnlineUser(self.app, session, result.uid);
             }
-            else {
-
+            else if (result.code === Code.DuplicatedLogin) {
+                // session.__sessionService__.kick()
             }
+    
+            clearTimeout(id);
+            next(null, result);
         });
-        res.on('end', function () {
-            console.log(res.statusCode);
-        });
-    });
-    req.write(qs);
-    req.end();
-    */
-    var id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "login timeout..." });
-    }, webConfig.timeout);
-    self.app.rpc.auth.authRemote.auth(session, email, pass, function (result) {
-        if (result.code === Code.OK) {
-            //@ Signing success.
-            session.bind(result.uid);
-            session.on('closed', onUserLeave.bind(null, self.app));
-            if (!!registrationId) {
-                userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-            }
-            var param = {
-                route: Code.sharedEvents.onUserLogin,
-                data: { _id: result.uid }
-            };
-            channelService.broadcast("connector", param.route, param.data);
-            addOnlineUser(self.app, session, result.uid);
-        }
-        else if (result.code === Code.DuplicatedLogin) {
-        }
-        clearTimeout(id);
-        next(null, result);
-    });
+        */
 };
 handler.logout = function (msg, session, next) {
     console.log("logout", msg);

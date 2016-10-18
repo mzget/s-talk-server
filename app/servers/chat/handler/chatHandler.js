@@ -8,7 +8,7 @@ var Code = require('../../../../shared/Code');
 var MPushService = require('../../../services/ParsePushService');
 var mongodb = require('mongodb');
 var async = require('async');
-var webConfig = require('../../../../config/webConfig.json');
+var webConfig_1 = require('../../../../config/webConfig');
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var userManager = MUserManager.Controller.UserManager.getInstance();
 var pushService = new MPushService.ParsePushService();
@@ -210,7 +210,7 @@ handler.getChatHistory = function (msg, session, next) {
     var _timeOut = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "getChatHistory request timeout." });
         return;
-    }, webConfig.timeout);
+    }, webConfig_1.Config.timeout);
     var utc = new Date(lastMessageTime);
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
@@ -241,7 +241,7 @@ handler.getOlderMessageChunk = function (msg, session, next) {
     var _timeOut = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
-    }, webConfig.timeout);
+    }, webConfig_1.Config.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
@@ -265,7 +265,7 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
     var _timeOut = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
         return;
-    }, webConfig.timeout);
+    }, webConfig_1.Config.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {

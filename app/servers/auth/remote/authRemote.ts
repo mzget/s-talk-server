@@ -1,6 +1,4 @@
-﻿/// <reference path="../../../../typings/index.d.ts" />
-
-import Code = require('../../../../shared/Code');
+﻿import Code = require('../../../../shared/Code');
 import TokenService from '../../../services/tokenService';
 import MAuthen = require('../../../controller/AuthenManager');
 import MUser = require('../../../controller/UserManager');
@@ -196,7 +194,6 @@ remote.myProfile = function (userId: string, cb: Function) {
         cb({ code: Code.OK, data: res });
     });
 }
-
 
 remote.auth = function (email, password, callback) {
     authenManager.GetUsername({ email: email }, function (res) {

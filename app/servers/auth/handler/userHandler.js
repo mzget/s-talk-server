@@ -8,7 +8,7 @@ var code = require('../../../../shared/Code');
 var friendManager_1 = require("../../../controller/friendManager");
 var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
-var webConfig = require('../../../../config/webConfig.json');
+var webConfig_1 = require('../../../../config/webConfig');
 var channelService;
 var chatService;
 module.exports = function (app) {
@@ -37,7 +37,7 @@ handler.addFriend = function (msg, session, next) {
     }
     var id = setTimeout(function () {
         next(null, { code: code.RequestTimeout, message: "request timeout..." });
-    }, webConfig.timeout);
+    }, webConfig_1.Config.timeout);
     var friendManager = new friendManager_1.default();
     friendManager.addFriends(myUid, targetUid, function (err, res) {
         if (err) {

@@ -3,10 +3,12 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "allowJs": false
+    "allowJs": false,
+    "types": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
-    "typings",
     "node_modules"
   ]
 }

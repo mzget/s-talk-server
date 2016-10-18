@@ -1,4 +1,3 @@
-/// <reference path="../../../../typings/index.d.ts" />
 "use strict";
 var Code = require('../../../../shared/Code');
 var tokenService_1 = require('../../../services/tokenService');

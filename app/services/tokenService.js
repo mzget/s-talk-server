@@ -1,14 +1,13 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 var jwt = require('jsonwebtoken');
-var sessionConfig = require('../../config/session.json');
+var webConfig_1 = require('../../config/webConfig');
 var TokenService = (function () {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
     function TokenService() {
         this.secret = "";
         this.DEFAULT_SECRET = 'ahoostudio_session_secret';
-        this.secret = sessionConfig.secret || this.DEFAULT_SECRET;
-        this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
+        this.secret = webConfig_1.Config.session.secret || this.DEFAULT_SECRET;
+        this.expire = webConfig_1.Config.session.expire; // || this.DEFAULT_EXPIRE;
     }
     TokenService.prototype.signToken = function (signObj, callback) {
         jwt.sign(signObj, this.secret, {}, callback);
