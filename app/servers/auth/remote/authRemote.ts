@@ -1,4 +1,4 @@
-﻿import Code = require('../../../../shared/Code');
+﻿import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import MAuthen = require('../../../controller/AuthenManager');
 import MUser = require('../../../controller/UserManager');

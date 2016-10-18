@@ -56,8 +56,40 @@ handler.login = function (msg, session, next) {
 			next(error, null);
 		}
 		else if (!error && response.statusCode == 200) {
-			console.log(body);
-			next(null, body);
+			console.log("AuthenBody", body);
+			// {"success":true,
+			// "decoded":{
+			// 	"_id":"57fd5a6405686a5a06890481",
+			// 	"email":"test@ahoo.com",
+			// 	"password":"25d55ad283aa400af464c76d713c07ad",
+			// 	"iat":1476782944,
+			// 	"exp":1476869344
+			// }}
+			let data = JSON.parse(body);
+			let decoded = data.decoded;
+			self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
+				if (!user) {
+					next(null, { code: Code.OK, data: body });
+					// 	//@ Signing success.
+					session.bind(decoded._id);
+					session.on('closed', onUserLeave.bind(null, self.app));
+
+					let param = {
+						route: Code.sharedEvents.onUserLogin,
+						data: { _id: decoded._id }
+					};
+
+					channelService.broadcast("connector", param.route, param.data);
+
+					addOnlineUser(self.app, session, decoded._id);
+				}
+				else {
+					console.warn("Duplicate user by onlineUsers collections.");
+					next(null, { code: Code.DuplicatedLogin, data: body });
+
+					// session.__sessionService__.kick()
+				}
+			});
 		}
 	}
 

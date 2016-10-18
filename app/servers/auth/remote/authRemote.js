@@ -1,5 +1,5 @@
 "use strict";
-var Code = require('../../../../shared/Code');
+var Code_1 = require('../../../../shared/Code');
 var tokenService_1 = require('../../../services/tokenService');
 var MAuthen = require('../../../controller/AuthenManager');
 var MUser = require('../../../controller/UserManager');
@@ -89,7 +89,7 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
             accountService.addRoom(room);
             //<!-- Notice all member of new room to know they have a new room.   
             var param = {
-                route: Code.sharedEvents.onNewGroupCreated,
+                route: Code_1.default.sharedEvents.onNewGroupCreated,
                 data: room
             };
             var pushGroup_1 = new Array();
@@ -126,10 +126,10 @@ remote.tokenService = function (bearerToken, cb) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
             console.info("ensureAuthorized error: ", err);
-            cb(err, { code: Code.FAIL, message: err });
+            cb(err, { code: Code_1.default.FAIL, message: err });
         }
         else {
-            cb(null, { code: Code.OK, decoded: res.decoded });
+            cb(null, { code: Code_1.default.OK, decoded: res.decoded });
         }
     });
 };
@@ -145,10 +145,10 @@ remote.me = function (msg, cb) {
         if (user === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
+            cb({ code: Code_1.default.FAIL, message: errMsg });
             return;
         }
-        cb({ code: Code.OK, data: user });
+        cb({ code: Code_1.default.OK, data: user });
     }, { roomAccess: 0 });
 };
 remote.myProfile = function (userId, cb) {
@@ -156,10 +156,10 @@ remote.myProfile = function (userId, cb) {
         if (res === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
+            cb({ code: Code_1.default.FAIL, message: errMsg });
             return;
         }
-        cb({ code: Code.OK, data: res });
+        cb({ code: Code_1.default.OK, data: res });
     });
 };
 remote.auth = function (email, password, callback) {
@@ -178,7 +178,7 @@ var onAuthentication = function (_password, userInfo, callback) {
                     // create a token
                     tokenService.signToken(obj_1, function (err, encode) {
                         callback({
-                            code: Code.OK,
+                            code: Code_1.default.OK,
                             uid: obj_1._id,
                             token: encode
                         });
@@ -187,7 +187,7 @@ var onAuthentication = function (_password, userInfo, callback) {
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
                     callback({
-                        code: Code.DuplicatedLogin,
+                        code: Code_1.default.DuplicatedLogin,
                         message: "duplicate log in.",
                         uid: obj_1._id,
                     });
@@ -196,14 +196,14 @@ var onAuthentication = function (_password, userInfo, callback) {
         }
         else {
             callback({
-                code: Code.FAIL,
+                code: Code_1.default.FAIL,
                 message: "Authentication failed. User not found."
             });
         }
     }
     else {
         callback({
-            code: Code.FAIL,
+            code: Code_1.default.FAIL,
             message: "Authentication failed. User not found."
         });
     }
