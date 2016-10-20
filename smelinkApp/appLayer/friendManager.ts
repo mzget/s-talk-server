@@ -4,13 +4,14 @@
 
 /// <reference path="../../typings/index.d.ts" />
 
-import User = require('../model/User');
-import Room = require('../model/Room');
-import RoomAccess = require('../model/RoomAccessData');
-import Mdb = require('../db/dbClient');
+import User = require('../../app/model/User');
+import Room = require('../../app/model/Room');
+import RoomAccess = require('../../app/model/RoomAccessData');
+import Mdb = require('../../app/db/dbClient');
 import mongodb = require('mongodb');
 import async = require('async');
-import generic = require('../util/collections');
+import generic = require('../../app/util/collections');
+import bolAccount = require('../dataLayer/bolAccount');
 const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;
 const DbClient = Mdb.DbController.DbClient.GetInstance();
@@ -27,7 +28,7 @@ export default class FriendManager {
 
             userCollection.find({ _id: new ObjectID(targetId) }).limit(1).toArray().then(function (docs) {
                 if (docs.length != 0) {
-                    let user: User.User = JSON.parse(JSON.stringify(docs[0]));
+                    let user: bolAccount.BOLAccount = JSON.parse(JSON.stringify(docs[0]));
                     let linkRequests = user.link_requests;
                     if (!linkRequests)
                         linkRequests = [];
