@@ -67,6 +67,7 @@ handler.login = function (msg, session, next) {
 			let data = JSON.parse(body);
 			let decoded = data.decoded;
 			console.log("AuthenBody", decoded);
+			session.__sessionService__.kick();
 
 			self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
 				if (!user) {
@@ -87,8 +88,6 @@ handler.login = function (msg, session, next) {
 				else {
 					console.warn("Duplicate user by onlineUsers collections.");
 					next(null, { code: Code.DuplicatedLogin, data: body });
-
-					session.__sessionService__.kick();
 				}
 			});
 		}
