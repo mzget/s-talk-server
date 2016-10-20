@@ -88,7 +88,7 @@ handler.login = function (msg, session, next) {
 					console.warn("Duplicate user by onlineUsers collections.");
 					next(null, { code: Code.DuplicatedLogin, data: body });
 
-					// session.__sessionService__.kick()
+					session.__sessionService__.kick();
 				}
 			});
 		}
