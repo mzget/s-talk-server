@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "private": false,
   "scripts": {
-    "start": "./node_modules/nodemon/bin/nodemon.js app"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/nodemon/bin/nodemon.js app.js"
   },
   "dependencies": {
     "@types/request": "^0.0.31",
@@ -21,9 +22,6 @@
     "nodemon": "^1.11.0"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [
     "stalk-node-server"
   ],
