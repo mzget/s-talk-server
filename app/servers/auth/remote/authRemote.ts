@@ -182,16 +182,16 @@ remote.me = function (msg, cb) {
     });
 }
 
-remote.myProfile = function (userId: string, cb: Function) {
+remote.myProfile = function (userId: string, cb: ({ code: number, result: string }) => void) {
     UserManager.getInstance().getMemberProfile(userId, (err, res) => {
         if (res === null || res.length == 0) {
             let errMsg = "Get my user data is invalid.";
             console.warn(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
+            cb({ code: Code.FAIL, result: errMsg });
             return;
         }
 
-        cb({ code: Code.OK, data: res });
+        cb({ code: Code.OK, result: res });
     });
 }
 

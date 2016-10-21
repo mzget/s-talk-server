@@ -157,10 +157,10 @@ remote.myProfile = function (userId, cb) {
         if (res === null || res.length == 0) {
             var errMsg = "Get my user data is invalid.";
             console.warn(errMsg);
-            cb({ code: Code_1.default.FAIL, message: errMsg });
+            cb({ code: Code_1.default.FAIL, result: errMsg });
             return;
         }
-        cb({ code: Code_1.default.OK, data: res });
+        cb({ code: Code_1.default.OK, result: res });
     });
 };
 remote.auth = function (email, password, callback) {

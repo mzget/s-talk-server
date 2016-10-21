@@ -227,10 +227,12 @@ handler.getMe = function (msg, session, next) {
 }
 
 function addOnlineUser(app, session, userId: string) {
-	app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
+	app.rpc.auth.authRemote.myProfile(session, userId, function (result: { code: number, result: any }) {
 		console.log("joining onlineUser", JSON.stringify(result));
+		if (result.code == Code.FAIL)
+			return;
 
-		let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.data));
+		let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.result));
 		let my = datas[0];
 		let onlineUser = new User.OnlineUser();
 		onlineUser.uid = my._id;
