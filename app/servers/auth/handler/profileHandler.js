@@ -115,15 +115,7 @@ profileHandler.getMemberProfile = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: "target id of member is invalid." });
         return;
     }
-    userManager.getMemberProfile(targetId, function (err, res) {
-        if (err || res === null) {
-            var message = "fail to getMemberProfile of " + targetId;
-            next(null, { code: Code_1.default.FAIL, message: message });
-        }
-        else {
-            next(null, { code: Code_1.default.OK, data: res });
-        }
-    });
+    return next(null, { code: Code_1.default.FAIL, message: "please use rest api to get your application data instead" });
 };
 //<!-- Update favorite members for user. -->
 profileHandler.editFavoriteMembers = function (msg, session, next) {

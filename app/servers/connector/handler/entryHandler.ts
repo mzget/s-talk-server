@@ -9,10 +9,10 @@ import generic = require('../../../util/collections');
 import { UserManager } from '../../../controller/UserManager';
 import async = require('async');
 import mongodb = require('mongodb');
+import request = require('request');
 
 import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
-import request = require('request');
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();

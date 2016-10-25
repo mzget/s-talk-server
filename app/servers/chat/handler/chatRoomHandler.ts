@@ -471,10 +471,10 @@ handler.getRoomInfo = function (msg, session, next) {
 * For get or create one-to-one chat room.
 */
 handler.getRoomById = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    var owner = msg.ownerId;
-    var roommate = msg.roommateId;
+    let self = this;
+    let token = msg.token;
+    let owner = msg.ownerId;
+    let roommate = msg.roommateId;
     if (!owner || !roommate) {
         next(null, { code: Code.FAIL, message: "some params is invalid." });
         return;
@@ -488,11 +488,11 @@ handler.getRoomById = function (msg, session, next) {
         id = roommate.concat(owner);
     }
 
-    var md = crypto.createHash('md5');
+    let md = crypto.createHash('md5');
     md.update(id);
-    var hexCode = md.digest('hex');
+    let hexCode = md.digest('hex');
     console.log("hexcode: ", hexCode);
-    var roomId = hexCode.slice(0, 24);
+    let roomId = hexCode.slice(0, 24);
 
     chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (result) {
         console.info("GetChatRoom", result);

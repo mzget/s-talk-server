@@ -1,6 +1,8 @@
-﻿const config = {
+﻿let devApi = "http://git.animation-genius.com:3002";
+
+const config = {
     api: {
-        authen: "http://git.animation-genius.com:3002/api/authenticate/verify"
+        authen: `${devApi}/api/authenticate/verify`
     },
     chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
     userDB: "mongodb://git.animation-genius.com:27017/smelink",

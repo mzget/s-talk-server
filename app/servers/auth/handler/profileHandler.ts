@@ -4,9 +4,9 @@
 ***********************************************/
 
 import Mdb = require('../../../db/dbClient');
-import code from    '../../../../shared/Code';
-import {UserManager}  from   '../../../controller/UserManager';
-import *    as  User from    '../../../model/User';
+import code from '../../../../shared/Code';
+import { UserManager } from '../../../controller/UserManager';
+import *    as  User from '../../../model/User';
 import Room = require('../../../model/Room');
 import async = require('async');
 const dbClient = Mdb.DbController.DbClient.GetInstance();
@@ -137,15 +137,7 @@ profileHandler.getMemberProfile = function (msg, session, next) {
         return;
     }
 
-    userManager.getMemberProfile(targetId, function (err, res) {
-        if (err || res === null) {
-            var message = "fail to getMemberProfile of " + targetId;
-            next(null, { code: code.FAIL, message: message });
-        }
-        else {
-            next(null, { code: code.OK, data: res });
-        }
-    });
+    return next(null, { code: code.FAIL, message: "please use rest api to get your application data instead" });
 }
 
 
