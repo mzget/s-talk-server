@@ -1,16 +1,16 @@
 "use strict";
-var Code_1 = require('../../../../shared/Code');
-var tokenService_1 = require('../../../services/tokenService');
-var dispatcher_1 = require('../../../util/dispatcher');
-var tokenService = new tokenService_1.default();
+const Code_1 = require('../../../../shared/Code');
+const tokenService_1 = require('../../../services/tokenService');
+const dispatcher_1 = require('../../../util/dispatcher');
+const tokenService = new tokenService_1.default();
 module.exports = function (app) {
     return new Handler(app);
 };
-var Handler = function (app) {
+const Handler = function (app) {
     console.log("gateHandler construc..");
     this.app = app;
 };
-var handler = Handler.prototype;
+const handler = Handler.prototype;
 /**
  * Gate handler that dispatch user to connectors.
  *
@@ -20,7 +20,7 @@ var handler = Handler.prototype;
  *
  */
 handler.queryEntry = function (msg, session, next) {
-    var uid = msg.uid;
+    let uid = msg.uid;
     if (!uid) {
         next(null, {
             code: Code_1.default.FAIL, message: "uid is invalid."
@@ -28,7 +28,7 @@ handler.queryEntry = function (msg, session, next) {
         return;
     }
     // get all connectors
-    var connectors = this.app.getServersByType('connector');
+    let connectors = this.app.getServersByType('connector');
     if (!connectors || connectors.length === 0) {
         next(null, {
             code: Code_1.default.FAIL, message: connectors
@@ -36,7 +36,7 @@ handler.queryEntry = function (msg, session, next) {
         return;
     }
     // select connector
-    var res = dispatcher_1.default(uid, connectors);
+    let res = dispatcher_1.default(uid, connectors);
     next(null, {
         code: Code_1.default.OK,
         host: res.host,

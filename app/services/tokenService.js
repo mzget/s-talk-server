@@ -1,21 +1,20 @@
 "use strict";
-var jwt = require('jsonwebtoken');
-var config_1 = require('../../config/config');
-var TokenService = (function () {
+const jwt = require('jsonwebtoken');
+const config_1 = require('../../config/config');
+class TokenService {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
-    function TokenService() {
+    constructor() {
         this.secret = "";
-        this.DEFAULT_SECRET = 'ahoostudio_session_secret';
-        this.secret = config_1.Config.session.secret || this.DEFAULT_SECRET;
+        this.secret = config_1.Config.session.secret;
         this.expire = config_1.Config.session.expire; // || this.DEFAULT_EXPIRE;
     }
-    TokenService.prototype.signToken = function (signObj, callback) {
+    signToken(signObj, callback) {
         jwt.sign(signObj, this.secret, {}, callback);
-    };
+    }
     /**
      * reture token decoded.
      */
-    TokenService.prototype.ensureAuthorized = function (token, callback) {
+    ensureAuthorized(token, callback) {
         // decode token
         if (token) {
             // verifies secret and checks exp
@@ -37,8 +36,7 @@ var TokenService = (function () {
                 message: 'No token provided.'
             });
         }
-    };
-    return TokenService;
-}());
+    }
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = TokenService;

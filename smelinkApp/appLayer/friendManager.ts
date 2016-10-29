@@ -2,8 +2,6 @@
  *  friend Manager.
  */
 
-/// <reference path="../../typings/index.d.ts" />
-
 import User = require('../../app/model/User');
 import Room = require('../../app/model/Room');
 import RoomAccess = require('../../app/model/RoomAccessData');

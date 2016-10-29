@@ -8,12 +8,17 @@
     "start": "./node_modules/nodemon/bin/nodemon.js app.js"
   },
   "dependencies": {
+    "@types/async": "^2.0.32",
+    "@types/jsonwebtoken": "^7.1.33",
+    "@types/mongodb": "^2.1.33",
+    "@types/node": "^6.0.46",
+    "@types/promise": "^7.1.30",
     "@types/request": "^0.0.31",
-    "async": "1.5.2",
+    "async": "^2.1.2",
     "crc": "0.2.0",
     "form-data": "0.2.0",
     "jsonwebtoken": "^7.0.0",
-    "mongodb": "^2.2.0",
+    "mongodb": "^2.2.11",
     "pomelo": "^1.2.3",
     "promise": "^7.1.1",
     "request": "^2.75.0"

@@ -4,11 +4,6 @@
 //
 // Orginal javascript code was by Mauricio Santos
 "use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 /**
  * @namespace Top level namespace for collections, a TypeScript data structure library.
  */
@@ -64,8 +59,7 @@ var collections;
     /**
     * Joins all the properies of the object using the provided join string
     */
-    function makeString(item, join) {
-        if (join === void 0) { join = ","; }
+    function makeString(item, join = ",") {
         if (item === null) {
             return 'COLLECTION_NULL';
         }
@@ -321,14 +315,14 @@ var collections;
         }
         arrays.forEach = forEach;
     })(arrays = collections.arrays || (collections.arrays = {}));
-    var LinkedList = (function () {
+    class LinkedList {
         /**
         * Creates an empty Linked List.
         * @class A linked list is a data structure consisting of a group of nodes
         * which together represent a sequence.
         * @constructor
         */
-        function LinkedList() {
+        constructor() {
             /**
             * First node in the list
             * @type {Object}
@@ -356,7 +350,7 @@ var collections;
         * @return {boolean} true if the element was added or false if the index is invalid
         * or if the element is undefined.
         */
-        LinkedList.prototype.add = function (item, index) {
+        add(item, index) {
             if (collections.isUndefined(index)) {
                 index = this.nElements;
             }
@@ -386,42 +380,42 @@ var collections;
             }
             this.nElements++;
             return true;
-        };
+        }
         /**
         * Returns the first element in this list.
         * @return {*} the first element of the list or undefined if the list is
         * empty.
         */
-        LinkedList.prototype.first = function () {
+        first() {
             if (this.firstNode !== null) {
                 return this.firstNode.element;
             }
             return undefined;
-        };
+        }
         /**
         * Returns the last element in this list.
         * @return {*} the last element in the list or undefined if the list is
         * empty.
         */
-        LinkedList.prototype.last = function () {
+        last() {
             if (this.lastNode !== null) {
                 return this.lastNode.element;
             }
             return undefined;
-        };
+        }
         /**
          * Returns the element at the specified position in this list.
          * @param {number} index desired index.
          * @return {*} the element at the given index or undefined if the index is
          * out of bounds.
          */
-        LinkedList.prototype.elementAtIndex = function (index) {
+        elementAtIndex(index) {
             var node = this.nodeAtIndex(index);
             if (node === null) {
                 return undefined;
             }
             return node.element;
-        };
+        }
         /**
          * Returns the index in this list of the first occurrence of the
          * specified element, or -1 if the List does not contain this element.
@@ -442,7 +436,7 @@ var collections;
          * of the specified element, or -1 if this list does not contain the
          * element.
          */
-        LinkedList.prototype.indexOf = function (item, equalsFunction) {
+        indexOf(item, equalsFunction) {
             var equalsF = equalsFunction || collections.defaultEquals;
             if (collections.isUndefined(item)) {
                 return -1;
@@ -457,7 +451,7 @@ var collections;
                 currentNode = currentNode.next;
             }
             return -1;
-        };
+        }
         /**
            * Returns true if this list contains the specified element.
            * <p>If the elements inside the list are
@@ -476,9 +470,9 @@ var collections;
            * @return {boolean} true if this list contains the specified element, false
            * otherwise.
            */
-        LinkedList.prototype.contains = function (item, equalsFunction) {
+        contains(item, equalsFunction) {
             return (this.indexOf(item, equalsFunction) >= 0);
-        };
+        }
         /**
          * Removes the first occurrence of the specified element in this list.
          * <p>If the elements inside the list are
@@ -494,7 +488,7 @@ var collections;
          * @param {Object} item element to be removed from this list, if present.
          * @return {boolean} true if the list contained the specified element.
          */
-        LinkedList.prototype.remove = function (item, equalsFunction) {
+        remove(item, equalsFunction) {
             var equalsF = equalsFunction || collections.defaultEquals;
             if (this.nElements < 1 || collections.isUndefined(item)) {
                 return false;
@@ -525,15 +519,15 @@ var collections;
                 currentNode = currentNode.next;
             }
             return false;
-        };
+        }
         /**
          * Removes all of the elements from this list.
          */
-        LinkedList.prototype.clear = function () {
+        clear() {
             this.firstNode = null;
             this.lastNode = null;
             this.nElements = 0;
-        };
+        }
         /**
          * Returns true if this list is equal to the given list.
          * Two lists are equal if they have the same elements in the same order.
@@ -544,7 +538,7 @@ var collections;
          * the === operator is used to check equality between elements.
          * @return {boolean} true if this list is equal to the given list.
          */
-        LinkedList.prototype.equals = function (other, equalsFunction) {
+        equals(other, equalsFunction) {
             var eqF = equalsFunction || collections.defaultEquals;
             if (!(other instanceof collections.LinkedList)) {
                 return false;
@@ -553,11 +547,11 @@ var collections;
                 return false;
             }
             return this.equalsAux(this.firstNode, other.firstNode, eqF);
-        };
+        }
         /**
         * @private
         */
-        LinkedList.prototype.equalsAux = function (n1, n2, eqF) {
+        equalsAux(n1, n2, eqF) {
             while (n1 !== null) {
                 if (!eqF(n1.element, n2.element)) {
                     return false;
@@ -566,13 +560,13 @@ var collections;
                 n2 = n2.next;
             }
             return true;
-        };
+        }
         /**
          * Removes the element at the specified position in this list.
          * @param {number} index given index.
          * @return {*} removed element or undefined if the index is out of bounds.
          */
-        LinkedList.prototype.removeElementAtIndex = function (index) {
+        removeElementAtIndex(index) {
             if (index < 0 || index >= this.nElements) {
                 return undefined;
             }
@@ -600,14 +594,14 @@ var collections;
             }
             this.nElements--;
             return element;
-        };
+        }
         /**
          * Executes the provided function once for each element present in this list in order.
          * @param {function(Object):*} callback function to execute, it is
          * invoked with one argument: the element value, to break the iteration you can
          * optionally return false.
          */
-        LinkedList.prototype.forEach = function (callback) {
+        forEach(callback) {
             var currentNode = this.firstNode;
             while (currentNode !== null) {
                 if (callback(currentNode.element) === false) {
@@ -615,12 +609,12 @@ var collections;
                 }
                 currentNode = currentNode.next;
             }
-        };
+        }
         /**
          * Reverses the order of the elements in this linked list (makes the last
          * element first, and the first element last).
          */
-        LinkedList.prototype.reverse = function () {
+        reverse() {
             var previous = null;
             var current = this.firstNode;
             var temp = null;
@@ -633,14 +627,14 @@ var collections;
             temp = this.firstNode;
             this.firstNode = this.lastNode;
             this.lastNode = temp;
-        };
+        }
         /**
          * Returns an array containing all of the elements in this list in proper
          * sequence.
          * @return {Array.<*>} an array containing all of the elements in this list,
          * in proper sequence.
          */
-        LinkedList.prototype.toArray = function () {
+        toArray() {
             var array = [];
             var currentNode = this.firstNode;
             while (currentNode !== null) {
@@ -648,28 +642,28 @@ var collections;
                 currentNode = currentNode.next;
             }
             return array;
-        };
+        }
         /**
          * Returns the number of elements in this list.
          * @return {number} the number of elements in this list.
          */
-        LinkedList.prototype.size = function () {
+        size() {
             return this.nElements;
-        };
+        }
         /**
          * Returns true if this list contains no elements.
          * @return {boolean} true if this list contains no elements.
          */
-        LinkedList.prototype.isEmpty = function () {
+        isEmpty() {
             return this.nElements <= 0;
-        };
-        LinkedList.prototype.toString = function () {
+        }
+        toString() {
             return collections.arrays.toString(this.toArray());
-        };
+        }
         /**
          * @private
          */
-        LinkedList.prototype.nodeAtIndex = function (index) {
+        nodeAtIndex(index) {
             if (index < 0 || index >= this.nElements) {
                 return null;
             }
@@ -681,20 +675,19 @@ var collections;
                 node = node.next;
             }
             return node;
-        };
+        }
         /**
          * @private
          */
-        LinkedList.prototype.createNode = function (item) {
+        createNode(item) {
             return {
                 element: item,
                 next: null
             };
-        };
-        return LinkedList;
-    }());
+        }
+    }
     collections.LinkedList = LinkedList; // End of linked list 
-    var Dictionary = (function () {
+    class Dictionary {
         /**
          * Creates an empty dictionary.
          * @class <p>Dictionaries map keys to values; each key can map to at most one value.
@@ -713,7 +706,7 @@ var collections;
          * is not appropriate, a custom function which receives a key and returns a
          * unique string must be provided.
          */
-        function Dictionary(toStrFunction) {
+        constructor(toStrFunction) {
             this.table = {};
             this.nElements = 0;
             this.toStr = toStrFunction || collections.defaultToString;
@@ -725,13 +718,13 @@ var collections;
          * @return {*} the value to which this dictionary maps the specified key or
          * undefined if the map contains no mapping for this key.
          */
-        Dictionary.prototype.getValue = function (key) {
+        getValue(key) {
             var pair = this.table['$' + this.toStr(key)];
             if (collections.isUndefined(pair)) {
                 return undefined;
             }
             return pair.value;
-        };
+        }
         /**
          * Associates the specified value with the specified key in this dictionary.
          * If the dictionary previously contained a mapping for this key, the old
@@ -742,7 +735,7 @@ var collections;
          * @return {*} previous value associated with the specified key, or undefined if
          * there was no mapping for the key or if the key/value are undefined.
          */
-        Dictionary.prototype.setValue = function (key, value) {
+        setValue(key, value) {
             if (collections.isUndefined(key) || collections.isUndefined(value)) {
                 return undefined;
             }
@@ -761,7 +754,7 @@ var collections;
                 value: value
             };
             return ret;
-        };
+        }
         /**
          * Removes the mapping for this key from this dictionary if it is present.
          * @param {Object} key key whose mapping is to be removed from the
@@ -769,7 +762,7 @@ var collections;
          * @return {*} previous value associated with specified key, or undefined if
          * there was no mapping for key.
          */
-        Dictionary.prototype.remove = function (key) {
+        remove(key) {
             var k = '$' + this.toStr(key);
             var previousElement = this.table[k];
             if (!collections.isUndefined(previousElement)) {
@@ -778,12 +771,12 @@ var collections;
                 return previousElement.value;
             }
             return undefined;
-        };
+        }
         /**
          * Returns an array containing all of the keys in this dictionary.
          * @return {Array} an array containing all of the keys in this dictionary.
          */
-        Dictionary.prototype.keys = function () {
+        keys() {
             var array = [];
             for (var name in this.table) {
                 if (has(this.table, name)) {
@@ -792,12 +785,12 @@ var collections;
                 }
             }
             return array;
-        };
+        }
         /**
          * Returns an array containing all of the values in this dictionary.
          * @return {Array} an array containing all of the values in this dictionary.
          */
-        Dictionary.prototype.values = function () {
+        values() {
             var array = [];
             for (var name in this.table) {
                 if (has(this.table, name)) {
@@ -806,7 +799,7 @@ var collections;
                 }
             }
             return array;
-        };
+        }
         /**
         * Executes the provided function once for each key-value pair
         * present in this dictionary.
@@ -814,7 +807,7 @@ var collections;
         * invoked with two arguments: key and value. To break the iteration you can
         * optionally return false.
         */
-        Dictionary.prototype.forEach = function (callback) {
+        forEach(callback) {
             for (var name in this.table) {
                 if (has(this.table, name)) {
                     var pair = this.table[name];
@@ -824,7 +817,7 @@ var collections;
                     }
                 }
             }
-        };
+        }
         /**
          * Returns true if this dictionary contains a mapping for the specified key.
          * @param {Object} key key whose presence in this dictionary is to be
@@ -832,61 +825,58 @@ var collections;
          * @return {boolean} true if this dictionary contains a mapping for the
          * specified key.
          */
-        Dictionary.prototype.containsKey = function (key) {
+        containsKey(key) {
             return !collections.isUndefined(this.getValue(key));
-        };
+        }
         /**
         * Removes all mappings from this dictionary.
         * @this {collections.Dictionary}
         */
-        Dictionary.prototype.clear = function () {
+        clear() {
             this.table = {};
             this.nElements = 0;
-        };
+        }
         /**
          * Returns the number of keys in this dictionary.
          * @return {number} the number of key-value mappings in this dictionary.
          */
-        Dictionary.prototype.size = function () {
+        size() {
             return this.nElements;
-        };
+        }
         /**
          * Returns true if this dictionary contains no mappings.
          * @return {boolean} true if this dictionary contains no mappings.
          */
-        Dictionary.prototype.isEmpty = function () {
+        isEmpty() {
             return this.nElements <= 0;
-        };
-        Dictionary.prototype.toString = function () {
+        }
+        toString() {
             var toret = "{";
-            this.forEach(function (k, v) {
+            this.forEach((k, v) => {
                 toret = toret + "\n\t" + k.toString() + " : " + v.toString();
             });
             return toret + "\n}";
-        };
-        return Dictionary;
-    }());
+        }
+    }
     collections.Dictionary = Dictionary; // End of dictionary
     /**
      * This class is used by the LinkedDictionary Internally
      * Has to be a class, not an interface, because it needs to have
      * the 'unlink' function defined.
      */
-    var LinkedDictionaryPair = (function () {
-        function LinkedDictionaryPair(key, value) {
+    class LinkedDictionaryPair {
+        constructor(key, value) {
             this.key = key;
             this.value = value;
         }
-        LinkedDictionaryPair.prototype.unlink = function () {
+        unlink() {
             this.prev.next = this.next;
             this.next.prev = this.prev;
-        };
-        return LinkedDictionaryPair;
-    }());
-    var LinkedDictionary = (function (_super) {
-        __extends(LinkedDictionary, _super);
-        function LinkedDictionary(toStrFunction) {
-            _super.call(this, toStrFunction);
+        }
+    }
+    class LinkedDictionary extends Dictionary {
+        constructor(toStrFunction) {
+            super(toStrFunction);
             this.head = new LinkedDictionaryPair(null, null);
             this.tail = new LinkedDictionaryPair(null, null);
             this.head.next = this.tail;
@@ -897,24 +887,24 @@ var collections;
          * neighbors, and moving 'this.tail' (the End of List indicator) that
          * to the end.
          */
-        LinkedDictionary.prototype.appendToTail = function (entry) {
+        appendToTail(entry) {
             var lastNode = this.tail.prev;
             lastNode.next = entry;
             entry.prev = lastNode;
             entry.next = this.tail;
             this.tail.prev = entry;
-        };
+        }
         /**
          * Retrieves a linked dictionary from the table internally
          */
-        LinkedDictionary.prototype.getLinkedDictionaryPair = function (key) {
+        getLinkedDictionaryPair(key) {
             if (collections.isUndefined(key)) {
                 return undefined;
             }
             var k = '$' + this.toStr(key);
             var pair = (this.table[k]);
             return pair;
-        };
+        }
         /**
          * Returns the value to which this dictionary maps the specified key.
          * Returns undefined if this dictionary contains no mapping for this key.
@@ -922,13 +912,13 @@ var collections;
          * @return {*} the value to which this dictionary maps the specified key or
          * undefined if the map contains no mapping for this key.
          */
-        LinkedDictionary.prototype.getValue = function (key) {
+        getValue(key) {
             var pair = this.getLinkedDictionaryPair(key);
             if (!collections.isUndefined(pair)) {
                 return pair.value;
             }
             return undefined;
-        };
+        }
         /**
          * Removes the mapping for this key from this dictionary if it is present.
          * Also, if a value is present for this key, the entry is removed from the
@@ -938,30 +928,30 @@ var collections;
          * @return {*} previous value associated with specified key, or undefined if
          * there was no mapping for key.
          */
-        LinkedDictionary.prototype.remove = function (key) {
+        remove(key) {
             var pair = this.getLinkedDictionaryPair(key);
             if (!collections.isUndefined(pair)) {
-                _super.prototype.remove.call(this, key); // This will remove it from the table
+                super.remove(key); // This will remove it from the table
                 pair.unlink(); // This will unlink it from the chain
                 return pair.value;
             }
             return undefined;
-        };
+        }
         /**
         * Removes all mappings from this LinkedDictionary.
         * @this {collections.LinkedDictionary}
         */
-        LinkedDictionary.prototype.clear = function () {
-            _super.prototype.clear.call(this);
+        clear() {
+            super.clear();
             this.head.next = this.tail;
             this.tail.prev = this.head;
-        };
+        }
         /**
          * Internal function used when updating an existing KeyValue pair.
          * It places the new value indexed by key into the table, but maintains
          * its place in the linked ordering.
          */
-        LinkedDictionary.prototype.replace = function (oldPair, newPair) {
+        replace(oldPair, newPair) {
             var k = '$' + this.toStr(newPair.key);
             // set the new Pair's links to existingPair's links
             newPair.next = oldPair.next;
@@ -977,7 +967,7 @@ var collections;
             // To make up for the fact that the number of elements was decremented,
             // We need to increase it by one.
             ++this.nElements;
-        };
+        }
         /**
          * Associates the specified value with the specified key in this dictionary.
          * If the dictionary previously contained a mapping for this key, the old
@@ -990,7 +980,7 @@ var collections;
          * @return {*} previous value associated with the specified key, or undefined if
          * there was no mapping for the key or if the key/value are undefined.
          */
-        LinkedDictionary.prototype.setValue = function (key, value) {
+        setValue(key, value) {
             if (collections.isUndefined(key) || collections.isUndefined(value)) {
                 return undefined;
             }
@@ -1009,33 +999,33 @@ var collections;
                 ++this.nElements;
                 return undefined;
             }
-        };
+        }
         /**
          * Returns an array containing all of the keys in this LinkedDictionary, ordered
          * by insertion order.
          * @return {Array} an array containing all of the keys in this LinkedDictionary,
          * ordered by insertion order.
          */
-        LinkedDictionary.prototype.keys = function () {
+        keys() {
             var array = [];
-            this.forEach(function (key, value) {
+            this.forEach((key, value) => {
                 array.push(key);
             });
             return array;
-        };
+        }
         /**
          * Returns an array containing all of the values in this LinkedDictionary, ordered by
          * insertion order.
          * @return {Array} an array containing all of the values in this LinkedDictionary,
          * ordered by insertion order.
          */
-        LinkedDictionary.prototype.values = function () {
+        values() {
             var array = [];
-            this.forEach(function (key, value) {
+            this.forEach((key, value) => {
                 array.push(value);
             });
             return array;
-        };
+        }
         /**
         * Executes the provided function once for each key-value pair
         * present in this LinkedDictionary. It is done in the order of insertion
@@ -1044,7 +1034,7 @@ var collections;
         * invoked with two arguments: key and value. To break the iteration you can
         * optionally return false.
         */
-        LinkedDictionary.prototype.forEach = function (callback) {
+        forEach(callback) {
             var crawlNode = this.head.next;
             while (crawlNode.next != null) {
                 var ret = callback(crawlNode.key, crawlNode.value);
@@ -1053,9 +1043,8 @@ var collections;
                 }
                 crawlNode = crawlNode.next;
             }
-        };
-        return LinkedDictionary;
-    }(Dictionary));
+        }
+    }
     collections.LinkedDictionary = LinkedDictionary; // End of LinkedDictionary
     // /**
     //  * Returns true if this dictionary is equal to the given dictionary.
@@ -1075,7 +1064,7 @@ var collections;
     // 	}
     // 	return this.equalsAux(this.firstNode,other.firstNode,eqF);
     // }
-    var MultiDictionary = (function () {
+    class MultiDictionary {
         /**
          * Creates an empty multi dictionary.
          * @class <p>A multi dictionary is a special kind of dictionary that holds
@@ -1111,8 +1100,7 @@ var collections;
          *
          * @param allowDuplicateValues
          */
-        function MultiDictionary(toStrFunction, valuesEqualsFunction, allowDuplicateValues) {
-            if (allowDuplicateValues === void 0) { allowDuplicateValues = false; }
+        constructor(toStrFunction, valuesEqualsFunction, allowDuplicateValues = false) {
             this.dict = new Dictionary(toStrFunction);
             this.equalsF = valuesEqualsFunction || collections.defaultEquals;
             this.allowDuplicate = allowDuplicateValues;
@@ -1125,13 +1113,13 @@ var collections;
         * @return {Array} an array holding the values to which this dictionary maps
         * the specified key.
         */
-        MultiDictionary.prototype.getValue = function (key) {
+        getValue(key) {
             var values = this.dict.getValue(key);
             if (collections.isUndefined(values)) {
                 return [];
             }
             return collections.arrays.copy(values);
-        };
+        }
         /**
          * Adds the value to the array associated with the specified key, if
          * it is not already present.
@@ -1140,7 +1128,7 @@ var collections;
          * @param {Object} value the value to add to the array at the key
          * @return {boolean} true if the value was not already associated with that key.
          */
-        MultiDictionary.prototype.setValue = function (key, value) {
+        setValue(key, value) {
             if (collections.isUndefined(key) || collections.isUndefined(value)) {
                 return false;
             }
@@ -1156,7 +1144,7 @@ var collections;
             }
             array.push(value);
             return true;
-        };
+        }
         /**
          * Removes the specified values from the array of values associated with the
          * specified key. If a value isn't given, all values associated with the specified
@@ -1168,7 +1156,7 @@ var collections;
          * @return {*} true if the dictionary changed, false if the key doesn't exist or
          * if the specified value isn't associated with the specified key.
          */
-        MultiDictionary.prototype.remove = function (key, value) {
+        remove(key, value) {
             if (collections.isUndefined(value)) {
                 var v = this.dict.remove(key);
                 return !collections.isUndefined(v);
@@ -1181,19 +1169,19 @@ var collections;
                 return true;
             }
             return false;
-        };
+        }
         /**
          * Returns an array containing all of the keys in this dictionary.
          * @return {Array} an array containing all of the keys in this dictionary.
          */
-        MultiDictionary.prototype.keys = function () {
+        keys() {
             return this.dict.keys();
-        };
+        }
         /**
          * Returns an array containing all of the values in this dictionary.
          * @return {Array} an array containing all of the values in this dictionary.
          */
-        MultiDictionary.prototype.values = function () {
+        values() {
             var values = this.dict.values();
             var array = [];
             for (var i = 0; i < values.length; i++) {
@@ -1203,7 +1191,7 @@ var collections;
                 }
             }
             return array;
-        };
+        }
         /**
          * Returns true if this dictionary at least one value associatted the specified key.
          * @param {Object} key key whose presence in this dictionary is to be
@@ -1211,33 +1199,32 @@ var collections;
          * @return {boolean} true if this dictionary at least one value associatted
          * the specified key.
          */
-        MultiDictionary.prototype.containsKey = function (key) {
+        containsKey(key) {
             return this.dict.containsKey(key);
-        };
+        }
         /**
          * Removes all mappings from this dictionary.
          */
-        MultiDictionary.prototype.clear = function () {
+        clear() {
             this.dict.clear();
-        };
+        }
         /**
          * Returns the number of keys in this dictionary.
          * @return {number} the number of key-value mappings in this dictionary.
          */
-        MultiDictionary.prototype.size = function () {
+        size() {
             return this.dict.size();
-        };
+        }
         /**
          * Returns true if this dictionary contains no mappings.
          * @return {boolean} true if this dictionary contains no mappings.
          */
-        MultiDictionary.prototype.isEmpty = function () {
+        isEmpty() {
             return this.dict.isEmpty();
-        };
-        return MultiDictionary;
-    }());
+        }
+    }
     collections.MultiDictionary = MultiDictionary; // end of multi dictionary 
-    var Heap = (function () {
+    class Heap {
         /**
          * Creates an empty Heap.
          * @class
@@ -1281,7 +1268,7 @@ var collections;
          * zero, or a positive integer as the first argument is less than, equal to,
          * or greater than the second.
          */
-        function Heap(compareFunction) {
+        constructor(compareFunction) {
             /**
              * Array used to store the elements od the heap.
              * @type {Array.<Object>}
@@ -1297,9 +1284,9 @@ var collections;
          * @return {number} The index of the left child.
          * @private
          */
-        Heap.prototype.leftChildIndex = function (nodeIndex) {
+        leftChildIndex(nodeIndex) {
             return (2 * nodeIndex) + 1;
-        };
+        }
         /**
          * Returns the index of the right child of the node at the given index.
          * @param {number} nodeIndex The index of the node to get the right child
@@ -1307,18 +1294,18 @@ var collections;
          * @return {number} The index of the right child.
          * @private
          */
-        Heap.prototype.rightChildIndex = function (nodeIndex) {
+        rightChildIndex(nodeIndex) {
             return (2 * nodeIndex) + 2;
-        };
+        }
         /**
          * Returns the index of the parent of the node at the given index.
          * @param {number} nodeIndex The index of the node to get the parent for.
          * @return {number} The index of the parent.
          * @private
          */
-        Heap.prototype.parentIndex = function (nodeIndex) {
+        parentIndex(nodeIndex) {
             return Math.floor((nodeIndex - 1) / 2);
-        };
+        }
         /**
          * Returns the index of the smaller child node (if it exists).
          * @param {number} leftChild left child index.
@@ -1327,7 +1314,7 @@ var collections;
          * exists.
          * @private
          */
-        Heap.prototype.minIndex = function (leftChild, rightChild) {
+        minIndex(leftChild, rightChild) {
             if (rightChild >= this.data.length) {
                 if (leftChild >= this.data.length) {
                     return -1;
@@ -1344,26 +1331,26 @@ var collections;
                     return rightChild;
                 }
             }
-        };
+        }
         /**
          * Moves the node at the given index up to its proper place in the heap.
          * @param {number} index The index of the node to move up.
          * @private
          */
-        Heap.prototype.siftUp = function (index) {
+        siftUp(index) {
             var parent = this.parentIndex(index);
             while (index > 0 && this.compare(this.data[parent], this.data[index]) > 0) {
                 collections.arrays.swap(this.data, parent, index);
                 index = parent;
                 parent = this.parentIndex(index);
             }
-        };
+        }
         /**
          * Moves the node at the given index down to its proper place in the heap.
          * @param {number} nodeIndex The index of the node to move down.
          * @private
          */
-        Heap.prototype.siftDown = function (nodeIndex) {
+        siftDown(nodeIndex) {
             //smaller child index
             var min = this.minIndex(this.leftChildIndex(nodeIndex), this.rightChildIndex(nodeIndex));
             while (min >= 0 && this.compare(this.data[nodeIndex], this.data[min]) > 0) {
@@ -1371,39 +1358,39 @@ var collections;
                 nodeIndex = min;
                 min = this.minIndex(this.leftChildIndex(nodeIndex), this.rightChildIndex(nodeIndex));
             }
-        };
+        }
         /**
          * Retrieves but does not remove the root element of this heap.
          * @return {*} The value at the root of the heap. Returns undefined if the
          * heap is empty.
          */
-        Heap.prototype.peek = function () {
+        peek() {
             if (this.data.length > 0) {
                 return this.data[0];
             }
             else {
                 return undefined;
             }
-        };
+        }
         /**
          * Adds the given element into the heap.
          * @param {*} element the element.
          * @return true if the element was added or fals if it is undefined.
          */
-        Heap.prototype.add = function (element) {
+        add(element) {
             if (collections.isUndefined(element)) {
                 return undefined;
             }
             this.data.push(element);
             this.siftUp(this.data.length - 1);
             return true;
-        };
+        }
         /**
          * Retrieves and removes the root element of this heap.
          * @return {*} The value removed from the root of the heap. Returns
          * undefined if the heap is empty.
          */
-        Heap.prototype.removeRoot = function () {
+        removeRoot() {
             if (this.data.length > 0) {
                 var obj = this.data[0];
                 this.data[0] = this.data[this.data.length - 1];
@@ -1414,38 +1401,38 @@ var collections;
                 return obj;
             }
             return undefined;
-        };
+        }
         /**
          * Returns true if this heap contains the specified element.
          * @param {Object} element element to search for.
          * @return {boolean} true if this Heap contains the specified element, false
          * otherwise.
          */
-        Heap.prototype.contains = function (element) {
+        contains(element) {
             var equF = collections.compareToEquals(this.compare);
             return collections.arrays.contains(this.data, element, equF);
-        };
+        }
         /**
          * Returns the number of elements in this heap.
          * @return {number} the number of elements in this heap.
          */
-        Heap.prototype.size = function () {
+        size() {
             return this.data.length;
-        };
+        }
         /**
          * Checks if this heap is empty.
          * @return {boolean} true if and only if this heap contains no items; false
          * otherwise.
          */
-        Heap.prototype.isEmpty = function () {
+        isEmpty() {
             return this.data.length <= 0;
-        };
+        }
         /**
          * Removes all of the elements from this heap.
          */
-        Heap.prototype.clear = function () {
+        clear() {
             this.data.length = 0;
-        };
+        }
         /**
          * Executes the provided function once for each element present in this heap in
          * no particular order.
@@ -1453,13 +1440,12 @@ var collections;
          * invoked with one argument: the element value, to break the iteration you can
          * optionally return false.
          */
-        Heap.prototype.forEach = function (callback) {
+        forEach(callback) {
             collections.arrays.forEach(this.data, callback);
-        };
-        return Heap;
-    }());
+        }
+    }
     collections.Heap = Heap;
-    var Stack = (function () {
+    class Stack {
         /**
          * Creates an empty Stack.
          * @class A Stack is a Last-In-First-Out (LIFO) data structure, the last
@@ -1467,7 +1453,7 @@ var collections;
          * implementation uses a linked list as a container.
          * @constructor
          */
-        function Stack() {
+        constructor() {
             this.list = new LinkedList();
         }
         /**
@@ -1475,41 +1461,41 @@ var collections;
          * @param {Object} elem the element to be pushed onto this stack.
          * @return {boolean} true if the element was pushed or false if it is undefined.
          */
-        Stack.prototype.push = function (elem) {
+        push(elem) {
             return this.list.add(elem, 0);
-        };
+        }
         /**
          * Pushes an item onto the top of this stack.
          * @param {Object} elem the element to be pushed onto this stack.
          * @return {boolean} true if the element was pushed or false if it is undefined.
          */
-        Stack.prototype.add = function (elem) {
+        add(elem) {
             return this.list.add(elem, 0);
-        };
+        }
         /**
          * Removes the object at the top of this stack and returns that object.
          * @return {*} the object at the top of this stack or undefined if the
          * stack is empty.
          */
-        Stack.prototype.pop = function () {
+        pop() {
             return this.list.removeElementAtIndex(0);
-        };
+        }
         /**
          * Looks at the object at the top of this stack without removing it from the
          * stack.
          * @return {*} the object at the top of this stack or undefined if the
          * stack is empty.
          */
-        Stack.prototype.peek = function () {
+        peek() {
             return this.list.first();
-        };
+        }
         /**
          * Returns the number of elements in this stack.
          * @return {number} the number of elements in this stack.
          */
-        Stack.prototype.size = function () {
+        size() {
             return this.list.size();
-        };
+        }
         /**
          * Returns true if this stack contains the specified element.
          * <p>If the elements inside this stack are
@@ -1528,23 +1514,23 @@ var collections;
          * @return {boolean} true if this stack contains the specified element,
          * false otherwise.
          */
-        Stack.prototype.contains = function (elem, equalsFunction) {
+        contains(elem, equalsFunction) {
             return this.list.contains(elem, equalsFunction);
-        };
+        }
         /**
          * Checks if this stack is empty.
          * @return {boolean} true if and only if this stack contains no items; false
          * otherwise.
          */
-        Stack.prototype.isEmpty = function () {
+        isEmpty() {
             return this.list.isEmpty();
-        };
+        }
         /**
          * Removes all of the elements from this stack.
          */
-        Stack.prototype.clear = function () {
+        clear() {
             this.list.clear();
-        };
+        }
         /**
          * Executes the provided function once for each element present in this stack in
          * LIFO order.
@@ -1552,13 +1538,12 @@ var collections;
          * invoked with one argument: the element value, to break the iteration you can
          * optionally return false.
          */
-        Stack.prototype.forEach = function (callback) {
+        forEach(callback) {
             this.list.forEach(callback);
-        };
-        return Stack;
-    }());
+        }
+    }
     collections.Stack = Stack; // End of stack 
-    var Queue = (function () {
+    class Queue {
         /**
          * Creates an empty queue.
          * @class A queue is a First-In-First-Out (FIFO) data structure, the first
@@ -1566,7 +1551,7 @@ var collections;
          * implementation uses a linked list as a container.
          * @constructor
          */
-        function Queue() {
+        constructor() {
             this.list = new LinkedList();
         }
         /**
@@ -1574,46 +1559,46 @@ var collections;
          * @param {Object} elem the element to insert.
          * @return {boolean} true if the element was inserted, or false if it is undefined.
          */
-        Queue.prototype.enqueue = function (elem) {
+        enqueue(elem) {
             return this.list.add(elem);
-        };
+        }
         /**
          * Inserts the specified element into the end of this queue.
          * @param {Object} elem the element to insert.
          * @return {boolean} true if the element was inserted, or false if it is undefined.
          */
-        Queue.prototype.add = function (elem) {
+        add(elem) {
             return this.list.add(elem);
-        };
+        }
         /**
          * Retrieves and removes the head of this queue.
          * @return {*} the head of this queue, or undefined if this queue is empty.
          */
-        Queue.prototype.dequeue = function () {
+        dequeue() {
             if (this.list.size() !== 0) {
                 var el = this.list.first();
                 this.list.removeElementAtIndex(0);
                 return el;
             }
             return undefined;
-        };
+        }
         /**
          * Retrieves, but does not remove, the head of this queue.
          * @return {*} the head of this queue, or undefined if this queue is empty.
          */
-        Queue.prototype.peek = function () {
+        peek() {
             if (this.list.size() !== 0) {
                 return this.list.first();
             }
             return undefined;
-        };
+        }
         /**
          * Returns the number of elements in this queue.
          * @return {number} the number of elements in this queue.
          */
-        Queue.prototype.size = function () {
+        size() {
             return this.list.size();
-        };
+        }
         /**
          * Returns true if this queue contains the specified element.
          * <p>If the elements inside this stack are
@@ -1632,23 +1617,23 @@ var collections;
          * @return {boolean} true if this queue contains the specified element,
          * false otherwise.
          */
-        Queue.prototype.contains = function (elem, equalsFunction) {
+        contains(elem, equalsFunction) {
             return this.list.contains(elem, equalsFunction);
-        };
+        }
         /**
          * Checks if this queue is empty.
          * @return {boolean} true if and only if this queue contains no items; false
          * otherwise.
          */
-        Queue.prototype.isEmpty = function () {
+        isEmpty() {
             return this.list.size() <= 0;
-        };
+        }
         /**
          * Removes all of the elements from this queue.
          */
-        Queue.prototype.clear = function () {
+        clear() {
             this.list.clear();
-        };
+        }
         /**
          * Executes the provided function once for each element present in this queue in
          * FIFO order.
@@ -1656,13 +1641,12 @@ var collections;
          * invoked with one argument: the element value, to break the iteration you can
          * optionally return false.
          */
-        Queue.prototype.forEach = function (callback) {
+        forEach(callback) {
             this.list.forEach(callback);
-        };
-        return Queue;
-    }());
+        }
+    }
     collections.Queue = Queue; // End of queue
-    var PriorityQueue = (function () {
+    class PriorityQueue {
         /**
          * Creates an empty priority queue.
          * @class <p>In a priority queue each element is associated with a "priority",
@@ -1687,7 +1671,7 @@ var collections;
          * zero, or a positive integer as the first argument is less than, equal to,
          * or greater than the second.
          */
-        function PriorityQueue(compareFunction) {
+        constructor(compareFunction) {
             this.heap = new Heap(collections.reverseCompareFunction(compareFunction));
         }
         /**
@@ -1695,67 +1679,67 @@ var collections;
          * @param {Object} element the element to insert.
          * @return {boolean} true if the element was inserted, or false if it is undefined.
          */
-        PriorityQueue.prototype.enqueue = function (element) {
+        enqueue(element) {
             return this.heap.add(element);
-        };
+        }
         /**
          * Inserts the specified element into this priority queue.
          * @param {Object} element the element to insert.
          * @return {boolean} true if the element was inserted, or false if it is undefined.
          */
-        PriorityQueue.prototype.add = function (element) {
+        add(element) {
             return this.heap.add(element);
-        };
+        }
         /**
          * Retrieves and removes the highest priority element of this queue.
          * @return {*} the the highest priority element of this queue,
          *  or undefined if this queue is empty.
          */
-        PriorityQueue.prototype.dequeue = function () {
+        dequeue() {
             if (this.heap.size() !== 0) {
                 var el = this.heap.peek();
                 this.heap.removeRoot();
                 return el;
             }
             return undefined;
-        };
+        }
         /**
          * Retrieves, but does not remove, the highest priority element of this queue.
          * @return {*} the highest priority element of this queue, or undefined if this queue is empty.
          */
-        PriorityQueue.prototype.peek = function () {
+        peek() {
             return this.heap.peek();
-        };
+        }
         /**
          * Returns true if this priority queue contains the specified element.
          * @param {Object} element element to search for.
          * @return {boolean} true if this priority queue contains the specified element,
          * false otherwise.
          */
-        PriorityQueue.prototype.contains = function (element) {
+        contains(element) {
             return this.heap.contains(element);
-        };
+        }
         /**
          * Checks if this priority queue is empty.
          * @return {boolean} true if and only if this priority queue contains no items; false
          * otherwise.
          */
-        PriorityQueue.prototype.isEmpty = function () {
+        isEmpty() {
             return this.heap.isEmpty();
-        };
+        }
         /**
          * Returns the number of elements in this priority queue.
          * @return {number} the number of elements in this priority queue.
          */
-        PriorityQueue.prototype.size = function () {
+        size() {
             return this.heap.size();
-        };
+        }
         /**
          * Removes all of the elements from this priority queue.
          */
-        PriorityQueue.prototype.clear = function () {
+        clear() {
             this.heap.clear();
-        };
+        }
         /**
          * Executes the provided function once for each element present in this queue in
          * no particular order.
@@ -1763,13 +1747,12 @@ var collections;
          * invoked with one argument: the element value, to break the iteration you can
          * optionally return false.
          */
-        PriorityQueue.prototype.forEach = function (callback) {
+        forEach(callback) {
             this.heap.forEach(callback);
-        };
-        return PriorityQueue;
-    }());
+        }
+    }
     collections.PriorityQueue = PriorityQueue; // end of priority queue
-    var Set = (function () {
+    class Set {
         /**
          * Creates an empty set.
          * @class <p>A set is a data structure that contains no duplicate items.</p>
@@ -1788,7 +1771,7 @@ var collections;
          * is not appropriate, a custom function which receives a onject and returns a
          * unique string must be provided.
          */
-        function Set(toStringFunction) {
+        constructor(toStringFunction) {
             this.dictionary = new Dictionary(toStringFunction);
         }
         /**
@@ -1797,15 +1780,15 @@ var collections;
          * @return {boolean} true if this set contains the specified element,
          * false otherwise.
          */
-        Set.prototype.contains = function (element) {
+        contains(element) {
             return this.dictionary.containsKey(element);
-        };
+        }
         /**
          * Adds the specified element to this set if it is not already present.
          * @param {Object} element the element to insert.
          * @return {boolean} true if this set did not already contain the specified element.
          */
-        Set.prototype.add = function (element) {
+        add(element) {
             if (this.contains(element) || collections.isUndefined(element)) {
                 return false;
             }
@@ -1813,13 +1796,13 @@ var collections;
                 this.dictionary.setValue(element, element);
                 return true;
             }
-        };
+        }
         /**
          * Performs an intersecion between this an another set.
          * Removes all values that are not present this set and the given set.
          * @param {collections.Set} otherSet other set.
          */
-        Set.prototype.intersection = function (otherSet) {
+        intersection(otherSet) {
             var set = this;
             this.forEach(function (element) {
                 if (!otherSet.contains(element)) {
@@ -1827,37 +1810,37 @@ var collections;
                 }
                 return true;
             });
-        };
+        }
         /**
          * Performs a union between this an another set.
          * Adds all values from the given set to this set.
          * @param {collections.Set} otherSet other set.
          */
-        Set.prototype.union = function (otherSet) {
+        union(otherSet) {
             var set = this;
             otherSet.forEach(function (element) {
                 set.add(element);
                 return true;
             });
-        };
+        }
         /**
          * Performs a difference between this an another set.
          * Removes from this set all the values that are present in the given set.
          * @param {collections.Set} otherSet other set.
          */
-        Set.prototype.difference = function (otherSet) {
+        difference(otherSet) {
             var set = this;
             otherSet.forEach(function (element) {
                 set.remove(element);
                 return true;
             });
-        };
+        }
         /**
          * Checks whether the given set contains all the elements in this set.
          * @param {collections.Set} otherSet other set.
          * @return {boolean} true if this set is a subset of the given set.
          */
-        Set.prototype.isSubsetOf = function (otherSet) {
+        isSubsetOf(otherSet) {
             if (this.size() > otherSet.size()) {
                 return false;
             }
@@ -1870,12 +1853,12 @@ var collections;
                 return true;
             });
             return isSub;
-        };
+        }
         /**
          * Removes the specified element from this set if it is present.
          * @return {boolean} true if this set contained the specified element.
          */
-        Set.prototype.remove = function (element) {
+        remove(element) {
             if (!this.contains(element)) {
                 return false;
             }
@@ -1883,7 +1866,7 @@ var collections;
                 this.dictionary.remove(element);
                 return true;
             }
-        };
+        }
         /**
          * Executes the provided function once for each element
          * present in this set.
@@ -1891,48 +1874,47 @@ var collections;
          * invoked with one arguments: the element. To break the iteration you can
          * optionally return false.
          */
-        Set.prototype.forEach = function (callback) {
+        forEach(callback) {
             this.dictionary.forEach(function (k, v) {
                 return callback(v);
             });
-        };
+        }
         /**
          * Returns an array containing all of the elements in this set in arbitrary order.
          * @return {Array} an array containing all of the elements in this set.
          */
-        Set.prototype.toArray = function () {
+        toArray() {
             return this.dictionary.values();
-        };
+        }
         /**
          * Returns true if this set contains no elements.
          * @return {boolean} true if this set contains no elements.
          */
-        Set.prototype.isEmpty = function () {
+        isEmpty() {
             return this.dictionary.isEmpty();
-        };
+        }
         /**
          * Returns the number of elements in this set.
          * @return {number} the number of elements in this set.
          */
-        Set.prototype.size = function () {
+        size() {
             return this.dictionary.size();
-        };
+        }
         /**
          * Removes all of the elements from this set.
          */
-        Set.prototype.clear = function () {
+        clear() {
             this.dictionary.clear();
-        };
+        }
         /*
         * Provides a string representation for display
         */
-        Set.prototype.toString = function () {
+        toString() {
             return collections.arrays.toString(this.toArray());
-        };
-        return Set;
-    }());
+        }
+    }
     collections.Set = Set; // end of Set
-    var Bag = (function () {
+    class Bag {
         /**
          * Creates an empty bag.
          * @class <p>A bag is a special kind of set in which members are
@@ -1952,7 +1934,7 @@ var collections;
          * is not appropriate, a custom function which receives an object and returns a
          * unique string must be provided.
          */
-        function Bag(toStrFunction) {
+        constructor(toStrFunction) {
             this.toStrF = toStrFunction || collections.defaultToString;
             this.dictionary = new Dictionary(this.toStrF);
             this.nElements = 0;
@@ -1964,8 +1946,7 @@ var collections;
         * undefined 1 copy is added.
         * @return {boolean} true unless element is undefined.
         */
-        Bag.prototype.add = function (element, nCopies) {
-            if (nCopies === void 0) { nCopies = 1; }
+        add(element, nCopies = 1) {
             if (collections.isUndefined(element) || nCopies <= 0) {
                 return false;
             }
@@ -1981,29 +1962,29 @@ var collections;
             }
             this.nElements += nCopies;
             return true;
-        };
+        }
         /**
         * Counts the number of copies of the specified object in this bag.
         * @param {Object} element the object to search for..
         * @return {number} the number of copies of the object, 0 if not found
         */
-        Bag.prototype.count = function (element) {
+        count(element) {
             if (!this.contains(element)) {
                 return 0;
             }
             else {
                 return this.dictionary.getValue(element).copies;
             }
-        };
+        }
         /**
          * Returns true if this bag contains the specified element.
          * @param {Object} element element to search for.
          * @return {boolean} true if this bag contains the specified element,
          * false otherwise.
          */
-        Bag.prototype.contains = function (element) {
+        contains(element) {
             return this.dictionary.containsKey(element);
-        };
+        }
         /**
         * Removes nCopies of the specified object to this bag.
         * If the number of copies to remove is greater than the actual number
@@ -2013,8 +1994,7 @@ var collections;
         * undefined 1 copy is removed.
         * @return {boolean} true if at least 1 element was removed.
         */
-        Bag.prototype.remove = function (element, nCopies) {
-            if (nCopies === void 0) { nCopies = 1; }
+        remove(element, nCopies = 1) {
             if (collections.isUndefined(element) || nCopies <= 0) {
                 return false;
             }
@@ -2035,13 +2015,13 @@ var collections;
                 }
                 return true;
             }
-        };
+        }
         /**
          * Returns an array containing all of the elements in this big in arbitrary order,
          * including multiple copies.
          * @return {Array} an array containing all of the elements in this bag.
          */
-        Bag.prototype.toArray = function () {
+        toArray() {
             var a = [];
             var values = this.dictionary.values();
             var vl = values.length;
@@ -2054,12 +2034,12 @@ var collections;
                 }
             }
             return a;
-        };
+        }
         /**
          * Returns a set of unique elements in this bag.
          * @return {collections.Set<T>} a set of unique elements in this bag.
          */
-        Bag.prototype.toSet = function () {
+        toSet() {
             var toret = new Set(this.toStrF);
             var elements = this.dictionary.values();
             var l = elements.length;
@@ -2068,7 +2048,7 @@ var collections;
                 toret.add(value);
             }
             return toret;
-        };
+        }
         /**
          * Executes the provided function once for each element
          * present in this bag, including multiple copies.
@@ -2076,7 +2056,7 @@ var collections;
          * invoked with one argument: the element. To break the iteration you can
          * optionally return false.
          */
-        Bag.prototype.forEach = function (callback) {
+        forEach(callback) {
             this.dictionary.forEach(function (k, v) {
                 var value = v.value;
                 var copies = v.copies;
@@ -2087,32 +2067,31 @@ var collections;
                 }
                 return true;
             });
-        };
+        }
         /**
          * Returns the number of elements in this bag.
          * @return {number} the number of elements in this bag.
          */
-        Bag.prototype.size = function () {
+        size() {
             return this.nElements;
-        };
+        }
         /**
          * Returns true if this bag contains no elements.
          * @return {boolean} true if this bag contains no elements.
          */
-        Bag.prototype.isEmpty = function () {
+        isEmpty() {
             return this.nElements === 0;
-        };
+        }
         /**
          * Removes all of the elements from this bag.
          */
-        Bag.prototype.clear = function () {
+        clear() {
             this.nElements = 0;
             this.dictionary.clear();
-        };
-        return Bag;
-    }());
+        }
+    }
     collections.Bag = Bag; // End of bag 
-    var BSTree = (function () {
+    class BSTree {
         /**
          * Creates an empty binary search tree.
          * @class <p>A binary search tree is a binary tree in which each
@@ -2148,7 +2127,7 @@ var collections;
          * zero, or a positive integer as the first argument is less than, equal to,
          * or greater than the second.
          */
-        function BSTree(compareFunction) {
+        constructor(compareFunction) {
             this.root = null;
             this.compare = compareFunction || collections.defaultCompare;
             this.nElements = 0;
@@ -2158,7 +2137,7 @@ var collections;
          * @param {Object} element the element to insert.
          * @return {boolean} true if this tree did not already contain the specified element.
          */
-        BSTree.prototype.add = function (element) {
+        add(element) {
             if (collections.isUndefined(element)) {
                 return false;
             }
@@ -2167,45 +2146,45 @@ var collections;
                 return true;
             }
             return false;
-        };
+        }
         /**
          * Removes all of the elements from this tree.
          */
-        BSTree.prototype.clear = function () {
+        clear() {
             this.root = null;
             this.nElements = 0;
-        };
+        }
         /**
          * Returns true if this tree contains no elements.
          * @return {boolean} true if this tree contains no elements.
          */
-        BSTree.prototype.isEmpty = function () {
+        isEmpty() {
             return this.nElements === 0;
-        };
+        }
         /**
          * Returns the number of elements in this tree.
          * @return {number} the number of elements in this tree.
          */
-        BSTree.prototype.size = function () {
+        size() {
             return this.nElements;
-        };
+        }
         /**
          * Returns true if this tree contains the specified element.
          * @param {Object} element element to search for.
          * @return {boolean} true if this tree contains the specified element,
          * false otherwise.
          */
-        BSTree.prototype.contains = function (element) {
+        contains(element) {
             if (collections.isUndefined(element)) {
                 return false;
             }
             return this.searchNode(this.root, element) !== null;
-        };
+        }
         /**
          * Removes the specified element from this tree if it is present.
          * @return {boolean} true if this tree contained the specified element.
          */
-        BSTree.prototype.remove = function (element) {
+        remove(element) {
             var node = this.searchNode(this.root, element);
             if (node === null) {
                 return false;
@@ -2213,69 +2192,69 @@ var collections;
             this.removeNode(node);
             this.nElements--;
             return true;
-        };
+        }
         /**
          * Executes the provided function once for each element present in this tree in
          * in-order.
          * @param {function(Object):*} callback function to execute, it is invoked with one
          * argument: the element value, to break the iteration you can optionally return false.
          */
-        BSTree.prototype.inorderTraversal = function (callback) {
+        inorderTraversal(callback) {
             this.inorderTraversalAux(this.root, callback, {
                 stop: false
             });
-        };
+        }
         /**
          * Executes the provided function once for each element present in this tree in pre-order.
          * @param {function(Object):*} callback function to execute, it is invoked with one
          * argument: the element value, to break the iteration you can optionally return false.
          */
-        BSTree.prototype.preorderTraversal = function (callback) {
+        preorderTraversal(callback) {
             this.preorderTraversalAux(this.root, callback, {
                 stop: false
             });
-        };
+        }
         /**
          * Executes the provided function once for each element present in this tree in post-order.
          * @param {function(Object):*} callback function to execute, it is invoked with one
          * argument: the element value, to break the iteration you can optionally return false.
          */
-        BSTree.prototype.postorderTraversal = function (callback) {
+        postorderTraversal(callback) {
             this.postorderTraversalAux(this.root, callback, {
                 stop: false
             });
-        };
+        }
         /**
          * Executes the provided function once for each element present in this tree in
          * level-order.
          * @param {function(Object):*} callback function to execute, it is invoked with one
          * argument: the element value, to break the iteration you can optionally return false.
          */
-        BSTree.prototype.levelTraversal = function (callback) {
+        levelTraversal(callback) {
             this.levelTraversalAux(this.root, callback);
-        };
+        }
         /**
          * Returns the minimum element of this tree.
          * @return {*} the minimum element of this tree or undefined if this tree is
          * is empty.
          */
-        BSTree.prototype.minimum = function () {
+        minimum() {
             if (this.isEmpty()) {
                 return undefined;
             }
             return this.minimumAux(this.root).element;
-        };
+        }
         /**
          * Returns the maximum element of this tree.
          * @return {*} the maximum element of this tree or undefined if this tree is
          * is empty.
          */
-        BSTree.prototype.maximum = function () {
+        maximum() {
             if (this.isEmpty()) {
                 return undefined;
             }
             return this.maximumAux(this.root).element;
-        };
+        }
         /**
          * Executes the provided function once for each element present in this tree in inorder.
          * Equivalent to inorderTraversal.
@@ -2283,32 +2262,32 @@ var collections;
          * invoked with one argument: the element value, to break the iteration you can
          * optionally return false.
          */
-        BSTree.prototype.forEach = function (callback) {
+        forEach(callback) {
             this.inorderTraversal(callback);
-        };
+        }
         /**
          * Returns an array containing all of the elements in this tree in in-order.
          * @return {Array} an array containing all of the elements in this tree in in-order.
          */
-        BSTree.prototype.toArray = function () {
+        toArray() {
             var array = [];
             this.inorderTraversal(function (element) {
                 array.push(element);
                 return true;
             });
             return array;
-        };
+        }
         /**
          * Returns the height of this tree.
          * @return {number} the height of this tree or -1 if is empty.
          */
-        BSTree.prototype.height = function () {
+        height() {
             return this.heightAux(this.root);
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.searchNode = function (node, element) {
+        searchNode(node, element) {
             var cmp = null;
             while (node !== null && cmp !== 0) {
                 cmp = this.compare(element, node.element);
@@ -2320,11 +2299,11 @@ var collections;
                 }
             }
             return node;
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.transplant = function (n1, n2) {
+        transplant(n1, n2) {
             if (n1.parent === null) {
                 this.root = n2;
             }
@@ -2337,11 +2316,11 @@ var collections;
             if (n2 !== null) {
                 n2.parent = n1.parent;
             }
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.removeNode = function (node) {
+        removeNode(node) {
             if (node.leftCh === null) {
                 this.transplant(node, node.rightCh);
             }
@@ -2359,11 +2338,11 @@ var collections;
                 y.leftCh = node.leftCh;
                 y.leftCh.parent = y;
             }
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.inorderTraversalAux = function (node, callback, signal) {
+        inorderTraversalAux(node, callback, signal) {
             if (node === null || signal.stop) {
                 return;
             }
@@ -2376,11 +2355,11 @@ var collections;
                 return;
             }
             this.inorderTraversalAux(node.rightCh, callback, signal);
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.levelTraversalAux = function (node, callback) {
+        levelTraversalAux(node, callback) {
             var queue = new Queue();
             if (node !== null) {
                 queue.enqueue(node);
@@ -2397,11 +2376,11 @@ var collections;
                     queue.enqueue(node.rightCh);
                 }
             }
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.preorderTraversalAux = function (node, callback, signal) {
+        preorderTraversalAux(node, callback, signal) {
             if (node === null || signal.stop) {
                 return;
             }
@@ -2414,11 +2393,11 @@ var collections;
                 return;
             }
             this.preorderTraversalAux(node.rightCh, callback, signal);
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.postorderTraversalAux = function (node, callback, signal) {
+        postorderTraversalAux(node, callback, signal) {
             if (node === null || signal.stop) {
                 return;
             }
@@ -2431,38 +2410,38 @@ var collections;
                 return;
             }
             signal.stop = callback(node.element) === false;
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.minimumAux = function (node) {
+        minimumAux(node) {
             while (node.leftCh !== null) {
                 node = node.leftCh;
             }
             return node;
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.maximumAux = function (node) {
+        maximumAux(node) {
             while (node.rightCh !== null) {
                 node = node.rightCh;
             }
             return node;
-        };
+        }
         /**
           * @private
           */
-        BSTree.prototype.heightAux = function (node) {
+        heightAux(node) {
             if (node === null) {
                 return -1;
             }
             return Math.max(this.heightAux(node.leftCh), this.heightAux(node.rightCh)) + 1;
-        };
+        }
         /*
         * @private
         */
-        BSTree.prototype.insertNode = function (node) {
+        insertNode(node) {
             var parent = null;
             var position = this.root;
             var cmp = null;
@@ -2492,19 +2471,18 @@ var collections;
                 parent.rightCh = node;
             }
             return node;
-        };
+        }
         /**
         * @private
         */
-        BSTree.prototype.createNode = function (element) {
+        createNode(element) {
             return {
                 element: element,
                 leftCh: null,
                 rightCh: null,
                 parent: null
             };
-        };
-        return BSTree;
-    }());
+        }
+    }
     collections.BSTree = BSTree; // end of BSTree
 })(collections = exports.collections || (exports.collections = {})); // End of module 

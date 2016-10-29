@@ -147,7 +147,7 @@ remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback
 }
 
 
-remote.tokenService = function (bearerToken: string, cb: Function) {
+remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) => void) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
             console.info("ensureAuthorized error: ", err);

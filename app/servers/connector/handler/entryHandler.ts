@@ -168,7 +168,7 @@ handler.getMe = function (msg, session, next) {
 	let self = this;
 	let token = msg.token;
 	if (!token) {
-		var errMsg = 'invalid entry request: empty token';
+		let errMsg = 'invalid entry request: empty token';
 		next(new Error(errMsg), { code: Code.FAIL, message: errMsg });
 		return;
 	}
@@ -179,7 +179,7 @@ handler.getMe = function (msg, session, next) {
 
 	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
 		if (err) {
-			console.log(err);
+			console.warn(err);
 			next(err, res);
 			clearTimeout(timeOut);
 		}
@@ -262,10 +262,10 @@ function addOnlineUser(app, session, userId: string) {
 * Return : null.
 */
 handler.getLastAccessRooms = function (msg, session, next) {
-	var self = this;
-	var uid = session.uid;
+	let self = this;
+	let uid = session.uid;
 	if (!uid) {
-		var errMsg = "Require userId is empty or null.";
+		let errMsg = "Require userId is empty or null.";
 		next(null, { code: Code.FAIL, message: errMsg });
 		console.warn(errMsg);
 		return;
@@ -281,15 +281,15 @@ handler.getLastAccessRooms = function (msg, session, next) {
 			}
 		});
 	}], (err, results) => {
-		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
-			var onAccessRooms = {
+		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res: Array<any>) {
+			let onAccessRooms = {
 				route: Code.sharedEvents.onAccessRooms,
 				data: res
 			};
-			var user: User.OnlineUser = results[0];
+			let user: User.OnlineUser = results[0];
 			if (user) {
-				var uidsGroup = new Array();
-				var group = {
+				let uidsGroup = new Array();
+				let group = {
 					uid: user.uid,
 					sid: user.serverId
 				};

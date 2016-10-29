@@ -80,15 +80,15 @@ handler.requestCreateProjectBase = function (msg, session, next) {
                             let accountService: AccountService = self.app.rpc.auth.getAccountService(session);
                             accountService.getOnlineUser(id, (err, user) => {
                                 if (!err && user !== null) {
-                                    userManager.getRoomAccessForUser(user.uid, (err, roomAccess) => {
+                                    userManager.getRoomAccessForUser(user.uid, (err, roomAccess: Array<any>) => {
                                         //<!-- Now push roomAccess data to user.
-                                        var param = {
+                                        let param = {
                                             route: Code.sharedEvents.onAddRoomAccess,
                                             data: roomAccess
                                         }
 
-                                        var pushTarget = new Array();
-                                        var target = { uid: user.uid, sid: user.serverId };
+                                        let pushTarget = new Array();
+                                        let target = { uid: user.uid, sid: user.serverId };
                                         pushTarget.push(target);
 
                                         channelService.pushMessageByUids(param.route, param.data, pushTarget);
@@ -333,15 +333,15 @@ function pushNewRoomAccessToNewMembers(app: any, session: any, rid: string, targ
                 let accountService: AccountService = app.rpc.auth.getAccountService(session);
                 accountService.getOnlineUser(id, (err, user) => {
                     if (!err && user !== null) {
-                        userManager.getRoomAccessForUser(user.uid, (err, roomAccess) => {
+                        userManager.getRoomAccessForUser(user.uid, (err, roomAccess: Array<any>) => {
                             //<!-- Now push roomAccess data to user.
-                            var param = {
+                            let param = {
                                 route: Code.sharedEvents.onAddRoomAccess,
                                 data: roomAccess
                             }
 
-                            var pushTarget = new Array();
-                            var target = { uid: user.uid, sid: user.serverId };
+                            let pushTarget = new Array();
+                            let target = { uid: user.uid, sid: user.serverId };
                             pushTarget.push(target);
 
                             channelService.pushMessageByUids(param.route, param.data, pushTarget);
@@ -533,16 +533,16 @@ handler.getRoomById = function (msg, session, next) {
                                         }
                                         else {
                                             //<!-- Dont use getRoomAccessOfRoomId it not work when insert and then find db.
-                                            userManager.getRoomAccessForUser(member.id, (err, roomAccess) => {
+                                            userManager.getRoomAccessForUser(member.id, (err, roomAccess: Array<any>) => {
                                                 if (err) {
                                                     console.error(err);
                                                 }
                                                 else {
-                                                    var targetId = { uid: user.uid, sid: user.serverId };
+                                                    let targetId = { uid: user.uid, sid: user.serverId };
                                                     let pushGroup = new Array();
                                                     pushGroup.push(targetId);
 
-                                                    var param = {
+                                                    let param = {
                                                         route: Code.sharedEvents.onAddRoomAccess,
                                                         data: roomAccess
                                                     };

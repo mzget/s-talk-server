@@ -1,6 +1,4 @@
-﻿/// <reference path="../../typings/index.d.ts" />
-
-import * as  User from '../model/User';
+﻿import * as  User from '../model/User';
 import *as Room from '../model/Room';
 import RoomAccessData from '../model/RoomAccessData';
 import Mdb = require('../db/dbClient');
@@ -42,7 +40,7 @@ export class UserManager {
         this.userDataAccess.updateImageProfile(uid, newUrl, callback);
     }
 
-    public getRoomAccessForUser(uid: string, callback: (err, res) => void) {
+    public getRoomAccessForUser(uid: string, callback: (err, res: Array<any>) => void) {
         this.userDataAccess.getRoomAccessForUser(uid, callback);
     }
 
@@ -237,10 +235,20 @@ export class UserDataAccessService {
         }, { _id: new ObjectID(uid) }, { lastEditProfile: 1 });
     }
 
-    public getRoomAccessForUser(uid: string, callback: (err, res) => void) {
-        DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
-            callback(null, result);
-        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+    public getRoomAccessForUser(uid: string, callback: (err, res: Array<any>) => void) {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+            let userColl = db.collection(Mdb.DbController.userColl);
+
+            userColl.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(docs => {
+                db.close();
+                callback(null, docs);
+            }).catch(err => {
+                db.close();
+                callback(err, null);
+            });
+        }).catch(err => {
+            callback(err, null);
+        });
     }
 
 

@@ -1,13 +1,13 @@
 "use strict";
-var pomelo = require('pomelo');
-var routeUtil_1 = require('./app/util/routeUtil');
-var accountService_1 = require('./app/services/accountService');
+const pomelo = require('pomelo');
+const routeUtil_1 = require('./app/util/routeUtil');
+const accountService_1 = require('./app/services/accountService');
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
 /**
  * Init app for client.
  */
-var app = pomelo.createApp();
+const app = pomelo.createApp();
 app.set('name', 'stalk-node-server');
 // app configure
 app.configure('production|development', function () {

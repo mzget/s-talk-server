@@ -3,12 +3,11 @@ import { Config } from '../../config/config';
 
 export default class TokenService {
 	private secret = "";
-	private DEFAULT_SECRET = 'ahoostudio_session_secret';
 	private expire: string | number;
 	//	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
 
 	constructor() {
-		this.secret = Config.session.secret || this.DEFAULT_SECRET;
+		this.secret = Config.session.secret;
 		this.expire = Config.session.expire; // || this.DEFAULT_EXPIRE;
 	}
 
