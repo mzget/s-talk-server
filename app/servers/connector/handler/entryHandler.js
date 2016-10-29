@@ -150,43 +150,16 @@ handler.getMe = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: "getMe timeout..." });
     }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+        console.log("token verify", err, res);
         if (err) {
-            console.warn(err);
             next(err, res);
             clearTimeout(timeOut);
         }
         else {
-            self.app.rpc.auth.authRemote.me(session, msg, function (result) {
+            let user = res.decoded;
+            self.app.rpc.auth.authRemote.me(session, user, function (result) {
                 next(null, result);
                 clearTimeout(timeOut);
-                let onGetMe = {
-                    route: Code_1.default.sharedEvents.onGetMe,
-                    data: result
-                };
-                let uidsGroup = [];
-                let group = {
-                    uid: session.uid,
-                    sid: self.app.get('serverId')
-                };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onGetMe.route, onGetMe.data, uidsGroup);
-                let data = JSON.parse(JSON.stringify(result.data));
-                let onlineUser = new User.OnlineUser();
-                onlineUser.uid = data._id;
-                onlineUser.username = data.username;
-                onlineUser.serverId = session.frontendId;
-                onlineUser.registrationIds = data.deviceTokens;
-                let userTransaction = new User.UserTransaction();
-                userTransaction.uid = data._id;
-                userTransaction.username = data.username;
-                //!-- check uid in onlineUsers list.
-                //var usersDict = userManager.onlineUsers;
-                //for (var i in usersDict) {
-                //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-                //}
-                console.log("New onlineUsers %s : ", onlineUser);
-                self.app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
-                self.app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
             });
         }
     });

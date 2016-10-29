@@ -1,4 +1,5 @@
-﻿import Code from '../../../../shared/Code';
+﻿import mongodb = require("mongodb");
+import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
@@ -164,12 +165,8 @@ remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) =>
  * require => username, password, bearerToken
  */
 remote.me = function (msg, cb) {
-    let username = msg.username;
-    let password = msg.password;
-    let bearerToken = msg.token;
-
-    let query = { username: username.toLowerCase() };
-    let projection = { roomAccess: 0 };
+    let query = { _id: new mongodb.ObjectID(msg._id) };
+    let projection = {};
     new UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
         if (err || res === null) {
             let errMsg = "Get my user data is invalid.";

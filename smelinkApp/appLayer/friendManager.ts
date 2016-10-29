@@ -20,7 +20,7 @@ export default class FriendManager {
     }
 
     addFriends(myUid: string, targetId: string, next) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
             // Get the documents collection
             let userCollection = db.collection(Mdb.DbController.userColl);
 

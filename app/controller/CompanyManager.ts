@@ -43,8 +43,8 @@ module Controller {
         constructor() { }
 
         public getFirstQueryMembers(projection: any, callback: (err, res) => void): void {
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function(err, db) {
-                if (err) { return console.dir(err); }   
+            MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
+                if (err) { return console.dir(err); }
                 assert.equal(null, err);
 
                 // Get the documents collection
@@ -52,14 +52,14 @@ module Controller {
                 // Find some documents
                 collection.find({}).project(projection).toArray(function (err, result) {
                     assert.equal(null, err);
-                    
+
                     if (err) {
                         callback(new Error("find members is no response."), err);
                     }
                     else {
                         callback(null, result);
                     }
-                       
+
                     db.close();
                 });
             });

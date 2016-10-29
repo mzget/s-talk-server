@@ -11,7 +11,7 @@ class FriendManager {
     constructor() {
     }
     addFriends(myUid, targetId, next) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
+        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
             // Get the documents collection
             let userCollection = db.collection(Mdb.DbController.userColl);
             userCollection.find({ _id: new ObjectID(targetId) }).limit(1).toArray().then(function (docs) {

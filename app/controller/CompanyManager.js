@@ -39,7 +39,7 @@ var Controller;
         constructor() {
         }
         getFirstQueryMembers(projection, callback) {
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
