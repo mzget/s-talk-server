@@ -131,11 +131,6 @@ class UserManager {
             this.userDataAccess.removeClosedNoticeGroupList(group, uid, callback);
         }
     }
-    getMemberProfile(uid, callback) {
-        let query = { _id: new ObjectID(uid) };
-        let projection = { roomAccess: 0 };
-        this.userDataAccess.getUserProfile(query, projection, callback);
-    }
     /**
     * Check creator permission for create ProjectBase Group requesting.
     * res will return { _id, role } of user model.

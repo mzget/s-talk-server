@@ -154,13 +154,6 @@ export class UserManager {
         }
     }
 
-
-    public getMemberProfile(uid: string, callback: (err, res) => void) {
-        let query = { _id: new ObjectID(uid) };
-        let projection = { roomAccess: 0 };
-        this.userDataAccess.getUserProfile(query, projection, callback);
-    }
-
     /**
     * Check creator permission for create ProjectBase Group requesting.
     * res will return { _id, role } of user model.

@@ -151,7 +151,9 @@ remote.me = function (msg, cb) {
     });
 };
 remote.myProfile = function (userId, cb) {
-    UserManager_1.UserManager.getInstance().getMemberProfile(userId, (err, res) => {
+    let query = { _id: new mongodb.ObjectID(userId) };
+    let projection = { roomAccess: 0 };
+    UserManager_1.UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
         if (res === null || res.length == 0) {
             let errMsg = "Get my user data is invalid.";
             console.warn(errMsg);
