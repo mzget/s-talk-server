@@ -415,12 +415,13 @@ handler.getRoomById = function (msg, session, next) {
     let token = msg.token;
     let owner = msg.ownerId;
     let roommate = msg.roommateId;
+    console.log("getRoomById", msg);
     let schema = {
         token: Joi.string(),
         ownerId: Joi.objectId(),
         roommateId: Joi.objectId()
     };
-    const result = Joi.validate(msg, schema);
+    const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
