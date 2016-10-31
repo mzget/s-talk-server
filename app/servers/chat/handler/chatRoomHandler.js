@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const Room = require('../../../model/Room');
 const UserRole_1 = require('../../../model/UserRole');
 const async = require('async');
+const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 const config_1 = require('../../../../config/config');
 const ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -413,9 +415,14 @@ handler.getRoomById = function (msg, session, next) {
     let token = msg.token;
     let owner = msg.ownerId;
     let roommate = msg.roommateId;
-    if (!owner || !roommate) {
-        next(null, { code: Code_1.default.FAIL, message: "some params is invalid." });
-        return;
+    let schema = {
+        token: Joi.string(),
+        ownerId: Joi.objectId(),
+        roommateId: Joi.objectId()
+    };
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
     let id = '';
     if (owner < roommate) {

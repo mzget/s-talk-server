@@ -9,6 +9,8 @@ import User = require('../../../model/User');
 import Room = require('../../../model/Room');
 import UserRole from '../../../model/UserRole';
 import async = require('async');
+import Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
@@ -475,9 +477,16 @@ handler.getRoomById = function (msg, session, next) {
     let token = msg.token;
     let owner = msg.ownerId;
     let roommate = msg.roommateId;
-    if (!owner || !roommate) {
-        next(null, { code: Code.FAIL, message: "some params is invalid." });
-        return;
+
+    let schema = {
+        token: Joi.string(),
+        ownerId: Joi.objectId(),
+        roommateId: Joi.objectId()
+    };
+    const result = Joi.validate(msg, schema);
+
+    if (result.error) {
+        return next(null, { code: Code.FAIL, message: result.error });
     }
 
     let id = '';
