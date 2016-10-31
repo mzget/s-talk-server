@@ -415,7 +415,6 @@ handler.getRoomById = function (msg, session, next) {
     let token = msg.token;
     let owner = msg.ownerId;
     let roommate = msg.roommateId;
-    console.log("getRoomById", msg);
     let schema = {
         token: Joi.string(),
         ownerId: Joi.objectId(),
