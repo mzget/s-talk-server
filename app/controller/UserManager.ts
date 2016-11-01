@@ -44,7 +44,7 @@ export class UserManager {
         this.userDataAccess.getRoomAccessForUser(uid, callback);
     }
 
-    public getRoomAccessOfRoom(uid: string, rid: string, callback: (err, res) => void) {
+    public getRoomAccessOfRoom(uid: string, rid: string, callback: (err, res: Array<User.StalkAccount>) => void) {
         this.userDataAccess.getRoomAccessOfRoom(uid, rid, callback);
     }
 
@@ -377,18 +377,18 @@ export class UserDataAccessService {
         }, { _id: new ObjectID(uid) }, { $set: { image: newUrl, lastEditProfile: new Date() } }, { w: 1, upsert: true });
     }
 
-    public getRoomAccessOfRoom(uid: string, rid: string, callback: (err, res) => void) {
+    public getRoomAccessOfRoom(uid: string, rid: string, callback: (err, res: Array<User.StalkAccount>) => void) {
         MongoClient.connect(Mdb.DbController.chatDB).then(db => {
             // Get the documents collection
             let collection = db.collection(Mdb.DbController.userColl);
             collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
                 .then(docs => {
-                    db.close();
                     console.log("getRoomAccessOfRoom", docs);
-                    callback(null, docs[0]);
+                    db.close();
+                    callback(null, docs);
                 })
                 .catch(err => {
-                    console.error("getRoomAccessOfRoom: ", err);
+                    console.warn("getRoomAccessOfRoom: ", err);
                     db.close();
                     callback(err, null);
                 });

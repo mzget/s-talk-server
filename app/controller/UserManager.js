@@ -328,12 +328,12 @@ class UserDataAccessService {
             let collection = db.collection(Mdb.DbController.userColl);
             collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
                 .then(docs => {
-                db.close();
                 console.log("getRoomAccessOfRoom", docs);
-                callback(null, docs[0]);
+                db.close();
+                callback(null, docs);
             })
                 .catch(err => {
-                console.error("getRoomAccessOfRoom: ", err);
+                console.warn("getRoomAccessOfRoom: ", err);
                 db.close();
                 callback(err, null);
             });
