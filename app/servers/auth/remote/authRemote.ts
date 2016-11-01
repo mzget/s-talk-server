@@ -9,8 +9,8 @@ import { AccountService } from '../../../services/accountService';
 import Mcontroller = require('../../../controller/ChatRoomManager');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const tokenService: TokenService = new TokenService();
-var accountService: AccountService;
-var channelService;
+let accountService: AccountService;
+let channelService;
 
 const failedPassword = "Authentication failed.";
 const userNotFound = "Authentication failed. User not found.";
@@ -89,7 +89,9 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
 remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
     accountService.getRoom(rid, callback);
 }
-
+remote.addRoom = function (room: Room) {
+    accountService.addRoom(room);
+}
 remote.updateRoomMembers = function (data, cb) {
     accountService.addRoom(data);
 
