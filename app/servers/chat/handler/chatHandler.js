@@ -237,6 +237,7 @@ handler.getChatHistory = function (msg, session, next) {
                 self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, function (err, user) {
                     if (user) {
                         userManager.getRoomAccessOfRoom(user.uid, rid, function (err, res) {
+                            console.warn("WTF", err, res);
                             if (!err && res.length > 0) {
                                 let targetId = { uid: user.uid, sid: user.serverId };
                                 let group = new Array();
