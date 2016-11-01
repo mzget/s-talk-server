@@ -274,7 +274,7 @@ handler.getChatHistory = function (msg, session, next) {
 
                             let param = {
                                 route: Code.sharedEvents.onUpdatedLastAccessTime,
-                                data: res
+                                data: res[0]
                             };
 
                             channelService.pushMessageByUids(param.route, param.data, group);

@@ -101,7 +101,7 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
 
             let param = {
                 route: Code.sharedEvents.onUpdatedLastAccessTime,
-                data: res
+                data: res[0]
             };
 
             channelService.pushMessageByUids(param.route, param.data, group);

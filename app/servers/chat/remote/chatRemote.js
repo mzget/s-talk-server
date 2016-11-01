@@ -85,7 +85,7 @@ remote.kick = function (user, sid, rid, cb) {
             group.push(targetId);
             let param = {
                 route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
-                data: res
+                data: res[0]
             };
             channelService.pushMessageByUids(param.route, param.data, group);
         });
