@@ -56,7 +56,7 @@ handler.requestCreateProjectBase = function (msg, session, next) {
                     let room = JSON.parse(JSON.stringify(result[0]));
                     next(null, { code: Code_1.default.OK, data: room });
                     //<!-- Update list of roomsMember mapping.
-                    self.app.rpc.auth.addRoom(session, room);
+                    self.app.rpc.auth.authRemote.addRoom(session, room);
                     let memberIds = new Array();
                     room.members.forEach(value => {
                         memberIds.push(value.id);
@@ -65,7 +65,7 @@ handler.requestCreateProjectBase = function (msg, session, next) {
                     userManager.AddRoomIdToRoomAccessField(room._id, memberIds, new Date(), (err, res) => {
                         //<!-- Now get roomAccess data for user who is online and then push data to them.
                         memberIds.forEach(id => {
-                            self.app.rpc.auth.getOnlineUser(session, id, (err, user) => {
+                            self.app.rpc.auth.authRemote.getOnlineUser(session, id, (err, user) => {
                                 if (!err && user !== null) {
                                     userManager.getRoomAccessForUser(user.uid, (err, roomAccess) => {
                                         //<!-- Now push roomAccess data to user.
@@ -89,7 +89,7 @@ handler.requestCreateProjectBase = function (msg, session, next) {
                     };
                     let pushGroup = new Array();
                     members.forEach(member => {
-                        self.app.rpc.auth.getOnlineUser(session, member.id, (err, user) => {
+                        self.app.rpc.auth.authRemote.getOnlineUser(session, member.id, (err, user) => {
                             if (!err) {
                                 let item = { uid: user.uid, sid: user.serverId };
                                 pushGroup.push(item);
@@ -164,7 +164,7 @@ handler.userCreateGroupChat = function (msg, session, next) {
             let room = JSON.parse(JSON.stringify(result[0]));
             next(null, { code: Code_1.default.OK, data: room });
             //<!-- Update list of roomsMember mapping.
-            self.app.rpc.auth.addRoom(session, room);
+            self.app.rpc.auth.authRemote.addRoom(session, room);
             pushNewRoomAccessToNewMembers(self.app, session, room._id, room.members);
             let memberIds = new Array();
             room.members.forEach(value => {
@@ -177,7 +177,7 @@ handler.userCreateGroupChat = function (msg, session, next) {
             };
             let pushGroup = new Array();
             memberIds.forEach(element => {
-                self.app.rpc.auth.getOnlineUser(session, element, (err, user) => {
+                self.app.rpc.auth.authRemote.getOnlineUser(session, element, (err, user) => {
                     if (!err) {
                         let item = { uid: user.uid, sid: user.serverId };
                         pushGroup.push(item);
@@ -263,7 +263,7 @@ handler.editGroupMembers = function (msg, session, next) {
                         pushNewRoomAccessToNewMembers(self.app, session, res._id, editedMembers);
                     }
                     let roomObj = { _id: res._id, members: res.members };
-                    self.app.rpc.auth.addRoom(session, roomObj);
+                    self.app.rpc.auth.authRemote.addRoom(session, roomObj);
                 }
             });
         }
@@ -457,7 +457,7 @@ handler.getRoomById = function (msg, session, next) {
                                 cb(err);
                             }
                             else {
-                                self.app.rpc.auth.getOnlineUser(session, member.id, (err, user) => {
+                                self.app.rpc.auth.authRemote.getOnlineUser(session, member.id, (err, user) => {
                                     if (err) {
                                         console.warn(err);
                                     }
