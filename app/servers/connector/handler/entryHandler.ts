@@ -18,6 +18,10 @@ const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var channelService;
 
+type DecodedToken = {
+	_id: string, email: string, password: string, deviceTokens: Array<string>
+};
+
 module.exports = function (app) {
 	console.info("instanctiate connector handler.");
 	return new Handler(app);
@@ -57,7 +61,7 @@ handler.login = function (msg, session, next) {
 		}
 		else if (!error && response.statusCode == 200) {
 			let data = JSON.parse(body);
-			let decoded = data.decoded;
+			let decoded: DecodedToken = data.decoded;
 			console.log("AuthenBody", decoded);
 
 			session.__sessionService__.kick(decoded._id, "New login...");
@@ -73,7 +77,7 @@ handler.login = function (msg, session, next) {
 
 				channelService.broadcast("connector", param.route, param.data);
 
-				addOnlineUser(self.app, session, decoded._id);
+				addOnlineUser(self.app, session, decoded);
 				next(null, { code: Code.OK, data: body });
 				if (!user) {
 				}
@@ -193,24 +197,33 @@ handler.getMe = function (msg, session, next) {
 	});
 }
 
-function addOnlineUser(app, session, userId: string) {
-	console.log("addOnlineUser", userId);
-	app.rpc.auth.authRemote.myProfile(session, userId, function (result: { code: number, result: any }) {
+function addOnlineUser(app, session, tokenDecoded: DecodedToken) {
+	app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result: { code: number, result: any }) {
 		console.log("joining onlineUser", JSON.stringify(result));
-		if (result.code == Code.FAIL)
-			return;
 
-		let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.result));
-		let my = datas[0];
 		let onlineUser = new User.OnlineUser();
-		onlineUser.uid = my._id;
-		onlineUser.username = my.firstname;
-		onlineUser.serverId = session.frontendId;
-		onlineUser.registrationIds = my.deviceTokens;
-
 		let userTransaction = new User.UserTransaction();
-		userTransaction.uid = my._id;
-		userTransaction.username = my.firstname;
+		if (result.code == Code.OK) {
+			let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.result));
+			let my = datas[0];
+
+			onlineUser.uid = my._id;
+			onlineUser.username = my.firstname;
+			onlineUser.serverId = session.frontendId;
+			onlineUser.registrationIds = my.deviceTokens || [];
+
+			userTransaction.uid = my._id;
+			userTransaction.username = my.firstname;
+		}
+		else {
+			onlineUser.uid = tokenDecoded._id;
+			onlineUser.username = tokenDecoded.email;
+			onlineUser.serverId = session.frontendId;
+			onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+
+			userTransaction.uid = tokenDecoded._id;
+			userTransaction.username = tokenDecoded.email;
+		}
 
 		//!-- check uid in onlineUsers list.
 		//var usersDict = userManager.onlineUsers;

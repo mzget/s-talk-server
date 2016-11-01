@@ -60,7 +60,7 @@ handler.login = function (msg, session, next) {
                     data: { _id: decoded._id }
                 };
                 channelService.broadcast("connector", param.route, param.data);
-                addOnlineUser(self.app, session, decoded._id);
+                addOnlineUser(self.app, session, decoded);
                 next(null, { code: Code_1.default.OK, data: body });
                 if (!user) {
                 }
@@ -164,22 +164,29 @@ handler.getMe = function (msg, session, next) {
         }
     });
 };
-function addOnlineUser(app, session, userId) {
-    console.log("addOnlineUser", userId);
-    app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
+function addOnlineUser(app, session, tokenDecoded) {
+    app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result) {
         console.log("joining onlineUser", JSON.stringify(result));
-        if (result.code == Code_1.default.FAIL)
-            return;
-        let datas = JSON.parse(JSON.stringify(result.result));
-        let my = datas[0];
         let onlineUser = new User.OnlineUser();
-        onlineUser.uid = my._id;
-        onlineUser.username = my.firstname;
-        onlineUser.serverId = session.frontendId;
-        onlineUser.registrationIds = my.deviceTokens;
         let userTransaction = new User.UserTransaction();
-        userTransaction.uid = my._id;
-        userTransaction.username = my.firstname;
+        if (result.code == Code_1.default.OK) {
+            let datas = JSON.parse(JSON.stringify(result.result));
+            let my = datas[0];
+            onlineUser.uid = my._id;
+            onlineUser.username = my.firstname;
+            onlineUser.serverId = session.frontendId;
+            onlineUser.registrationIds = my.deviceTokens || [];
+            userTransaction.uid = my._id;
+            userTransaction.username = my.firstname;
+        }
+        else {
+            onlineUser.uid = tokenDecoded._id;
+            onlineUser.username = tokenDecoded.email;
+            onlineUser.serverId = session.frontendId;
+            onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+            userTransaction.uid = tokenDecoded._id;
+            userTransaction.username = tokenDecoded.email;
+        }
         //!-- check uid in onlineUsers list.
         //var usersDict = userManager.onlineUsers;
         //for (var i in usersDict) {
