@@ -93,7 +93,7 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
 
         userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
             console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
-            if (err) return;
+            if (err || !res) return;
 
             let targetId = { uid: user.uid, sid: user.serverId };
             let group = new Array();
