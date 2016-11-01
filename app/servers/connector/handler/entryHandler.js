@@ -222,19 +222,21 @@ handler.getLastAccessRooms = function (msg, session, next) {
             });
         }], (err, results) => {
         UserManager_1.UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
-            let onAccessRooms = {
-                route: Code_1.default.sharedEvents.onAccessRooms,
-                data: res
-            };
-            let user = results[0];
-            if (user) {
-                let uidsGroup = new Array();
-                let group = {
-                    uid: user.uid,
-                    sid: user.serverId
+            if (err || res.length > 0) {
+                let onAccessRooms = {
+                    route: Code_1.default.sharedEvents.onAccessRooms,
+                    data: res
                 };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+                let user = results[0];
+                if (user) {
+                    let uidsGroup = new Array();
+                    let group = {
+                        uid: user.uid,
+                        sid: user.serverId
+                    };
+                    uidsGroup.push(group);
+                    channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+                }
             }
         });
     });

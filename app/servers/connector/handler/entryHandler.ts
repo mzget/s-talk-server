@@ -262,21 +262,23 @@ handler.getLastAccessRooms = function (msg, session, next) {
 			}
 		});
 	}], (err, results) => {
-		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res: Array<any>) {
-			let onAccessRooms = {
-				route: Code.sharedEvents.onAccessRooms,
-				data: res
-			};
-			let user: User.OnlineUser = results[0];
-			if (user) {
-				let uidsGroup = new Array();
-				let group = {
-					uid: user.uid,
-					sid: user.serverId
-				};
-				uidsGroup.push(group);
-				channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
-			}
+        UserManager.getInstance().getRoomAccessForUser(uid, function (err, res: Array<any>) {
+            if (err || res.length > 0) {
+                let onAccessRooms = {
+                    route: Code.sharedEvents.onAccessRooms,
+                    data: res
+                };
+                let user: User.OnlineUser = results[0];
+                if (user) {
+                    let uidsGroup = new Array();
+                    let group = {
+                        uid: user.uid,
+                        sid: user.serverId
+                    };
+                    uidsGroup.push(group);
+                    channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+                }
+            }
 		});
 	});
 
