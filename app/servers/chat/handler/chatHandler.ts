@@ -9,6 +9,8 @@ import MPushService = require('../../../services/ParsePushService');
 import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
 import async = require('async');
+import Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -53,7 +55,12 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: errMsg, body: msg });
         return;
     }
-
+    // let schema = {
+    //     token: Joi.string(),
+    //     ownerId: Joi.objectId(),
+    //     roommateId: Joi.objectId()
+    // };
+    // const result = Joi.validate(msg._object, schema);
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
@@ -106,7 +113,6 @@ handler.send = function (msg, session, next) {
 };
 
 function pushMessage(app, session, room: MRoom.Room, message: MMessage.Message, clientUUID: string, target: string) {
-
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 

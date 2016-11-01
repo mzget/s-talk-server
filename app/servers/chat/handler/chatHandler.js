@@ -8,6 +8,8 @@ const Code_1 = require('../../../../shared/Code');
 const MPushService = require('../../../services/ParsePushService');
 const mongodb = require('mongodb');
 const async = require('async');
+const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 const config_1 = require('../../../../config/config');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager_1.UserManager.getInstance();
@@ -45,6 +47,12 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
         return;
     }
+    // let schema = {
+    //     token: Joi.string(),
+    //     ownerId: Joi.objectId(),
+    //     roommateId: Joi.objectId()
+    // };
+    // const result = Joi.validate(msg._object, schema);
     let timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
     }, config_1.Config.timeout);

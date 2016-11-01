@@ -165,6 +165,7 @@ handler.getMe = function (msg, session, next) {
     });
 };
 function addOnlineUser(app, session, userId) {
+    console.log("addOnlineUser", userId);
     app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
         console.log("joining onlineUser", JSON.stringify(result));
         if (result.code == Code_1.default.FAIL)

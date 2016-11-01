@@ -97,10 +97,10 @@ module Controller {
             this.roomDAL.editGroupName(roomId, newGroupName, callback);
         }
 
-        public AddChatRecord(object: message.Message, callback: (err, docs) => void) {
-            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
-                // Get the collection
+        public AddChatRecord(object: message.Message, callback: (err, docs: Array<message.Message>) => void) {
+            MongoClient.connect(MDb.DbController.chatDB).then(db => {
                 let col = db.collection(MDb.DbController.messageColl);
+
                 col.insertOne(object, { w: 1 }).then(function (r) {
                     callback(null, r.ops);
                     db.close();
@@ -108,6 +108,8 @@ module Controller {
                     callback(err, null);
                     db.close();
                 });
+            }).catch(err => {
+                callback(err, null);
             });
         }
 

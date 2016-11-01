@@ -74,8 +74,7 @@ var Controller;
             this.roomDAL.editGroupName(roomId, newGroupName, callback);
         }
         AddChatRecord(object, callback) {
-            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
-                // Get the collection
+            MongoClient.connect(MDb.DbController.chatDB).then(db => {
                 let col = db.collection(MDb.DbController.messageColl);
                 col.insertOne(object, { w: 1 }).then(function (r) {
                     callback(null, r.ops);
@@ -84,6 +83,8 @@ var Controller;
                     callback(err, null);
                     db.close();
                 });
+            }).catch(err => {
+                callback(err, null);
             });
         }
         createProjectBaseGroup(groupName, members, callback) {
