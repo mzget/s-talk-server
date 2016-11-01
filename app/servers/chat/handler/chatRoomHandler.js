@@ -67,16 +67,18 @@ handler.requestCreateProjectBase = function (msg, session, next) {
                         memberIds.forEach(id => {
                             self.app.rpc.auth.authRemote.getOnlineUser(session, id, (err, user) => {
                                 if (!err && user !== null) {
-                                    userManager.getRoomAccessForUser(user.uid, (err, roomAccess) => {
-                                        //<!-- Now push roomAccess data to user.
-                                        let param = {
-                                            route: Code_1.default.sharedEvents.onAddRoomAccess,
-                                            data: roomAccess
-                                        };
-                                        let pushTarget = new Array();
-                                        let target = { uid: user.uid, sid: user.serverId };
-                                        pushTarget.push(target);
-                                        channelService.pushMessageByUids(param.route, param.data, pushTarget);
+                                    userManager.getRoomAccessForUser(user.uid, (err, results) => {
+                                        if (!err && results.length > 0) {
+                                            //<!-- Now push roomAccess data to user.
+                                            let param = {
+                                                route: Code_1.default.sharedEvents.onAddRoomAccess,
+                                                data: results
+                                            };
+                                            let pushTarget = new Array();
+                                            let target = { uid: user.uid, sid: user.serverId };
+                                            pushTarget.push(target);
+                                            channelService.pushMessageByUids(param.route, param.data, pushTarget);
+                                        }
                                     });
                                 }
                             });
@@ -282,16 +284,18 @@ function pushNewRoomAccessToNewMembers(app, session, rid, targetMembers) {
             memberIds.forEach(id => {
                 app.rpc.auth.getOnlineUser(session, id, (err, user) => {
                     if (!err && user !== null) {
-                        userManager.getRoomAccessForUser(user.uid, (err, roomAccess) => {
-                            //<!-- Now push roomAccess data to user.
-                            let param = {
-                                route: Code_1.default.sharedEvents.onAddRoomAccess,
-                                data: roomAccess
-                            };
-                            let pushTarget = new Array();
-                            let target = { uid: user.uid, sid: user.serverId };
-                            pushTarget.push(target);
-                            channelService.pushMessageByUids(param.route, param.data, pushTarget);
+                        userManager.getRoomAccessForUser(user.uid, (err, results) => {
+                            if (!err && results.length > 0) {
+                                //<!-- Now push roomAccess data to user.
+                                let param = {
+                                    route: Code_1.default.sharedEvents.onAddRoomAccess,
+                                    data: results
+                                };
+                                let pushTarget = new Array();
+                                let target = { uid: user.uid, sid: user.serverId };
+                                pushTarget.push(target);
+                                channelService.pushMessageByUids(param.route, param.data, pushTarget);
+                            }
                         });
                     }
                 });
@@ -463,17 +467,14 @@ handler.getRoomById = function (msg, session, next) {
                                     }
                                     else {
                                         //<!-- Dont use getRoomAccessOfRoomId it not work when insert and then find db.
-                                        userManager.getRoomAccessForUser(member.id, (err, roomAccess) => {
-                                            if (err) {
-                                                console.error(err);
-                                            }
-                                            else {
+                                        userManager.getRoomAccessForUser(member.id, (err, results) => {
+                                            if (!err && results.length > 0) {
                                                 let targetId = { uid: user.uid, sid: user.serverId };
                                                 let pushGroup = new Array();
                                                 pushGroup.push(targetId);
                                                 let param = {
                                                     route: Code_1.default.sharedEvents.onAddRoomAccess,
-                                                    data: roomAccess
+                                                    data: results
                                                 };
                                                 channelService.pushMessageByUids(param.route, param.data, pushGroup);
                                             }
