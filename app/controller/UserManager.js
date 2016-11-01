@@ -269,27 +269,42 @@ class UserDataAccessService {
         });
     }
     AddRidToRoomAccessField(uid, roomId, date, callback) {
-        var self = this;
-        DbClient.FindDocument(Mdb.DbController.userColl, function (res) {
-            if (!res.roomAccess) {
-                self.InsertMembersFieldsToUserModel(uid, roomId, date, callback);
-            }
-            else {
-                //<!-- add rid to MembersFields.
-                self.findRoomAccessDataMatchWithRoomId(uid, roomId, date, (err, res) => {
-                    if (err) {
-                        console.error("findRoomAccessDataMatchWithRoomId: ", err);
-                        if (callback !== null)
-                            callback(err, null);
-                    }
-                    else {
-                        console.log("findRoomAccessDataMatchWithRoomId: ", res.result);
-                        if (callback !== null)
-                            callback(null, res);
-                    }
-                });
-            }
-        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+        let self = this;
+        mongodb.MongoClient.connect(Mdb.DbController.chatDB).then(db => {
+            let userCollection = db.collection(Mdb.DbController.userColl);
+            userCollection.find({ _id: new ObjectID(uid) }, { roomAccess: 1 }).limit(1).toArray().then(docs => {
+                if (docs.length > 0 && !!docs[0].roomAccess) {
+                    //<!-- add rid to MembersFields.
+                    self.findRoomAccessDataMatchWithRoomId(uid, roomId, date, (err, res) => {
+                        if (err) {
+                            console.warn("findRoomAccessDataMatchWithRoomId: ", err);
+                            db.close();
+                            if (callback !== null)
+                                callback(err, null);
+                        }
+                        else {
+                            console.log("findRoomAccessDataMatchWithRoomId: ", res.result);
+                            db.close();
+                            if (callback !== null)
+                                callback(null, res);
+                        }
+                    });
+                }
+                else {
+                    db.close();
+                    self.InsertMembersFieldsToUserModel(uid, roomId, date, callback);
+                }
+            }).catch(err => {
+                console.warn("cannot find item .", err);
+                db.close();
+                if (callback !== null)
+                    callback(err, null);
+            });
+        }).catch(err => {
+            console.warn("cannot connect db.", err);
+            if (!!callback)
+                callback(err, null);
+        });
     }
     InsertMembersFieldsToUserModel(uid, roomId, date, callback) {
         var newRoomAccessInfos = new Array();
