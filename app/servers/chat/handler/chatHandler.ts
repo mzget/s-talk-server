@@ -717,7 +717,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 console.warn("getUserTransaction", err, userTrans);
-                if (!!err) {
+                if (!!err || !userTrans) {
                     console.warn(err);
 
                     reject(err);
