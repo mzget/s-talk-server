@@ -237,14 +237,16 @@ handler.getChatHistory = function (msg, session, next) {
                 self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, function (err, user) {
                     if (user) {
                         userManager.getRoomAccessOfRoom(user.uid, rid, function (err, res) {
-                            let targetId = { uid: user.uid, sid: user.serverId };
-                            let group = new Array();
-                            group.push(targetId);
-                            let param = {
-                                route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
-                                data: res[0]
-                            };
-                            channelService.pushMessageByUids(param.route, param.data, group);
+                            if (!err && res.length > 0) {
+                                let targetId = { uid: user.uid, sid: user.serverId };
+                                let group = new Array();
+                                group.push(targetId);
+                                let param = {
+                                    route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
+                                    data: res[0]
+                                };
+                                channelService.pushMessageByUids(param.route, param.data, group);
+                            }
                         });
                     }
                 });
