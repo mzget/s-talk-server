@@ -1,11 +1,10 @@
 ﻿/// <reference path="../../../../typings/index.d.ts" />
 
-import Code from'../../../../shared/Code';
+import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import { Room } from "../../../model/Room";
-import Generic = require('../../../util/collections');
 import code = require('../../../../shared/Code');
 import { AccountService } from '../../../services/accountService';
 import Mcontroller = require('../../../controller/ChatRoomManager');

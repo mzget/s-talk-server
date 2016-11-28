@@ -3,12 +3,12 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
-var Mdb = require('../../../db/dbClient');
-var Code_1 = require('../../../../shared/Code');
-var friendManager_1 = require("../../../../smelinkApp/appLayer/friendManager");
-var dbClient = Mdb.DbController.DbClient.GetInstance();
-var ObjectID = require('mongodb').ObjectID;
-var webConfig = require('../../../../config/webConfig.json');
+const Mdb = require('../../../db/dbClient');
+const Code_1 = require('../../../../shared/Code');
+const friendManager_1 = require("../../../../smelinkApp/appLayer/friendManager");
+const dbClient = Mdb.DbController.DbClient.GetInstance();
+const ObjectID = require('mongodb').ObjectID;
+const webConfig = require('../../../../config/webConfig.json');
 var channelService;
 var chatService;
 module.exports = function (app) {
@@ -26,22 +26,22 @@ var handler = UserHandler.prototype;
  * @myUid
  */
 handler.addFriend = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    var targetUid = msg.targetUid;
-    var myUid = session.uid;
+    let self = this;
+    let token = msg.token;
+    let targetUid = msg.targetUid;
+    let myUid = session.uid;
     if (!targetUid || !myUid || !token) {
-        var _errMsg = "addFriend: missing params.";
+        let _errMsg = "addFriend: missing params.";
         next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
-    var id = setTimeout(function () {
+    let id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "request timeout..." });
     }, webConfig.timeout);
-    var friendManager = new friendManager_1.default();
-    friendManager.addFriends(myUid, targetUid, function (err, res) {
+    let friendManager = new friendManager_1.default();
+    friendManager.addFriends(myUid, targetUid, (err, res) => {
         if (err) {
-            var log = 'add friend: fail!' + err;
+            let log = 'add friend: fail!' + err;
             clearTimeout(id);
             next(null, { code: Code_1.default.FAIL, message: log });
         }
@@ -53,12 +53,12 @@ handler.addFriend = function (msg, session, next) {
                 route: Code_1.default.friendEvents.addFriendEvent,
                 data: res
             };
-            var pushGroup_1 = new Array();
-            self.app.rpc.chat.chatRemote.getOnlineUser(session, targetUid, function (err, user) {
+            let pushGroup = new Array();
+            self.app.rpc.chat.chatRemote.getOnlineUser(session, targetUid, (err, user) => {
                 if (!err) {
-                    var item = { uid: user.uid, sid: user.serverId };
-                    pushGroup_1.push(item);
-                    channelService.pushMessageByUids(param.route, param.data, pushGroup_1);
+                    let item = { uid: user.uid, sid: user.serverId };
+                    pushGroup.push(item);
+                    channelService.pushMessageByUids(param.route, param.data, pushGroup);
                 }
             });
         }

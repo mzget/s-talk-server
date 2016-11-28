@@ -1,14 +1,19 @@
 "use strict";
-var pomelo = require('pomelo');
-var routeUtil_1 = require('./app/util/routeUtil');
-var accountService_1 = require('./app/services/accountService');
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
-var webConfig = require('./config/webConfig');
+const pomelo = require('pomelo');
+const routeUtil_1 = require('./app/util/routeUtil');
+const accountService_1 = require('./app/services/accountService');
+global.rootRequire = function (name) {
+    return require(__dirname + '/' + name);
+};
+process.env.TZ = 'UTC';
+process.env.NODE_ENV = 'development';
+process.on('uncaughtException', function (err) {
+    console.error(' Caught exception: ' + err.stack);
+});
 /**
  * Init app for client.
  */
-var app = pomelo.createApp();
+const app = pomelo.createApp();
 app.set('name', 'stalk-node-server');
 // app configure
 app.configure('production|development', function () {
@@ -18,9 +23,6 @@ app.configure('production|development', function () {
     // route configures
     app.route('chat', routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    // filter configures
-    var timeout = webConfig.timeout + 1000;
-    app.filter(pomelo.filters.timeout(timeout));
     app.set('connectorConfig', {
         connector: pomelo.connectors.hybridconnector,
         // connector : pomelo.connectors.sioconnector,
@@ -49,9 +51,4 @@ app.configure('production|development', 'chat', function () {
 //net.Start();
 //});
 // start app
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'production';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
-});
 app.start();

@@ -1,9 +1,18 @@
 ﻿const pomelo = require('pomelo');
-import routeUtil from   './app/util/routeUtil';
+import routeUtil from './app/util/routeUtil';
 import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-const webConfig = require('./config/webConfig');
+import webConfig = require('./config/config');
+
+global.rootRequire = function (name) {
+    return require(__dirname + '/' + name);
+}
+process.env.TZ = 'UTC';
+process.env.NODE_ENV = 'development';
+process.on('uncaughtException', function (err) {
+    console.error(' Caught exception: ' + err.stack);
+});
 
 /**
  * Init app for client.
@@ -21,19 +30,16 @@ app.configure('production|development', function () {
     app.route('chat', routeUtil);
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    // filter configures
-    let timeout = webConfig.timeout + 1000;
-    app.filter(pomelo.filters.timeout(timeout));
 
     app.set('connectorConfig',
-    {
-        connector : pomelo.connectors.hybridconnector,
-        // connector : pomelo.connectors.sioconnector,
-        //websocket, polling
-        transports : ['websocket'],
-        heartbeatTimeout : 60,
-        heartbeatInterval : 25
-    });
+        {
+            connector: pomelo.connectors.hybridconnector,
+            // connector : pomelo.connectors.sioconnector,
+            //websocket, polling
+            transports: ['websocket'],
+            heartbeatTimeout: 60,
+            heartbeatInterval: 25
+        });
 
     //@ require monitor in pomelo@2x
     //   app.set('monitorConfig',
@@ -60,9 +66,4 @@ app.configure('production|development', 'chat', function () {
 //});
 
 // start app
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'production';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
-});
 app.start();
