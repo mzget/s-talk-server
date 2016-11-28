@@ -1,7 +1,7 @@
 import mongodb = require('mongodb');
 import async = require('async');
 
-import Code from "../../../../shared/Code";
+import Code, { SessionInfo } from "../../../../shared/Code";
 import * as User from '../../../model/User';
 import webConfig = rootRequire('config/config');
 const ObjectID = mongodb.ObjectID;
@@ -40,8 +40,9 @@ handler.push = function (msg, session, next) {
     }, webConfig.timeout);
 
     //<!-- send callback to user who send chat msg.
+    let sessionInfo: SessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
     let params = {
-        result: msg
+        session: sessionInfo
     };
     next(null, { code: Code.OK, data: params });
     clearTimeout(timeout_id);

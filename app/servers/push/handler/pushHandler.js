@@ -33,8 +33,9 @@ handler.push = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "Push message timeout..." });
     }, webConfig.timeout);
     //<!-- send callback to user who send chat msg.
+    let sessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
     let params = {
-        result: msg
+        session: sessionInfo
     };
     next(null, { code: Code_1.default.OK, data: params });
     clearTimeout(timeout_id);
