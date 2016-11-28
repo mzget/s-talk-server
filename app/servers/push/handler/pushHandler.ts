@@ -1,10 +1,9 @@
-import mongodb = require('mongodb');
 import async = require('async');
 
 import Code, { SessionInfo } from "../../../../shared/Code";
 import * as User from '../../../model/User';
-import webConfig = rootRequire('config/config');
-const ObjectID = mongodb.ObjectID;
+import * as Room from "../../../model/Room";
+import webConfig = rootRequire("config/config");
 var channelService;
 
 
@@ -20,18 +19,6 @@ const Handler = function (app) {
 
 const handler = Handler.prototype;
 
-/**
- * Send messages to users
- *
- * @param {Object} msg message from client
- * @param {Object} session
- * @param  {Function} next next stemp callback
- *
- * TODO...
- * ==> 1. room members who online and join in room. <for case but not significant>.
- * ==> 2. room members who online and not join room.
- * ==> 3. room members who not online. <Push>
- */
 handler.push = function (msg, session, next) {
     let self = this;
 
@@ -47,20 +34,18 @@ handler.push = function (msg, session, next) {
     next(null, { code: Code.OK, data: params });
     clearTimeout(timeout_id);
 
-    // self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
-    //     console.log("get members from room: %s name: %s members: %s", rid, room.name, room.members.length);
-    // });
+    pushMessage(self.app, session, msg);
 };
 
-function pushMessage(app, session, room: MRoom.Room, message: any) {
+function pushMessage(app, session, body: { event: string, message: string, members: string[] }) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 
     //@ Try to push message to other ...
-    async.map(room.members, (item, resultCallback) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item.id, function (err2, user) {
-            if (err2 || user === null) {
-                offlineMembers.push(item.id);
+    async.map(body.members, (item, resultCallback) => {
+        app.rpc.auth.authRemote.getOnlineUser(session, item, function (err, user) {
+            if (err || user === null) {
+                offlineMembers.push(item);
             }
             else {
                 onlineMembers.push(user);
@@ -69,26 +54,26 @@ function pushMessage(app, session, room: MRoom.Room, message: any) {
             resultCallback(null, item);
         });
     }, (err, results) => {
-        console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
+        console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, body.members.length);
 
         //<!-- push chat data to other members in room.
-        let onChat = {
-            route: Code.sharedEvents.onChat,
-            data: message
+        let onPush = {
+            route: body.event,
+            data: body.message
         };
 
         //<!-- Push new message to online users.
         let uidsGroup = new Array();
-        async.eachSeries(onlineMembers, function iterator(val, cb) {
+        async.map(onlineMembers, function iterator(val, cb) {
             let group = {
                 uid: val.uid,
                 sid: val.serverId
             };
             uidsGroup.push(group);
 
-            cb();
+            cb(null, null);
         }, function done() {
-            channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+            channelService.pushMessageByUids(onPush.route, onPush.data, uidsGroup);
 
             //<!-- Push message to off line users via parse.
             if (!!offlineMembers && offlineMembers.length > 0) {
