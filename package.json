@@ -1,15 +1,38 @@
 {
-  "name": "stalk",
+  "name": "stalk-original",
   "main": "app.js",
   "version": "0.0.1",
   "private": false,
   "dependencies": {
-    "async": "1.5.2",
+    "async": "^2.1.4",
     "crc": "0.2.0",
     "form-data": "0.2.0",
-    "jsonwebtoken": "^7.0.0",
-    "mongodb": "^2.2.0",
-    "pomelo": "^1.2.3",
-    "promise": "^7.1.1"
-  }
+    "jsonwebtoken": "^7.1.9",
+    "mongodb": "^2.2.11",
+    "pomelo": "^1.2.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  },
+  "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/nodemon/bin/nodemon.js app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://mz_nattapon@bitbucket.org/mz_nattapon/stalk-node-server.git"
+  },
+  "keywords": [
+    "stalk",
+    "ahoostudio",
+    "pomelo",
+    "node.js",
+    "realtime",
+    "chat",
+    "messaging-service"
+  ],
+  "author": "nattapon.r <nattapon.r@live.com>",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/mz_nattapon/stalk-node-server#readme"
 }

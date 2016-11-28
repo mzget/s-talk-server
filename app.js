@@ -21,15 +21,14 @@ app.configure('production|development', function () {
     // filter configures
     var timeout = webConfig.timeout + 1000;
     app.filter(pomelo.filters.timeout(timeout));
-    // app.set('connectorConfig',
-    // {
-    //     connector : pomelo.connectors.hybridconnector,
-    //     // connector : pomelo.connectors.sioconnector,
-    //     //websocket, polling
-    //     transports : ['websocket'],
-    //     heartbeatTimeout : 60,
-    //     heartbeatInterval : 25
-    // });
+    app.set('connectorConfig', {
+        connector: pomelo.connectors.hybridconnector,
+        // connector : pomelo.connectors.sioconnector,
+        //websocket, polling
+        transports: ['websocket'],
+        heartbeatTimeout: 60,
+        heartbeatInterval: 25
+    });
     //@ require monitor in pomelo@2x
     //   app.set('monitorConfig',
     //     {
