@@ -6,7 +6,8 @@ var DbController;
 (function (DbController) {
     // Connection URL
     //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
-    DbController.spartanChatDb_URL = config_1.Config.chatDB;
+    DbController.chatDB = config_1.Config.chatDB;
+    DbController.user_DB = config_1.Config.userDB;
     //    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
     DbController.roomColl = "rooms";
     DbController.messageColl = "messages";
@@ -53,7 +54,7 @@ var DbController;
         };
         DbClient.prototype.InsertTables = function (target, schema) {
             // Use connect method to connect to the Server
-            MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -71,7 +72,7 @@ var DbController;
         ///* require table, callback, document.
         DbClient.prototype.InsertDocument = function (table, callback, doc) {
             // Use connect method to connect to the Server
-            MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -88,7 +89,7 @@ var DbController;
         };
         DbClient.prototype.UpdateDocuments = function (table, callback, criteria, updateAction, options) {
             // Use connect method to connect to the Server
-            MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -106,7 +107,7 @@ var DbController;
         };
         DbClient.prototype.UpdateDocument = function (table, callback, criteria, updateAction, options) {
             // Use connect method to connect to the Server
-            MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -123,7 +124,7 @@ var DbController;
         };
         DbClient.prototype.FindDocuments = function (table, callback, query, projection) {
             // Use connect method to connect to the Server
-            MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -167,7 +168,7 @@ var DbController;
         };
         DbClient.prototype.FindDocument = function (table, callback, query, projection) {
             // Use connect method to connect to the Server
-            MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
