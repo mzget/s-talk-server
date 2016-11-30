@@ -1,19 +1,30 @@
-﻿export const Config = {
-  chatDB: "mongodb://git.animation-genius.com:27017/chatDB",
+﻿let devApi = "http://git.animation-genius.com:3002";
+
+const config = {
+  api: {
+    authen: `${devApi}/api/authenticate/verify`
+  },
+  chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
+  userDB: "mongodb://git.animation-genius.com:27017/smelink",
   fileDB: "",
   port: 80,
   timeout: 10000,
-  webserver: "http://203.113.25.44",
+  webserver: "http://git.animation-genius.com",
 
   pushServer: "smelink.animation-genius.com",
-  pushPort: 4040,
-  pushPath: "/parse/push",
   ParseApplicationId: "newSMELink",
   ParseRESTAPIKey: "link1234",
   ParseMasterKey: "link1234",
-
+  pushPort: 4040,
+  pushPath: "/parse/push",
   session: {
-    secret: "5 days",
-    expire: "ahoostudio_session_secret"
+    expire: "1 days",
+    secret: "ahoostudio_session_secret"
   }
 }
+
+function getConfig() {
+  return config;
+}
+
+export const Config = getConfig();
