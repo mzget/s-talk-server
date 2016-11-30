@@ -1,8 +1,7 @@
 "use strict";
 var async = require('async');
 var Code_1 = require("../../../../shared/Code");
-var webConfig = rootRequire;
-("config/config");
+var webConfig = require();
 var channelService;
 module.exports = function (app) {
     return new Handler(app);

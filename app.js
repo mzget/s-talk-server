@@ -2,9 +2,7 @@
 var pomelo = require('pomelo');
 var routeUtil_1 = require('./app/util/routeUtil');
 var accountService_1 = require('./app/services/accountService');
-global.rootRequire = function (name) {
-    return require(__dirname + '/' + name);
-};
+global._dir = __dirname;
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {

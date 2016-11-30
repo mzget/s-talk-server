@@ -9,7 +9,7 @@ import { UserManager } from '../../../controller/UserManager';
 import async = require('async');
 import mongodb = require('mongodb');
 
-const webConfig = require('../../../../config/webConfig.json');
+const webConfig = require(_dir + '/config/config');
 const ObjectID = mongodb.ObjectID;
 const http = require('http');
 const tokenService: TokenService = new TokenService();

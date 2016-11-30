@@ -3,7 +3,7 @@ import async = require('async');
 import Code, { SessionInfo } from "../../../../shared/Code";
 import * as User from '../../../model/User';
 import * as Room from "../../../model/Room";
-import webConfig = rootRequire("config/config");
+import webConfig = require(_dir + "/config/config");
 var channelService;
 
 
