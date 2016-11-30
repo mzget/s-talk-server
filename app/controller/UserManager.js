@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 var Room = require('../model/Room');
 var RoomAccessData_1 = require('../model/RoomAccessData');
@@ -14,7 +13,7 @@ var UserManager = (function () {
     function UserManager() {
         this.userDataAccess = new UserDataAccessService();
         this.onInsertRoomAccessInfoDone = function (uid, rid, callback) {
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+            MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
                 var collection = db.collection(Mdb.DbController.userColl);
                 collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(function (docs) {
                     console.log("find roomAccessInfo of uid %s", uid, docs[0]);
@@ -60,7 +59,7 @@ var UserManager = (function () {
     UserManager.prototype.updateLastAccessTimeOfRoom = function (uid, rid, date, callback) {
         var self = this;
         async.waterfall([function (cb) {
-                MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+                MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
                     var collection = db.collection(Mdb.DbController.userColl);
                     collection.find({ _id: new ObjectID(uid) }).limit(1).project({ roomAccess: 1 }).toArray().then(function (docs) {
                         cb(null, docs[0]);
@@ -132,11 +131,6 @@ var UserManager = (function () {
             this.userDataAccess.removeClosedNoticeGroupList(group, uid, callback);
         }
     };
-    UserManager.prototype.getMemberProfile = function (uid, callback) {
-        var query = { _id: new ObjectID(uid) };
-        var projection = { roomAccess: 0 };
-        this.userDataAccess.getUserProfile(query, projection, callback);
-    };
     /**
     * Check creator permission for create ProjectBase Group requesting.
     * res will return { _id, role } of user model.
@@ -154,7 +148,7 @@ var UserManager = (function () {
     };
     UserManager.prototype.checkUnsubscribeRoom = function (userId, roomType, roomId, callback) {
         if (roomType === Room.RoomType.privateGroup) {
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -173,7 +167,7 @@ var UserManager = (function () {
             });
         }
         else if (roomType === Room.RoomType.privateChat) {
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -202,7 +196,7 @@ var UserDataAccessService = (function () {
             if (rid === null) {
                 console.warn("rid is invalid: careful for use this func: ", rid);
             }
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
                 var collection = db.collection(Mdb.DbController.userColl);
                 // Peform a simple find and return all the documents
                 collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
@@ -241,7 +235,7 @@ var UserDataAccessService = (function () {
             newRoomAccessInfos[0] = new RoomAccessData_1.default();
             newRoomAccessInfos[0].roomId = rid;
             newRoomAccessInfos[0].accessTime = new Date();
-            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+            MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
                 // Get a collection
                 var collection = db.collection(Mdb.DbController.userColl);
                 collection.updateOne({ _id: new ObjectID(uid) }, { $set: { roomAccess: newRoomAccessInfos } }, { upsert: true, w: 1 }).then(function (result) {
@@ -262,32 +256,56 @@ var UserDataAccessService = (function () {
         }, { _id: new ObjectID(uid) }, { lastEditProfile: 1 });
     };
     UserDataAccessService.prototype.getRoomAccessForUser = function (uid, callback) {
-        DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
-            callback(null, result);
-        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+        MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
+            var userColl = db.collection(Mdb.DbController.userColl);
+            userColl.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(function (docs) {
+                db.close();
+                callback(null, docs);
+            }).catch(function (err) {
+                db.close();
+                callback(err, null);
+            });
+        }).catch(function (err) {
+            callback(err, null);
+        });
     };
     UserDataAccessService.prototype.AddRidToRoomAccessField = function (uid, roomId, date, callback) {
         var self = this;
-        DbClient.FindDocument(Mdb.DbController.userColl, function (res) {
-            if (!res.roomAccess) {
-                self.InsertMembersFieldsToUserModel(uid, roomId, date, callback);
-            }
-            else {
-                //<!-- add rid to MembersFields.
-                self.findRoomAccessDataMatchWithRoomId(uid, roomId, date, function (err, res) {
-                    if (err) {
-                        console.error("findRoomAccessDataMatchWithRoomId: ", err);
-                        if (callback !== null)
-                            callback(err, null);
-                    }
-                    else {
-                        console.log("findRoomAccessDataMatchWithRoomId: ", res.result);
-                        if (callback !== null)
-                            callback(null, res);
-                    }
-                });
-            }
-        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
+        mongodb.MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
+            var userCollection = db.collection(Mdb.DbController.userColl);
+            userCollection.find({ _id: new ObjectID(uid) }, { roomAccess: 1 }).limit(1).toArray().then(function (docs) {
+                if (docs.length > 0 && !!docs[0].roomAccess) {
+                    //<!-- add rid to MembersFields.
+                    self.findRoomAccessDataMatchWithRoomId(uid, roomId, date, function (err, res) {
+                        if (err) {
+                            console.warn("findRoomAccessDataMatchWithRoomId: ", err);
+                            db.close();
+                            if (callback !== null)
+                                callback(err, null);
+                        }
+                        else {
+                            console.log("findRoomAccessDataMatchWithRoomId: ", res.result);
+                            db.close();
+                            if (callback !== null)
+                                callback(null, res);
+                        }
+                    });
+                }
+                else {
+                    db.close();
+                    self.InsertMembersFieldsToUserModel(uid, roomId, date, callback);
+                }
+            }).catch(function (err) {
+                console.warn("cannot find item .", err);
+                db.close();
+                if (callback !== null)
+                    callback(err, null);
+            });
+        }).catch(function (err) {
+            console.warn("cannot connect db.", err);
+            if (!!callback)
+                callback(err, null);
+        });
     };
     UserDataAccessService.prototype.InsertMembersFieldsToUserModel = function (uid, roomId, date, callback) {
         var newRoomAccessInfos = new Array();
@@ -306,17 +324,17 @@ var UserDataAccessService = (function () {
         }, { _id: new ObjectID(uid) }, { $set: { image: newUrl, lastEditProfile: new Date() } }, { w: 1, upsert: true });
     };
     UserDataAccessService.prototype.getRoomAccessOfRoom = function (uid, rid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+        MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
             // Get the documents collection
             var collection = db.collection(Mdb.DbController.userColl);
             collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
                 .then(function (docs) {
-                db.close();
                 console.log("getRoomAccessOfRoom", docs);
-                callback(null, docs[0]);
+                db.close();
+                callback(null, docs);
             })
                 .catch(function (err) {
-                console.error("getRoomAccessOfRoom: ", err);
+                console.warn("getRoomAccessOfRoom: ", err);
                 db.close();
                 callback(err, null);
             });
@@ -325,7 +343,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.getUserProfile = function (query, projection, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(function (db) {
+        MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
             // Get the documents collection
             var collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
@@ -344,7 +362,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.getRole = function (creator, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -364,7 +382,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.addFavoriteMembers = function (member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -383,7 +401,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.removeFavoriteMembers = function (member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -403,7 +421,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.addFavoriteGroup = function (group, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -422,7 +440,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.removeFavoriteGroup = function (group, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -442,7 +460,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.addClosedNoticeUsersList = function (member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -461,7 +479,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.removeClosedNoticeUsersList = function (member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -481,7 +499,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.addClosedNoticeGroupList = function (member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }
@@ -500,7 +518,7 @@ var UserDataAccessService = (function () {
         });
     };
     UserDataAccessService.prototype.removeClosedNoticeGroupList = function (member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
+        MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
             if (err) {
                 return console.dir(err);
             }

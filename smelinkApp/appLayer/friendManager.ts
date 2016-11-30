@@ -8,7 +8,6 @@ import RoomAccess = require('../../app/model/RoomAccessData');
 import Mdb = require('../../app/db/dbClient');
 import mongodb = require('mongodb');
 import async = require('async');
-import generic = require('../../app/util/collections');
 import bolAccount = require('../dataLayer/bolAccount');
 const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;
