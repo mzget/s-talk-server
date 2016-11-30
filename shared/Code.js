@@ -28,6 +28,7 @@ Code.sharedEvents = {
     onUserUpdateProfile: "onUserUpdateProfile",
     onUserLogin: "onUserLogin",
     onChat: "onChat",
+    ON_PUSH: "ON_PUSH",
     onAccessRooms: "onAccessRooms",
     onUpdatedLastAccessTime: "onUpdatedLastAccessTime",
     onAddRoomAccess: "onAddRoomAccess",

@@ -30,6 +30,7 @@
         onUserLogin: "onUserLogin",
 
         onChat: "onChat",
+        ON_PUSH: "ON_PUSH",
 
         onAccessRooms: "onAccessRooms",
         onUpdatedLastAccessTime: "onUpdatedLastAccessTime",
