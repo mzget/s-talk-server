@@ -58,8 +58,8 @@ function pushMessage(app, session, body: { event: string, message: string, membe
 
         //<!-- push chat data to other members in room.
         let onPush = {
-            route: body.event,
-            data: body.message
+            route: Code.sharedEvents.ON_PUSH,
+            data: { event: body.event, message: body.message }
         };
 
         //<!-- Push new message to online users.
