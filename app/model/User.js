@@ -1,14 +1,23 @@
 "use strict";
 ;
-class OnlineUser {
-}
+var OnlineUser = (function () {
+    function OnlineUser() {
+    }
+    return OnlineUser;
+}());
 exports.OnlineUser = OnlineUser;
 ;
-class UserTransaction {
-}
+var UserTransaction = (function () {
+    function UserTransaction() {
+    }
+    return UserTransaction;
+}());
 exports.UserTransaction = UserTransaction;
 ;
-class StalkAccount {
-}
+var StalkAccount = (function () {
+    function StalkAccount() {
+    }
+    return StalkAccount;
+}());
 exports.StalkAccount = StalkAccount;
 ;

@@ -10,5 +10,9 @@ exports.Config = {
     pushPath: "/parse/push",
     ParseApplicationId: "newSMELink",
     ParseRESTAPIKey: "link1234",
-    ParseMasterKey: "link1234"
+    ParseMasterKey: "link1234",
+    session: {
+        secret: "5 days",
+        expire: "ahoostudio_session_secret"
+    }
 };

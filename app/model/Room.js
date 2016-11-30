@@ -5,8 +5,11 @@
     MemberRole[MemberRole["owner"] = 2] = "owner";
 })(exports.MemberRole || (exports.MemberRole = {}));
 var MemberRole = exports.MemberRole;
-class Member {
-}
+var Member = (function () {
+    function Member() {
+    }
+    return Member;
+}());
 exports.Member = Member;
 (function (RoomType) {
     RoomType[RoomType["organizationGroup"] = 0] = "organizationGroup";
@@ -23,6 +26,9 @@ var RoomType = exports.RoomType;
 })(exports.RoomStatus || (exports.RoomStatus = {}));
 var RoomStatus = exports.RoomStatus;
 ;
-class Room {
-}
+var Room = (function () {
+    function Room() {
+    }
+    return Room;
+}());
 exports.Room = Room;

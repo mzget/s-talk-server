@@ -8,7 +8,7 @@ export default class TokenService {
 
 	constructor() {
 		this.secret = Config.session.secret;
-		this.expire = Config.session.expire; // || this.DEFAULT_EXPIRE;
+		this.expire = Config.session.expire;
 	}
 
 	public signToken(signObj, callback: (err, encode) => void) {

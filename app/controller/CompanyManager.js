@@ -1,44 +1,45 @@
 "use strict";
-const Mdb = require('../db/dbClient');
-const room = require('../model/Room');
-const mongodb = require('mongodb');
-const assert = require('assert');
+var Mdb = require('../db/dbClient');
+var room = require('../model/Room');
+var mongodb = require('mongodb');
+var assert = require('assert');
 var MongoClient = mongodb.MongoClient;
 var DbClient = Mdb.DbController.DbClient.GetInstance();
 var Controller;
 (function (Controller) {
-    class CompanyManager {
-        constructor() {
+    var CompanyManager = (function () {
+        function CompanyManager() {
             this.dataAccessService = new MemberDataAccessService();
             if (CompanyManager._instance) {
                 console.warn("Error: Instantiation failed: Use SingletonDemo.getInstance() instead of new.");
             }
             CompanyManager._instance = this;
         }
-        static getInstance() {
+        CompanyManager.getInstance = function () {
             if (CompanyManager._instance === null) {
                 CompanyManager._instance = new CompanyManager();
             }
             return CompanyManager._instance;
-        }
-        GetCompany(callback) {
+        };
+        CompanyManager.prototype.GetCompany = function (callback) {
             DbClient.FindDocument(Mdb.DbController.companyColl, callback, {}, { _id: 0 });
-        }
-        getMyOrganizeChatRooms(userId, callback) {
-            DbClient.FindDocuments(Mdb.DbController.roomColl, (result) => {
+        };
+        CompanyManager.prototype.getMyOrganizeChatRooms = function (userId, callback) {
+            DbClient.FindDocuments(Mdb.DbController.roomColl, function (result) {
                 callback(null, result);
             }, { type: room.RoomType.organizationGroup, status: room.RoomStatus.active, members: { $elemMatch: { id: userId } } });
-        }
-        GetCompanyMembers(projection, callback) {
+        };
+        CompanyManager.prototype.GetCompanyMembers = function (projection, callback) {
             this.dataAccessService.getFirstQueryMembers(projection, callback);
-        }
-    }
-    CompanyManager._instance = null;
+        };
+        CompanyManager._instance = null;
+        return CompanyManager;
+    }());
     Controller.CompanyManager = CompanyManager;
-    class MemberDataAccessService {
-        constructor() {
+    var MemberDataAccessService = (function () {
+        function MemberDataAccessService() {
         }
-        getFirstQueryMembers(projection, callback) {
+        MemberDataAccessService.prototype.getFirstQueryMembers = function (projection, callback) {
             MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
@@ -58,7 +59,8 @@ var Controller;
                     db.close();
                 });
             });
-        }
-    }
+        };
+        return MemberDataAccessService;
+    }());
 })(Controller || (Controller = {}));
 module.exports = Controller;

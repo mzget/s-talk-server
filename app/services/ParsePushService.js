@@ -1,22 +1,19 @@
 "use strict";
-const https = require('https');
-const http = require("http");
-const MWebConfig = require('../../config/WebConfig');
-const configJson = require('../../config/webConfig.json');
-class ParsePushService {
-    constructor() {
-        this.webConfig = new MWebConfig.WebConfig();
-        this.webConfig = JSON.parse(JSON.stringify(configJson));
+var https = require('https');
+var http = require("http");
+var config_1 = require('../../config/config');
+var ParsePushService = (function () {
+    function ParsePushService() {
     }
-    queryingInstallations() {
+    ParsePushService.prototype.queryingInstallations = function () {
         var options = {
-            hostname: this.webConfig.pushServer,
+            hostname: config_1.Config.pushServer,
             port: 443,
             path: "/1/installations",
             method: 'GET',
             headers: {
-                'X-Parse-Application-Id': this.webConfig.ParseApplicationId,
-                'X-Parse-Master-Key': this.webConfig.ParseMasterKey
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-Master-Key': config_1.Config.ParseMasterKey
             }
         };
         var req = https.request(options, function (res) {
@@ -32,10 +29,10 @@ class ParsePushService {
             });
         });
         req.end();
-    }
-    sendPushToChannels(channels, alert) {
+    };
+    ParsePushService.prototype.sendPushToChannels = function (channels, alert) {
         //var data = "{\"where\": { \"channels\": \"RFL\" }, \"data\": { \"alert\": \"The Giants scored a run! The score is now 2-2.\"}}";
-        let self = this;
+        var self = this;
         var data = {
             "where": {
                 "channels": channels
@@ -46,13 +43,13 @@ class ParsePushService {
         };
         var postJson = JSON.stringify(data);
         var options = {
-            hostname: self.webConfig.pushServer,
+            hostname: config_1.Config.pushServer,
             port: 443,
             path: "/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-REST-API-Key': config_1.Config.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };
@@ -61,7 +58,7 @@ class ParsePushService {
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
                 console.log('Response: ' + data);
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -73,9 +70,9 @@ class ParsePushService {
         });
         request.write(postJson);
         request.end();
-    }
-    sendPushToInstallationsId(installationsId, alert) {
-        let self = this;
+    };
+    ParsePushService.prototype.sendPushToInstallationsId = function (installationsId, alert) {
+        var self = this;
         if (!installationsId || installationsId.length === 0) {
             return;
         }
@@ -91,13 +88,13 @@ class ParsePushService {
         };
         var postJson = JSON.stringify(data);
         var options = {
-            hostname: self.webConfig.pushServer,
+            hostname: config_1.Config.pushServer,
             port: 443,
             path: "/1/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-REST-API-Key': config_1.Config.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };
@@ -106,7 +103,7 @@ class ParsePushService {
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
                 console.log('Response: ' + data);
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -118,14 +115,14 @@ class ParsePushService {
         });
         request.write(postJson);
         request.end();
-    }
-    sendPushToTargetDevices(registrationIds, alert) {
-        let self = this;
+    };
+    ParsePushService.prototype.sendPushToTargetDevices = function (registrationIds, alert) {
+        var self = this;
         if (!registrationIds || registrationIds.length === 0) {
             return;
         }
         //        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
-        let data = {
+        var data = {
             "where": {
                 "deviceToken": { "$in": registrationIds }
             },
@@ -136,25 +133,25 @@ class ParsePushService {
                 "badge": "Increment"
             }
         };
-        let postJson = JSON.stringify(data);
-        let options = {
-            host: self.webConfig.pushServer,
-            port: configJson.pushPort,
-            path: configJson.pushPath,
+        var postJson = JSON.stringify(data);
+        var options = {
+            host: config_1.Config.pushServer,
+            port: config_1.Config.pushPort,
+            path: config_1.Config.pushPath,
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
-                'X-Parse-Master-Key': self.webConfig.ParseMasterKey,
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-REST-API-Key': config_1.Config.ParseRESTAPIKey,
+                'X-Parse-Master-Key': config_1.Config.ParseMasterKey,
                 'Content-Type': 'application/json'
             }
         };
-        let request = http.request(options, function (res) {
+        var request = http.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
                 console.log('Response: ' + data);
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -166,6 +163,7 @@ class ParsePushService {
         });
         request.write(postJson);
         request.end();
-    }
-}
+    };
+    return ParsePushService;
+}());
 exports.ParsePushService = ParsePushService;

@@ -9,9 +9,15 @@ var MessageType;
     MessageType[MessageType["Sticker"] = 5] = "Sticker";
 })(MessageType || (MessageType = {}));
 ;
-class MessageMeta {
-}
+var MessageMeta = (function () {
+    function MessageMeta() {
+    }
+    return MessageMeta;
+}());
 exports.MessageMeta = MessageMeta;
-class Message {
-}
+var Message = (function () {
+    function Message() {
+    }
+    return Message;
+}());
 exports.Message = Message;

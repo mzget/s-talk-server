@@ -1,7 +1,7 @@
 "use strict";
-const mongodb = require('mongodb');
+var mongodb = require('mongodb');
 var Db = mongodb.Db, MongoClient = require('mongodb').MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, ObjectID = mongodb.ObjectID, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
-const config_1 = require('../../config/config');
+var config_1 = require('../../config/config');
 var DbController;
 (function (DbController) {
     // Connection URL
@@ -12,8 +12,8 @@ var DbController;
     DbController.messageColl = "messages";
     DbController.userColl = "users";
     DbController.companyColl = "company";
-    class DbClient {
-        constructor() {
+    var DbClient = (function () {
+        function DbClient() {
             this.insertDocuments = function (db, callback) {
                 // Get the documents collection
                 var collection = db.collection('documents');
@@ -44,14 +44,14 @@ var DbController;
             }
             DbClient._Instance = this;
         }
-        static GetInstance() {
+        DbClient.GetInstance = function () {
             if (!DbClient._Instance) {
                 console.info("Instancetiate dbclient");
                 DbClient._Instance = new DbClient();
             }
             return DbClient._Instance;
-        }
-        InsertTables(target, schema) {
+        };
+        DbClient.prototype.InsertTables = function (target, schema) {
             // Use connect method to connect to the Server
             MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -67,9 +67,9 @@ var DbController;
                     //});
                 });
             });
-        }
+        };
         ///* require table, callback, document.
-        InsertDocument(table, callback, doc) {
+        DbClient.prototype.InsertDocument = function (table, callback, doc) {
             // Use connect method to connect to the Server
             MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -85,8 +85,8 @@ var DbController;
                     db.close();
                 });
             });
-        }
-        UpdateDocuments(table, callback, criteria, updateAction, options) {
+        };
+        DbClient.prototype.UpdateDocuments = function (table, callback, criteria, updateAction, options) {
             // Use connect method to connect to the Server
             MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -103,8 +103,8 @@ var DbController;
                     db.close();
                 });
             });
-        }
-        UpdateDocument(table, callback, criteria, updateAction, options) {
+        };
+        DbClient.prototype.UpdateDocument = function (table, callback, criteria, updateAction, options) {
             // Use connect method to connect to the Server
             MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -120,8 +120,8 @@ var DbController;
                     db.close();
                 });
             });
-        }
-        FindDocuments(table, callback, query, projection) {
+        };
+        DbClient.prototype.FindDocuments = function (table, callback, query, projection) {
             // Use connect method to connect to the Server
             MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -164,8 +164,8 @@ var DbController;
                     });
                 }
             });
-        }
-        FindDocument(table, callback, query, projection) {
+        };
+        DbClient.prototype.FindDocument = function (table, callback, query, projection) {
             // Use connect method to connect to the Server
             MongoClient.connect(DbController.spartanChatDb_URL, function (err, db) {
                 if (err) {
@@ -173,7 +173,7 @@ var DbController;
                 }
                 assert.equal(null, err);
                 // Get the documents collection
-                let collection = db.collection(table);
+                var collection = db.collection(table);
                 if (query === undefined || query === null) {
                     collection.findOne(function (err, doc) {
                         assert.equal(null, err);
@@ -199,8 +199,8 @@ var DbController;
                     });
                 }
             });
-        }
-        findDocuments(db, target, schema, callback) {
+        };
+        DbClient.prototype.findDocuments = function (db, target, schema, callback) {
             // Get the documents collection
             var collection = db.collection(target);
             // Find some documents
@@ -209,8 +209,8 @@ var DbController;
                 console.log("Found the following records", docs);
                 callback(docs);
             }));
-        }
-        GirdInsert() {
+        };
+        DbClient.prototype.GirdInsert = function () {
             // Connect to the db
             //MongoClient.connect(spartanChatFile, function (err, db) {
             //    if (err) return console.dir(err);
@@ -222,8 +222,9 @@ var DbController;
             //        }
             //    });
             //});
-        }
-    }
+        };
+        return DbClient;
+    }());
     DbController.DbClient = DbClient;
 })(DbController = exports.DbController || (exports.DbController = {}));
 ;

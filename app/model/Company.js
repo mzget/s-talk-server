@@ -1,4 +1,7 @@
 "use strict";
-class Company {
-}
+var Company = (function () {
+    function Company() {
+    }
+    return Company;
+}());
 exports.Company = Company;

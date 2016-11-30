@@ -1,8 +1,8 @@
 "use strict";
-const Code_1 = require('../../shared/Code');
-const dispatcher = require('../util/dispatcher');
-class AccountService {
-    constructor(app) {
+var Code_1 = require('../../shared/Code');
+var dispatcher = require('../util/dispatcher');
+var AccountService = (function () {
+    function AccountService(app) {
         this.uidMap = {};
         this.nameMap = {};
         this.channelMap = {};
@@ -63,23 +63,27 @@ class AccountService {
         this.nameMap = {};
         this.channelMap = {};
     }
-    get OnlineUsers() {
-        if (!this.onlineUsers)
-            this.onlineUsers = {};
-        return this.onlineUsers;
-    }
-    getOnlineUser(userId, cb) {
+    Object.defineProperty(AccountService.prototype, "OnlineUsers", {
+        get: function () {
+            if (!this.onlineUsers)
+                this.onlineUsers = {};
+            return this.onlineUsers;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    AccountService.prototype.getOnlineUser = function (userId, cb) {
         if (!this.onlineUsers)
             this.onlineUsers = {};
         if (!this.onlineUsers[userId]) {
-            let errMsg = "Specific uid is not online.";
+            var errMsg = "Specific uid is not online.";
             cb(errMsg, null);
             return;
         }
-        let user = this.onlineUsers[userId];
+        var user = this.onlineUsers[userId];
         cb(null, user);
-    }
-    addOnlineUser(user, callback) {
+    };
+    AccountService.prototype.addOnlineUser = function (user, callback) {
         console.log("chatService.addOnlineUser");
         if (!this.onlineUsers)
             this.onlineUsers = {};
@@ -90,42 +94,51 @@ class AccountService {
             console.warn("onlineUsers dict already has value.!");
         }
         callback();
-    }
-    removeOnlineUser(userId) {
+    };
+    AccountService.prototype.removeOnlineUser = function (userId) {
         delete this.onlineUsers[userId];
-    }
-    get userTransaction() {
-        if (!this._userTransaction)
-            this._userTransaction = {};
-        return this._userTransaction;
-    }
-    get RoomsMap() {
-        return this.roomsMap;
-    }
-    setRoomsMap(data, callback) {
+    };
+    Object.defineProperty(AccountService.prototype, "userTransaction", {
+        get: function () {
+            if (!this._userTransaction)
+                this._userTransaction = {};
+            return this._userTransaction;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AccountService.prototype, "RoomsMap", {
+        get: function () {
+            return this.roomsMap;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    AccountService.prototype.setRoomsMap = function (data, callback) {
+        var _this = this;
         console.log("ChatService.setRoomMembers");
         if (!this.roomsMap)
             this.roomsMap = {};
-        data.forEach(element => {
+        data.forEach(function (element) {
             var room = JSON.parse(JSON.stringify(element));
-            if (!this.roomsMap[element.id]) {
-                this.roomsMap[element._id] = room;
+            if (!_this.roomsMap[element.id]) {
+                _this.roomsMap[element._id] = room;
             }
         });
         callback();
-    }
-    getRoom(roomId, callback) {
+    };
+    AccountService.prototype.getRoom = function (roomId, callback) {
         if (!this.roomsMap[roomId]) {
             callback("Have no a roomId in roomMembers dict.", null);
             return;
         }
-        let room = this.roomsMap[roomId];
+        var room = this.roomsMap[roomId];
         callback(null, room);
-    }
+    };
     /**
     * Require Room object. Must be { Room._id, Room.members }
     */
-    addRoom(data) {
+    AccountService.prototype.addRoom = function (data) {
         var room = JSON.parse(JSON.stringify(data));
         if (!this.roomsMap[room._id]) {
             this.roomsMap[room._id] = room;
@@ -133,7 +146,7 @@ class AccountService {
         else {
             this.roomsMap[room._id] = room;
         }
-    }
+    };
     /**
      * Add player into the channel
      *
@@ -142,7 +155,7 @@ class AccountService {
      * @param {String} channelName channel name
      * @return {Number} see code.js
      */
-    add(uid, playerName, channelName) {
+    AccountService.prototype.add = function (uid, playerName, channelName) {
         var sid = this.getSidByUid(uid, this.app);
         if (!sid) {
             return Code_1.default.CHAT.FA_UNKNOWN_CONNECTOR;
@@ -157,21 +170,21 @@ class AccountService {
         channel.add(uid, sid);
         this.addRecord(this, uid, playerName, sid, channelName);
         return Code_1.default.OK;
-    }
+    };
     /**
      * User leaves the channel
      *
      * @param  {String} uid         user id
      * @param  {String} channelName channel name
      */
-    leave(uid, channelName) {
+    AccountService.prototype.leave = function (uid, channelName) {
         var record = this.uidMap[uid];
         var channel = this.app.get('channelService').getChannel(channelName, true);
         if (channel && record) {
             channel.leave(uid, record.sid);
         }
         this.removeRecord(this, uid, channelName);
-    }
+    };
     /**
      * Kick user from chat service.
      * This operation would remove the user from all channels and
@@ -179,7 +192,7 @@ class AccountService {
      *
      * @param  {String} uid user id
      */
-    kick(uid) {
+    AccountService.prototype.kick = function (uid) {
         var channelNames = this.channelMap[uid];
         var record = this.uidMap[uid];
         if (channelNames && record) {
@@ -193,7 +206,7 @@ class AccountService {
             }
         }
         this.clearRecords(this, uid);
-    }
+    };
     /**
      * Push message by the specified channel
      *
@@ -201,14 +214,14 @@ class AccountService {
      * @param  {Object}   msg         message json object
      * @param  {Function} cb          callback function
      */
-    pushByChannel(channelName, msg, cb) {
+    AccountService.prototype.pushByChannel = function (channelName, msg, cb) {
         var channel = this.app.get('channelService').getChannel(channelName);
         if (!channel) {
             cb(new Error('channel ' + channelName + ' dose not exist'));
             return;
         }
         //    channel.pushMessage(Event.chat, msg, cb);
-    }
+    };
     /**
      * Push message to the specified player
      *
@@ -216,13 +229,14 @@ class AccountService {
      * @param  {Object}   msg        message json object
      * @param  {Function} cb         callback
      */
-    pushByPlayerName(playerName, msg, cb) {
+    AccountService.prototype.pushByPlayerName = function (playerName, msg, cb) {
         var record = this.nameMap[playerName];
         if (!record) {
             cb(null, Code_1.default.CHAT.FA_USER_NOT_ONLINE);
             return;
         }
         //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
-    }
-}
+    };
+    return AccountService;
+}());
 exports.AccountService = AccountService;

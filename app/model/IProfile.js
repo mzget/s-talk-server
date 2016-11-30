@@ -1,8 +1,11 @@
 "use strict";
 var IProfile;
 (function (IProfile) {
-    class Profile {
-    }
+    var Profile = (function () {
+        function Profile() {
+        }
+        return Profile;
+    }());
     IProfile.Profile = Profile;
 })(IProfile || (IProfile = {}));
 module.exports = IProfile;

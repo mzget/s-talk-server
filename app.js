@@ -1,7 +1,7 @@
 "use strict";
-const pomelo = require('pomelo');
-const routeUtil_1 = require('./app/util/routeUtil');
-const accountService_1 = require('./app/services/accountService');
+var pomelo = require('pomelo');
+var routeUtil_1 = require('./app/util/routeUtil');
+var accountService_1 = require('./app/services/accountService');
 global.rootRequire = function (name) {
     return require(__dirname + '/' + name);
 };
@@ -13,7 +13,7 @@ process.on('uncaughtException', function (err) {
 /**
  * Init app for client.
  */
-const app = pomelo.createApp();
+var app = pomelo.createApp();
 app.set('name', 'stalk-node-server');
 // app configure
 app.configure('production|development', function () {
