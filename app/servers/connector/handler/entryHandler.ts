@@ -10,7 +10,7 @@ import async = require('async');
 import mongodb = require('mongodb');
 import request = require('request');
 
-const Config = require(_dir + '/config/config');
+import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
@@ -28,7 +28,6 @@ module.exports = function (app) {
 
 const Handler = function (app) {
 	this.app = app;
-	this.webServer = Config.webserver;
 
 	channelService = app.get('channelService');
 };
@@ -124,10 +123,10 @@ handler.kickMe = function (msg, session, next) {
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
 
 	//!-- log user out.
-	this.app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-	userDAL.prototype.removeAllRegistrationId(session.uid);
+	this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
+	userDAL.prototype.removeAllRegistrationId(msg.uid);
 
-	next(null, null);
+	next(null, { message: "kicked! " + msg.uid });
 }
 
 /**
@@ -139,7 +138,7 @@ handler.getMe = function (msg, session, next) {
 	let self = this;
 	let token = msg.token;
 	if (!token) {
-		var errMsg = 'invalid entry request: empty token';
+		let errMsg = 'invalid entry request: empty token';
 		next(new Error(errMsg), { code: Code.FAIL, message: errMsg });
 		return;
 	}
@@ -149,44 +148,16 @@ handler.getMe = function (msg, session, next) {
 	}, Config.timeout);
 
 	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+		console.log("token verify", err, res);
 		if (err) {
-			console.log(err);
 			next(err, res);
 			clearTimeout(timeOut);
 		}
 		else {
-			self.app.rpc.auth.authRemote.me(session, msg, function (result) {
+			let user = res.decoded;
+			self.app.rpc.auth.authRemote.me(session, user, function (result) {
 				next(null, result);
-
 				clearTimeout(timeOut);
-
-				let onGetMe = {
-					route: Code.sharedEvents.onGetMe,
-					data: result
-				};
-				let uidsGroup = [];
-				let group = {
-					uid: session.uid,
-					sid: self.app.get('serverId')
-				};
-				uidsGroup.push(group);
-				channelService.pushMessageByUids(onGetMe.route, onGetMe.data, uidsGroup);
-
-				let profile: User.StalkAccount = JSON.parse(JSON.stringify(result.data));
-				let onlineUser = new User.OnlineUser();
-				onlineUser.uid = profile._id;
-				onlineUser.username = profile.username;
-				onlineUser.serverId = session.frontendId;
-				onlineUser.registrationIds = profile.deviceTokens;
-
-				let userTransaction = new User.UserTransaction();
-				userTransaction.uid = profile._id;
-				userTransaction.username = profile.username;
-
-				console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
-
-				self.app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
-				self.app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
 			});
 		}
 	});
@@ -238,10 +209,10 @@ function addOnlineUser(app, session, tokenDecoded: DecodedToken) {
 * Return : null.
 */
 handler.getLastAccessRooms = function (msg, session, next) {
-	var self = this;
-	var uid = session.uid;
+	let self = this;
+	let uid = session.uid;
 	if (!uid) {
-		var errMsg = "Require userId is empty or null.";
+		let errMsg = "Require userId is empty or null.";
 		next(null, { code: Code.FAIL, message: errMsg });
 		console.warn(errMsg);
 		return;
@@ -257,20 +228,22 @@ handler.getLastAccessRooms = function (msg, session, next) {
 			}
 		});
 	}], (err, results) => {
-		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
-			var onAccessRooms = {
-				route: Code.sharedEvents.onAccessRooms,
-				data: res
-			};
-			var user: User.OnlineUser = results[0];
-			if (user) {
-				var uidsGroup = new Array();
-				var group = {
-					uid: user.uid,
-					sid: user.serverId
+		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res: Array<any>) {
+			if (err || res.length > 0) {
+				let onAccessRooms = {
+					route: Code.sharedEvents.onAccessRooms,
+					data: res
 				};
-				uidsGroup.push(group);
-				channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+				let user: User.OnlineUser = results[0];
+				if (user) {
+					let uidsGroup = new Array();
+					let group = {
+						uid: user.uid,
+						sid: user.serverId
+					};
+					uidsGroup.push(group);
+					channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+				}
 			}
 		});
 	});
@@ -363,35 +336,44 @@ handler.getCompanyMember = function (msg, session, next) {
 }
 
 handler.getCompanyChatRoom = function (msg, session, next) {
-	let self = this;
-	let token = msg.token;
-	let uid = session.uid;
-	companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
-		let result;
-		if (res !== null) {
-			console.log("GetCompanyChatRooms: ", res.length);
-
-			result = JSON.parse(JSON.stringify(res));
-
-			updateRoomsMap(self.app, session, result);
+	var self = this;
+	var token = msg.token;
+	var uid = session.uid;
+	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+		if (err) {
+			console.log(err);
+			next(err, { code: Code.FAIL, message: err });
+			return;
 		}
 		else {
-			console.log("Fail to getCompanyChatRooms");
-			result = null;
+			companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
+				var result;
+				if (res !== null) {
+					console.log("GetCompanyChatRooms: ", res.length);
+
+					result = JSON.parse(JSON.stringify(res));
+
+					updateRoomsMap(self.app, session, result);
+				}
+				else {
+					console.log("Fail to getCompanyChatRooms");
+					result = null;
+				}
+
+				var params = {
+					route: Code.sharedEvents.onGetOrganizeGroups,
+					data: result
+				};
+
+				var target = new Array();
+				target.push({ uid: session.uid, sid: self.app.get('serverId') });
+
+				channelService.pushMessageByUids(params.route, params.data, target);
+			});
 		}
 
-		var params = {
-			route: Code.sharedEvents.onGetOrganizeGroups,
-			data: result
-		};
-
-		var target = new Array();
-		target.push({ uid: session.uid, sid: self.app.get('serverId') });
-
-		channelService.pushMessageByUids(params.route, params.data, target);
+		next(null, { code: Code.OK });
 	});
-
-	next(null, { code: Code.OK });
 }
 
 handler.getProjectBaseGroups = function (msg, session, next) {

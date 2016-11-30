@@ -9,7 +9,7 @@ var UserManager_1 = require('../../../controller/UserManager');
 var async = require('async');
 var mongodb = require('mongodb');
 var request = require('request');
-var Config = require(_dir + '/config/config');
+var config_1 = require('../../../../config/config');
 var ObjectID = mongodb.ObjectID;
 var tokenService = new tokenService_1.default();
 var companyManager = CompanyController.CompanyManager.getInstance();
@@ -21,7 +21,6 @@ module.exports = function (app) {
 };
 var Handler = function (app) {
     this.app = app;
-    this.webServer = Config.webserver;
     channelService = app.get('channelService');
 };
 var handler = Handler.prototype;
@@ -34,7 +33,7 @@ handler.login = function (msg, session, next) {
     var self = this;
     var token = msg.token;
     var options = {
-        url: Config.api.authen,
+        url: config_1.Config.api.authen,
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -98,9 +97,9 @@ var logOut = function (app, session, next) {
 handler.kickMe = function (msg, session, next) {
     session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
     //!-- log user out.
-    this.app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-    userDAL.prototype.removeAllRegistrationId(session.uid);
-    next(null, null);
+    this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
+    userDAL.prototype.removeAllRegistrationId(msg.uid);
+    next(null, { message: "kicked! " + msg.uid });
 };
 /**
 * require user, password, and token.
@@ -117,40 +116,18 @@ handler.getMe = function (msg, session, next) {
     }
     var timeOut = setTimeout(function () {
         next(null, { code: Code_1.default.FAIL, message: "getMe timeout..." });
-    }, Config.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+        console.log("token verify", err, res);
         if (err) {
-            console.log(err);
             next(err, res);
             clearTimeout(timeOut);
         }
         else {
-            self.app.rpc.auth.authRemote.me(session, msg, function (result) {
+            var user = res.decoded;
+            self.app.rpc.auth.authRemote.me(session, user, function (result) {
                 next(null, result);
                 clearTimeout(timeOut);
-                var onGetMe = {
-                    route: Code_1.default.sharedEvents.onGetMe,
-                    data: result
-                };
-                var uidsGroup = [];
-                var group = {
-                    uid: session.uid,
-                    sid: self.app.get('serverId')
-                };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onGetMe.route, onGetMe.data, uidsGroup);
-                var profile = JSON.parse(JSON.stringify(result.data));
-                var onlineUser = new User.OnlineUser();
-                onlineUser.uid = profile._id;
-                onlineUser.username = profile.username;
-                onlineUser.serverId = session.frontendId;
-                onlineUser.registrationIds = profile.deviceTokens;
-                var userTransaction = new User.UserTransaction();
-                userTransaction.uid = profile._id;
-                userTransaction.username = profile.username;
-                console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
-                self.app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
-                self.app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
             });
         }
     });
@@ -213,19 +190,21 @@ handler.getLastAccessRooms = function (msg, session, next) {
             });
         }], function (err, results) {
         UserManager_1.UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
-            var onAccessRooms = {
-                route: Code_1.default.sharedEvents.onAccessRooms,
-                data: res
-            };
-            var user = results[0];
-            if (user) {
-                var uidsGroup = new Array();
-                var group = {
-                    uid: user.uid,
-                    sid: user.serverId
+            if (err || res.length > 0) {
+                var onAccessRooms = {
+                    route: Code_1.default.sharedEvents.onAccessRooms,
+                    data: res
                 };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+                var user = results[0];
+                if (user) {
+                    var uidsGroup = new Array();
+                    var group = {
+                        uid: user.uid,
+                        sid: user.serverId
+                    };
+                    uidsGroup.push(group);
+                    channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+                }
             }
         });
     });
@@ -236,7 +215,7 @@ handler.getCompanyInfo = function (msg, session, next) {
     var token = msg.token;
     var timeout = setTimeout(function () {
         next(null, { code: Code_1.default.FAIL, message: "getCompanyInfo timeout..." });
-    }, Config.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
         if (err) {
             console.log(err);
@@ -306,26 +285,35 @@ handler.getCompanyChatRoom = function (msg, session, next) {
     var self = this;
     var token = msg.token;
     var uid = session.uid;
-    companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
-        var result;
-        if (res !== null) {
-            console.log("GetCompanyChatRooms: ", res.length);
-            result = JSON.parse(JSON.stringify(res));
-            updateRoomsMap(self.app, session, result);
+    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+        if (err) {
+            console.log(err);
+            next(err, { code: Code_1.default.FAIL, message: err });
+            return;
         }
         else {
-            console.log("Fail to getCompanyChatRooms");
-            result = null;
+            companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
+                var result;
+                if (res !== null) {
+                    console.log("GetCompanyChatRooms: ", res.length);
+                    result = JSON.parse(JSON.stringify(res));
+                    updateRoomsMap(self.app, session, result);
+                }
+                else {
+                    console.log("Fail to getCompanyChatRooms");
+                    result = null;
+                }
+                var params = {
+                    route: Code_1.default.sharedEvents.onGetOrganizeGroups,
+                    data: result
+                };
+                var target = new Array();
+                target.push({ uid: session.uid, sid: self.app.get('serverId') });
+                channelService.pushMessageByUids(params.route, params.data, target);
+            });
         }
-        var params = {
-            route: Code_1.default.sharedEvents.onGetOrganizeGroups,
-            data: result
-        };
-        var target = new Array();
-        target.push({ uid: session.uid, sid: self.app.get('serverId') });
-        channelService.pushMessageByUids(params.route, params.data, target);
+        next(null, { code: Code_1.default.OK });
     });
-    next(null, { code: Code_1.default.OK });
 };
 handler.getProjectBaseGroups = function (msg, session, next) {
     var self = this;
@@ -428,7 +416,7 @@ handler.enterRoom = function (msg, session, next) {
     var timeOut_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
         return;
-    }, Config.timeout);
+    }, config_1.Config.timeout);
     chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
         self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
         self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {

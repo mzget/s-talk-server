@@ -1,4 +1,5 @@
 "use strict";
+var mongodb = require("mongodb");
 var Code_1 = require('../../../../shared/Code');
 var tokenService_1 = require('../../../services/tokenService');
 var UserManager_1 = require('../../../controller/UserManager');
@@ -73,6 +74,9 @@ remote.getUserTransaction = function (uid, cb) {
 remote.getRoomMap = function (rid, callback) {
     accountService.getRoom(rid, callback);
 };
+remote.addRoom = function (room) {
+    accountService.addRoom(room);
+};
 remote.updateRoomMembers = function (data, cb) {
     accountService.addRoom(data);
     if (!!cb) {
@@ -137,11 +141,8 @@ remote.tokenService = function (bearerToken, cb) {
  * require => username, password, bearerToken
  */
 remote.me = function (msg, cb) {
-    var username = msg.username;
-    var password = msg.password;
-    var bearerToken = msg.token;
-    var query = { username: username.toLowerCase() };
-    var projection = { roomAccess: 0 };
+    var query = { _id: new mongodb.ObjectID(msg._id) };
+    var projection = {};
     new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
         if (err || res === null) {
             var errMsg = "Get my user data is invalid.";
@@ -153,19 +154,21 @@ remote.me = function (msg, cb) {
     });
 };
 remote.myProfile = function (userId, cb) {
-    UserManager_1.UserManager.getInstance().getMemberProfile(userId, function (err, res) {
-        if (res === null) {
+    var query = { _id: new mongodb.ObjectID(userId) };
+    var projection = { roomAccess: 0 };
+    UserManager_1.UserDataAccessService.prototype.getUserProfile(query, projection, function (err, res) {
+        if (res === null || res.length == 0) {
             var errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
-            cb({ code: Code_1.default.FAIL, message: errMsg });
+            console.warn(errMsg);
+            cb({ code: Code_1.default.FAIL, result: errMsg });
             return;
         }
-        cb({ code: Code_1.default.OK, data: res });
+        cb({ code: Code_1.default.OK, result: res });
     });
 };
-remote.auth = function (username, password, callback) {
-    var query = { username: username };
-    var projection = { username: 1, password: 1 };
+remote.auth = function (email, password, callback) {
+    var query = { email: email };
+    var projection = { email: 1, password: 1 };
     new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
         if (!err && res.length > 0) {
             onAuthentication(password, res[0], callback);
@@ -176,28 +179,43 @@ remote.auth = function (username, password, callback) {
     });
 };
 var onAuthentication = function (_password, userInfo, callback) {
+    console.log("onAuthentication: ", userInfo);
     if (userInfo !== null) {
         var obj_1 = JSON.parse(JSON.stringify(userInfo));
-        if (obj_1.password == _password) {
+        if (obj_1.password === _password) {
             accountService.getOnlineUser(obj_1._id, function (error, user) {
                 if (!user) {
                     // if user is found and password is right
                     // create a token
                     tokenService.signToken(obj_1, function (err, encode) {
-                        callback(null, { code: Code_1.default.OK, uid: obj_1._id, token: encode });
+                        callback({
+                            code: Code_1.default.OK,
+                            uid: obj_1._id,
+                            token: encode
+                        });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback(null, { code: Code_1.default.DuplicatedLogin, message: "duplicate log in.", uid: obj_1._id, });
+                    callback({
+                        code: Code_1.default.DuplicatedLogin,
+                        message: "duplicate log in.",
+                        uid: obj_1._id,
+                    });
                 }
             });
         }
         else {
-            callback(null, { code: Code_1.default.FAIL, message: failedPassword });
+            callback({
+                code: Code_1.default.FAIL,
+                message: "Authentication failed. User not found."
+            });
         }
     }
     else {
-        callback(null, { code: Code_1.default.FAIL, message: userNotFound });
+        callback({
+            code: Code_1.default.FAIL,
+            message: "Authentication failed. User not found."
+        });
     }
 };
