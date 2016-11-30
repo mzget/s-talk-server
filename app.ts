@@ -5,7 +5,6 @@ import { AccountService } from './app/services/accountService';
 //var netserver = require('./app/util/netServer');
 import webConfig = require('./config/config');
 
-global._dir = __dirname;
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {

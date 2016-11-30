@@ -1,7 +1,7 @@
 "use strict";
 var async = require('async');
 var Code_1 = require("../../../../shared/Code");
-var webConfig = require();
+var config_1 = require("../../../../config/config");
 var channelService;
 module.exports = function (app) {
     return new Handler(app);
@@ -16,7 +16,7 @@ handler.push = function (msg, session, next) {
     var self = this;
     var timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "Push message timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     //<!-- send callback to user who send chat msg.
     var sessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
     var params = {

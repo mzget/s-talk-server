@@ -3,7 +3,7 @@ import async = require('async');
 import Code, { SessionInfo } from "../../../../shared/Code";
 import * as User from '../../../model/User';
 import * as Room from "../../../model/Room";
-import webConfig = require(_dir + "/config/config");
+import { Config } from "../../../../config/config";
 var channelService;
 
 
@@ -24,7 +24,7 @@ handler.push = function (msg, session, next) {
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "Push message timeout..." });
-    }, webConfig.timeout);
+    }, Config.timeout);
 
     //<!-- send callback to user who send chat msg.
     let sessionInfo: SessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
