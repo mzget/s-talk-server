@@ -78,14 +78,12 @@ remote.kick = function (user, sid, rid, cb) {
         console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
         userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
             console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
-            if (err || !res)
-                return;
             let targetId = { uid: user.uid, sid: user.serverId };
             let group = new Array();
             group.push(targetId);
             let param = {
                 route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
-                data: res[0]
+                data: res
             };
             channelService.pushMessageByUids(param.route, param.data, group);
         });

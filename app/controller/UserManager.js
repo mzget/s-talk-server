@@ -1,3 +1,4 @@
+/// <reference path="../../typings/index.d.ts" />
 "use strict";
 const Room = require('../model/Room');
 const RoomAccessData_1 = require('../model/RoomAccessData');
@@ -13,7 +14,7 @@ class UserManager {
     constructor() {
         this.userDataAccess = new UserDataAccessService();
         this.onInsertRoomAccessInfoDone = function (uid, rid, callback) {
-            MongoClient.connect(Mdb.DbController.chatDB).then(db => {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
                 let collection = db.collection(Mdb.DbController.userColl);
                 collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(docs => {
                     console.log("find roomAccessInfo of uid %s", uid, docs[0]);
@@ -59,7 +60,7 @@ class UserManager {
     updateLastAccessTimeOfRoom(uid, rid, date, callback) {
         let self = this;
         async.waterfall([function (cb) {
-                MongoClient.connect(Mdb.DbController.chatDB).then(db => {
+                MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
                     let collection = db.collection(Mdb.DbController.userColl);
                     collection.find({ _id: new ObjectID(uid) }).limit(1).project({ roomAccess: 1 }).toArray().then(docs => {
                         cb(null, docs[0]);
@@ -131,6 +132,11 @@ class UserManager {
             this.userDataAccess.removeClosedNoticeGroupList(group, uid, callback);
         }
     }
+    getMemberProfile(uid, callback) {
+        let query = { _id: new ObjectID(uid) };
+        let projection = { roomAccess: 0 };
+        this.userDataAccess.getUserProfile(query, projection, callback);
+    }
     /**
     * Check creator permission for create ProjectBase Group requesting.
     * res will return { _id, role } of user model.
@@ -148,7 +154,7 @@ class UserManager {
     }
     checkUnsubscribeRoom(userId, roomType, roomId, callback) {
         if (roomType === Room.RoomType.privateGroup) {
-            MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
                 if (err) {
                     return console.dir(err);
                 }
@@ -167,7 +173,7 @@ class UserManager {
             });
         }
         else if (roomType === Room.RoomType.privateChat) {
-            MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
                 if (err) {
                     return console.dir(err);
                 }
@@ -195,7 +201,7 @@ class UserDataAccessService {
             if (rid === null) {
                 console.warn("rid is invalid: careful for use this func: ", rid);
             }
-            MongoClient.connect(Mdb.DbController.chatDB, function (err, db) {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL, function (err, db) {
                 let collection = db.collection(Mdb.DbController.userColl);
                 // Peform a simple find and return all the documents
                 collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid.toString() } } }).toArray(function (err, docs) {
@@ -234,7 +240,7 @@ class UserDataAccessService {
             newRoomAccessInfos[0] = new RoomAccessData_1.default();
             newRoomAccessInfos[0].roomId = rid;
             newRoomAccessInfos[0].accessTime = new Date();
-            MongoClient.connect(Mdb.DbController.chatDB).then(db => {
+            MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
                 // Get a collection
                 let collection = db.collection(Mdb.DbController.userColl);
                 collection.updateOne({ _id: new ObjectID(uid) }, { $set: { roomAccess: newRoomAccessInfos } }, { upsert: true, w: 1 }).then(result => {
@@ -255,56 +261,32 @@ class UserDataAccessService {
         }, { _id: new ObjectID(uid) }, { lastEditProfile: 1 });
     }
     getRoomAccessForUser(uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
-            let userColl = db.collection(Mdb.DbController.userColl);
-            userColl.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(docs => {
-                db.close();
-                callback(null, docs);
-            }).catch(err => {
-                db.close();
-                callback(err, null);
-            });
-        }).catch(err => {
-            callback(err, null);
-        });
+        DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
+            callback(null, result);
+        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
     }
     AddRidToRoomAccessField(uid, roomId, date, callback) {
-        let self = this;
-        mongodb.MongoClient.connect(Mdb.DbController.chatDB).then(db => {
-            let userCollection = db.collection(Mdb.DbController.userColl);
-            userCollection.find({ _id: new ObjectID(uid) }, { roomAccess: 1 }).limit(1).toArray().then(docs => {
-                if (docs.length > 0 && !!docs[0].roomAccess) {
-                    //<!-- add rid to MembersFields.
-                    self.findRoomAccessDataMatchWithRoomId(uid, roomId, date, (err, res) => {
-                        if (err) {
-                            console.warn("findRoomAccessDataMatchWithRoomId: ", err);
-                            db.close();
-                            if (callback !== null)
-                                callback(err, null);
-                        }
-                        else {
-                            console.log("findRoomAccessDataMatchWithRoomId: ", res.result);
-                            db.close();
-                            if (callback !== null)
-                                callback(null, res);
-                        }
-                    });
-                }
-                else {
-                    db.close();
-                    self.InsertMembersFieldsToUserModel(uid, roomId, date, callback);
-                }
-            }).catch(err => {
-                console.warn("cannot find item .", err);
-                db.close();
-                if (callback !== null)
-                    callback(err, null);
-            });
-        }).catch(err => {
-            console.warn("cannot connect db.", err);
-            if (!!callback)
-                callback(err, null);
-        });
+        var self = this;
+        DbClient.FindDocument(Mdb.DbController.userColl, function (res) {
+            if (!res.roomAccess) {
+                self.InsertMembersFieldsToUserModel(uid, roomId, date, callback);
+            }
+            else {
+                //<!-- add rid to MembersFields.
+                self.findRoomAccessDataMatchWithRoomId(uid, roomId, date, (err, res) => {
+                    if (err) {
+                        console.error("findRoomAccessDataMatchWithRoomId: ", err);
+                        if (callback !== null)
+                            callback(err, null);
+                    }
+                    else {
+                        console.log("findRoomAccessDataMatchWithRoomId: ", res.result);
+                        if (callback !== null)
+                            callback(null, res);
+                    }
+                });
+            }
+        }, { _id: new ObjectID(uid) }, { roomAccess: 1 });
     }
     InsertMembersFieldsToUserModel(uid, roomId, date, callback) {
         var newRoomAccessInfos = new Array();
@@ -323,17 +305,17 @@ class UserDataAccessService {
         }, { _id: new ObjectID(uid) }, { $set: { image: newUrl, lastEditProfile: new Date() } }, { w: 1, upsert: true });
     }
     getRoomAccessOfRoom(uid, rid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
             // Get the documents collection
             let collection = db.collection(Mdb.DbController.userColl);
             collection.find({ _id: new ObjectID(uid) }).project({ roomAccess: { $elemMatch: { roomId: rid } }, _id: 0 }).limit(1).toArray()
                 .then(docs => {
-                console.log("getRoomAccessOfRoom", docs);
                 db.close();
-                callback(null, docs);
+                console.log("getRoomAccessOfRoom", docs);
+                callback(null, docs[0]);
             })
                 .catch(err => {
-                console.warn("getRoomAccessOfRoom: ", err);
+                console.error("getRoomAccessOfRoom: ", err);
                 db.close();
                 callback(err, null);
             });
@@ -342,7 +324,7 @@ class UserDataAccessService {
         });
     }
     getUserProfile(query, projection, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL).then(db => {
             // Get the documents collection
             let collection = db.collection(Mdb.DbController.userColl);
             // Find some documents
@@ -361,7 +343,7 @@ class UserDataAccessService {
         });
     }
     getRole(creator, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -381,7 +363,7 @@ class UserDataAccessService {
         });
     }
     addFavoriteMembers(member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -400,7 +382,7 @@ class UserDataAccessService {
         });
     }
     removeFavoriteMembers(member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -420,7 +402,7 @@ class UserDataAccessService {
         });
     }
     addFavoriteGroup(group, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -439,7 +421,7 @@ class UserDataAccessService {
         });
     }
     removeFavoriteGroup(group, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -459,7 +441,7 @@ class UserDataAccessService {
         });
     }
     addClosedNoticeUsersList(member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -478,7 +460,7 @@ class UserDataAccessService {
         });
     }
     removeClosedNoticeUsersList(member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -498,7 +480,7 @@ class UserDataAccessService {
         });
     }
     addClosedNoticeGroupList(member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -517,7 +499,7 @@ class UserDataAccessService {
         });
     }
     removeClosedNoticeGroupList(member, uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
+        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
             if (err) {
                 return console.dir(err);
             }

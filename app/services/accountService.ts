@@ -1,5 +1,4 @@
 ﻿import Code from '../../shared/Code';
-import Collection = require('../util/collections');
 import User = require('../model/User');
 import Room = require('../model/Room');
 
@@ -75,31 +74,31 @@ export class AccountService {
     public get RoomsMap(): IRoomsMap {
         return this.roomsMap;
     }
-    setRoomsMap(data:Array<any>, callback){
-       console.log("ChatService.setRoomMembers");
-       
-       if (!this.roomsMap)
-           this.roomsMap = {};
-       
-       data.forEach(element => {
-           var room: Room.Room = JSON.parse(JSON.stringify(element));
-           if (!this.roomsMap[element.id]) {
-               this.roomsMap[element._id] = room;
-           }
-       });
-       
-       callback();
+    setRoomsMap(data: Array<any>, callback) {
+        console.log("ChatService.setRoomMembers");
+
+        if (!this.roomsMap)
+            this.roomsMap = {};
+
+        data.forEach(element => {
+            var room: Room.Room = JSON.parse(JSON.stringify(element));
+            if (!this.roomsMap[element.id]) {
+                this.roomsMap[element._id] = room;
+            }
+        });
+
+        callback();
     }
     getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
-       if (!this.roomsMap[roomId]) {
-           callback("Have no a roomId in roomMembers dict.", null);
-           return;
-       }
+        if (!this.roomsMap[roomId]) {
+            callback("Have no a roomId in roomMembers dict.", null);
+            return;
+        }
 
-       let room = this.roomsMap[roomId];
-       callback(null, room);
-   }
-   
+        let room = this.roomsMap[roomId];
+        callback(null, room);
+    }
+
     /**
     * Require Room object. Must be { Room._id, Room.members }
     */
@@ -111,8 +110,8 @@ export class AccountService {
         else {
             this.roomsMap[room._id] = room;
         }
-   }
-   
+    }
+
     constructor(app: any) {
         this.app = app;
         this.uidMap = {};
@@ -120,7 +119,7 @@ export class AccountService {
         this.channelMap = {};
     }
 
-    
+
     /**
      * Add player into the channel
      *
@@ -130,7 +129,7 @@ export class AccountService {
      * @return {Number} see code.js
      */
     add(uid, playerName, channelName) {
-        var sid = this. getSidByUid(uid, this.app);
+        var sid = this.getSidByUid(uid, this.app);
         if (!sid) {
             return Code.CHAT.FA_UNKNOWN_CONNECTOR;
         }
@@ -164,7 +163,7 @@ export class AccountService {
             channel.leave(uid, record.sid);
         }
 
-       this. removeRecord(this, uid, channelName);
+        this.removeRecord(this, uid, channelName);
     }
 
     /**
@@ -189,7 +188,7 @@ export class AccountService {
             }
         }
 
-       this. clearRecords(this, uid);
+        this.clearRecords(this, uid);
     }
 
     /**
@@ -223,7 +222,7 @@ export class AccountService {
             return;
         }
 
-//        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
+        //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
     }
 
     /**
@@ -246,7 +245,7 @@ export class AccountService {
     checkDuplicate = function (service, uid, channelName): boolean {
         return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
     };
-    
+
     /**
      * Remove records for the specified user and channel pair
      */

@@ -1,16 +1,18 @@
-﻿import mongodb = require("mongodb");
+﻿/// <reference path="../../../../typings/index.d.ts" />
+
 import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import { Room } from "../../../model/Room";
-import Generic = require('../../../util/collections');
+import code = require('../../../../shared/Code');
 import { AccountService } from '../../../services/accountService';
 import Mcontroller = require('../../../controller/ChatRoomManager');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+
 const tokenService: TokenService = new TokenService();
-let accountService: AccountService;
-let channelService;
+var accountService: AccountService;
+var channelService;
 
 const failedPassword = "Authentication failed.";
 const userNotFound = "Authentication failed. User not found.";
@@ -89,9 +91,7 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
 remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
     accountService.getRoom(rid, callback);
 }
-remote.addRoom = function (room: Room) {
-    accountService.addRoom(room);
-}
+
 remote.updateRoomMembers = function (data, cb) {
     accountService.addRoom(data);
 
@@ -150,7 +150,7 @@ remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback
 }
 
 
-remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) => void) {
+remote.tokenService = function (bearerToken: string, cb: Function) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
             console.info("ensureAuthorized error: ", err);
@@ -167,8 +167,12 @@ remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) =>
  * require => username, password, bearerToken
  */
 remote.me = function (msg, cb) {
-    let query = { _id: new mongodb.ObjectID(msg._id) };
-    let projection = {};
+    let username = msg.username;
+    let password = msg.password;
+    let bearerToken = msg.token;
+
+    let query = { username: username.toLowerCase() };
+    let projection = { roomAccess: 0 };
     new UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
         if (err || res === null) {
             let errMsg = "Get my user data is invalid.";
@@ -181,24 +185,23 @@ remote.me = function (msg, cb) {
     });
 }
 
-remote.myProfile = function (userId: string, cb: ({ code: number, result: string }) => void) {
-    let query = { _id: new mongodb.ObjectID(userId) };
-    let projection = { roomAccess: 0 };
-    UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
-        if (res === null || res.length == 0) {
-            let errMsg = "Get my user data is invalid.";
-            console.warn(errMsg);
-            cb({ code: Code.FAIL, result: errMsg });
+remote.myProfile = function (userId: string, cb: Function) {
+    UserManager.getInstance().getMemberProfile(userId, (err, res) => {
+        if (res === null) {
+            var errMsg = "Get my user data is invalid.";
+            console.error(errMsg);
+            cb({ code: Code.FAIL, message: errMsg });
             return;
         }
 
-        cb({ code: Code.OK, result: res });
+        cb({ code: Code.OK, data: res });
     });
 }
 
-remote.auth = function (email, password, callback) {
-    let query = { email: email };
-    let projection = { email: 1, password: 1 };
+
+remote.auth = function (username, password, callback: (err, res) => void) {
+    let query = { username: username };
+    let projection = { username: 1, password: 1 };
     new UserDataAccessService().getUserProfile(query, projection, (err, res) => {
         if (!err && res.length > 0) {
             onAuthentication(password, res[0], callback);
@@ -209,46 +212,30 @@ remote.auth = function (email, password, callback) {
     });
 }
 
-const onAuthentication = function (_password, userInfo, callback) {
-    console.log("onAuthentication: ", userInfo);
-
+const onAuthentication = function (_password, userInfo, callback: (err, res) => void) {
     if (userInfo !== null) {
-        let obj = JSON.parse(JSON.stringify(userInfo));
+        let obj: User.StalkAccount = JSON.parse(JSON.stringify(userInfo));
 
-        if (obj.password === _password) {
+        if (obj.password == _password) {
             accountService.getOnlineUser(obj._id, (error, user) => {
                 if (!user) {
                     // if user is found and password is right
                     // create a token
                     tokenService.signToken(obj, (err, encode) => {
-                        callback({
-                            code: Code.OK,
-                            uid: obj._id,
-                            token: encode
-                        });
+                        callback(null, { code: Code.OK, uid: obj._id, token: encode });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback({
-                        code: Code.DuplicatedLogin,
-                        message: "duplicate log in.",
-                        uid: obj._id,
-                    });
+                    callback(null, { code: Code.DuplicatedLogin, message: "duplicate log in.", uid: obj._id, });
                 }
             });
         }
         else {
-            callback({
-                code: Code.FAIL,
-                message: "Authentication failed. User not found."
-            });
+            callback(null, { code: Code.FAIL, message: failedPassword });
         }
     }
     else {
-        callback({
-            code: Code.FAIL,
-            message: "Authentication failed. User not found."
-        });
+        callback(null, { code: Code.FAIL, message: userNotFound });
     }
 };

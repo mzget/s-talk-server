@@ -8,9 +8,7 @@ const Code_1 = require('../../../../shared/Code');
 const MPushService = require('../../../services/ParsePushService');
 const mongodb = require('mongodb');
 const async = require('async');
-const Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
-const config_1 = require('../../../../config/config');
+const webConfig = require('../../../../config/webConfig.json');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager_1.UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();
@@ -47,15 +45,9 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
         return;
     }
-    // let schema = {
-    //     token: Joi.string(),
-    //     ownerId: Joi.objectId(),
-    //     roommateId: Joi.objectId()
-    // };
-    // const result = Joi.validate(msg._object, schema);
     let timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
-    }, config_1.Config.timeout);
+    }, webConfig.timeout);
     //<!-- Get online members of room.
     let thisRoom = null;
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
@@ -224,7 +216,7 @@ handler.getChatHistory = function (msg, session, next) {
     let _timeOut = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "getChatHistory request timeout." });
         return;
-    }, config_1.Config.timeout);
+    }, webConfig.timeout);
     let utc = new Date(lastMessageTime);
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
@@ -237,16 +229,14 @@ handler.getChatHistory = function (msg, session, next) {
                 self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, function (err, user) {
                     if (user) {
                         userManager.getRoomAccessOfRoom(user.uid, rid, function (err, res) {
-                            if (!err && res.length > 0) {
-                                let targetId = { uid: user.uid, sid: user.serverId };
-                                let group = new Array();
-                                group.push(targetId);
-                                let param = {
-                                    route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
-                                    data: res[0]
-                                };
-                                channelService.pushMessageByUids(param.route, param.data, group);
-                            }
+                            let targetId = { uid: user.uid, sid: user.serverId };
+                            let group = new Array();
+                            group.push(targetId);
+                            let param = {
+                                route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
+                                data: res
+                            };
+                            channelService.pushMessageByUids(param.route, param.data, group);
                         });
                     }
                 });
@@ -272,7 +262,7 @@ handler.getOlderMessageChunk = function (msg, session, next) {
     let _timeOut = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
-    }, config_1.Config.timeout);
+    }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
@@ -296,7 +286,7 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
     let _timeOut = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
         return;
-    }, config_1.Config.timeout);
+    }, webConfig.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
@@ -645,7 +635,7 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 console.warn("getUserTransaction", err, userTrans);
-                if (!!err || !userTrans) {
+                if (!!err) {
                     console.warn(err);
                     reject(err);
                 }

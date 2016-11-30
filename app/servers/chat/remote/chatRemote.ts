@@ -1,6 +1,5 @@
 ﻿import { UserManager } from '../../../controller/UserManager';
 import User = require('../../../model/User');
-import generic = require('../../../util/collections');
 import Code from '../../../../shared/Code';
 import Room = require('../../../model/Room');
 const ObjectID = require('mongodb').ObjectID;
