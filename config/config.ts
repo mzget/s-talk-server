@@ -46,10 +46,10 @@ const masterConfig = {
 }
 
 function getConfig() {
-  let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
-  console.log(process.env.NODE_ENV, conf.chatDB);
+  // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
+  // console.log(process.env.NODE_ENV, conf.chatDB);
 
-  return conf;
+  return masterConfig;
 }
 
 export const Config = getConfig();

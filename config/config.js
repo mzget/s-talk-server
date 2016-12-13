@@ -42,8 +42,8 @@ var masterConfig = {
     }
 };
 function getConfig() {
-    var conf = (process.env.NODE_ENV === "production") ? masterConfig : config;
-    console.log(process.env.NODE_ENV, conf.chatDB);
-    return conf;
+    // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
+    // console.log(process.env.NODE_ENV, conf.chatDB);
+    return masterConfig;
 }
 exports.Config = getConfig();
