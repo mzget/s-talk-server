@@ -1,5 +1,5 @@
-﻿let devApi = "http://git.animation-genius.com:3002";
-let masterApi = "http://smelink.animation-genius.com:3002";
+﻿let devApi = "http://smelink.animation-genius.com:3002";
+let masterApi = "http://203.148.250.152:3002";
 
 const config = {
   api: {

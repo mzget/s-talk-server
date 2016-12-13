@@ -1,6 +1,6 @@
 "use strict";
-var devApi = "http://git.animation-genius.com:3002";
-var masterApi = "http://smelink.animation-genius.com:3002";
+var devApi = "http://smelink.animation-genius.com:3002";
+var masterApi = "http://203.148.250.152:3002";
 var config = {
     api: {
         authen: devApi + "/api/authenticate/verify"
