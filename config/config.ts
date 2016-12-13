@@ -1,11 +1,10 @@
-﻿let devApi = "http://git.animation-genius.com:3002";
+﻿let devApi = "http://smelink.animation-genius.com:3002";
 
 const config = {
   api: {
     authen: `${devApi}/api/authenticate/verify`
   },
   chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
-  userDB: "mongodb://git.animation-genius.com:27017/smelink",
   fileDB: "",
   port: 80,
   timeout: 10000,

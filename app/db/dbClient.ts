@@ -16,7 +16,6 @@ export module DbController {
     // Connection URL
     //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
     export const chatDB = Config.chatDB;
-    export const user_DB = Config.userDB;
     //    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
     export const roomColl: string = "rooms";
     export const messageColl: string = "messages";

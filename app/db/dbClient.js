@@ -7,7 +7,6 @@ var DbController;
     // Connection URL
     //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
     DbController.chatDB = config_1.Config.chatDB;
-    DbController.user_DB = config_1.Config.userDB;
     //    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
     DbController.roomColl = "rooms";
     DbController.messageColl = "messages";
