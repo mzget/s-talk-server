@@ -1,5 +1,5 @@
 "use strict";
-var Code_1 = require('../../shared/Code');
+var Code_1 = require("../../shared/Code");
 var dispatcher = require('../util/dispatcher');
 var AccountService = (function () {
     function AccountService(app) {

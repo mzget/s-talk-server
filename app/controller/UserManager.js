@@ -1,10 +1,10 @@
 "use strict";
-var Room = require('../model/Room');
-var RoomAccessData_1 = require('../model/RoomAccessData');
-var Mdb = require('../db/dbClient');
-var mongodb = require('mongodb');
-var async = require('async');
-var assert = require('assert');
+var Room = require("../model/Room");
+var RoomAccessData_1 = require("../model/RoomAccessData");
+var Mdb = require("../db/dbClient");
+var mongodb = require("mongodb");
+var async = require("async");
+var assert = require("assert");
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 var DbClient = Mdb.DbController.DbClient.GetInstance();
@@ -186,9 +186,9 @@ var UserManager = (function () {
             });
         }
     };
-    UserManager._instance = null;
     return UserManager;
 }());
+UserManager._instance = null;
 exports.UserManager = UserManager;
 var UserDataAccessService = (function () {
     function UserDataAccessService() {

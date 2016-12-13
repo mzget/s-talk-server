@@ -1,9 +1,9 @@
 "use strict";
-var mongodb = require('mongodb');
-var async = require('async');
-var MDb = require('../db/dbClient');
+var mongodb = require("mongodb");
+var async = require("async");
+var MDb = require("../db/dbClient");
 var Room = require("../model/Room");
-var UserManager_1 = require('./UserManager');
+var UserManager_1 = require("./UserManager");
 var ObjectID = mongodb.ObjectID;
 var dbClient = MDb.DbController.DbClient.GetInstance();
 var Db = mongodb.Db, MongoClient = mongodb.MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
@@ -259,9 +259,9 @@ var Controller;
                 cb(res);
             });
         };
-        ChatRoomManager._Instance = null;
         return ChatRoomManager;
     }());
+    ChatRoomManager._Instance = null;
     Controller.ChatRoomManager = ChatRoomManager;
     var RoomDataAccess = (function () {
         function RoomDataAccess() {

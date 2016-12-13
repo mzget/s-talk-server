@@ -3,11 +3,11 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
-var Mdb = require('../../../db/dbClient');
-var Code_1 = require('../../../../shared/Code');
-var UserManager_1 = require('../../../controller/UserManager');
-var User = require('../../../model/User');
-var Room = require('../../../model/Room');
+var Mdb = require("../../../db/dbClient");
+var Code_1 = require("../../../../shared/Code");
+var UserManager_1 = require("../../../controller/UserManager");
+var User = require("../../../model/User");
+var Room = require("../../../model/Room");
 var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;
 var userManager = UserManager_1.UserManager.getInstance();

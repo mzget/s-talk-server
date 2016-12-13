@@ -1,5 +1,5 @@
 "use strict";
-var async = require('async');
+var async = require("async");
 var Code_1 = require("../../../../shared/Code");
 var config_1 = require("../../../../config/config");
 var channelService;

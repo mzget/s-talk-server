@@ -1,6 +1,6 @@
 "use strict";
-var jwt = require('jsonwebtoken');
-var config_1 = require('../../config/config');
+var jwt = require("jsonwebtoken");
+var config_1 = require("../../config/config");
 var TokenService = (function () {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
     function TokenService() {

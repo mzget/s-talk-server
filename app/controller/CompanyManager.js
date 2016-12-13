@@ -1,8 +1,8 @@
 "use strict";
-var Mdb = require('../db/dbClient');
-var room = require('../model/Room');
-var mongodb = require('mongodb');
-var assert = require('assert');
+var Mdb = require("../db/dbClient");
+var room = require("../model/Room");
+var mongodb = require("mongodb");
+var assert = require("assert");
 var MongoClient = mongodb.MongoClient;
 var DbClient = Mdb.DbController.DbClient.GetInstance();
 var Controller;
@@ -32,9 +32,9 @@ var Controller;
         CompanyManager.prototype.GetCompanyMembers = function (projection, callback) {
             this.dataAccessService.getFirstQueryMembers(projection, callback);
         };
-        CompanyManager._instance = null;
         return CompanyManager;
     }());
+    CompanyManager._instance = null;
     Controller.CompanyManager = CompanyManager;
     var MemberDataAccessService = (function () {
         function MemberDataAccessService() {

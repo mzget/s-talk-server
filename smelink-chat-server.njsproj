@@ -21,7 +21,6 @@
   <ItemGroup>
     <Content Include="package.json" />
     <Content Include="tsconfig.json" />
-    <Content Include="typings.json" />
     <Content Include="README.md" />
     <TypeScriptCompile Include="app.ts" />
     <Compile Include="app.js" />
@@ -32,7 +31,10 @@
     <Content Include="config\servers.json" />
     <Content Include="config\session.json" />
     <Content Include="config\webConfig.json" />
+    <TypeScriptCompile Include="app\servers\push\handler\pushHandler.ts" />
+    <TypeScriptCompile Include="config\config.ts" />
     <TypeScriptCompile Include="config\WebConfig.ts" />
+    <Compile Include="app\servers\push\handler\pushHandler.js" />
     <Compile Include="config\WebConfig.js" />
     <TypeScriptCompile Include="shared\Code.ts" />
     <Compile Include="shared\Code.js" />
@@ -72,12 +74,10 @@
     <Compile Include="app\services\accountService.js" />
     <Compile Include="app\services\ParsePushService.js" />
     <Compile Include="app\services\tokenService.js" />
-    <TypeScriptCompile Include="app\util\collections.ts" />
     <TypeScriptCompile Include="app\util\dispatcher.ts" />
     <TypeScriptCompile Include="app\util\httpServer.ts" />
     <TypeScriptCompile Include="app\util\netServer.ts" />
     <TypeScriptCompile Include="app\util\routeUtil.ts" />
-    <Compile Include="app\util\collections.js" />
     <Compile Include="app\util\dispatcher.js" />
     <Compile Include="app\util\httpServer.js" />
     <Compile Include="app\util\netServer.js" />
@@ -134,6 +134,8 @@
     <Folder Include="app\servers\connector\handler" />
     <Folder Include="app\servers\gate" />
     <Folder Include="app\servers\gate\handler" />
+    <Folder Include="app\servers\push\" />
+    <Folder Include="app\servers\push\handler\" />
     <Folder Include="app\services" />
     <Folder Include="app\util" />
     <Folder Include="config" />

@@ -1,6 +1,6 @@
 "use strict";
-var UserManager_1 = require('../../../controller/UserManager');
-var Code_1 = require('../../../../shared/Code');
+var UserManager_1 = require("../../../controller/UserManager");
+var Code_1 = require("../../../../shared/Code");
 var ObjectID = require('mongodb').ObjectID;
 var userManager = UserManager_1.UserManager.getInstance();
 var channelService;

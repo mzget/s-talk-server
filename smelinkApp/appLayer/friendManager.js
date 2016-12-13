@@ -2,8 +2,8 @@
  *  friend Manager.
  */
 "use strict";
-var Mdb = require('../../app/db/dbClient');
-var mongodb = require('mongodb');
+var Mdb = require("../../app/db/dbClient");
+var mongodb = require("mongodb");
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 var DbClient = Mdb.DbController.DbClient.GetInstance();

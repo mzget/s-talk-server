@@ -1,7 +1,7 @@
 "use strict";
-var https = require('https');
+var https = require("https");
 var http = require("http");
-var config_1 = require('../../config/config');
+var config_1 = require("../../config/config");
 var ParsePushService = (function () {
     function ParsePushService() {
     }
