@@ -27,7 +27,7 @@ const masterConfig = {
   api: {
     authen: `${masterApi}/api/authenticate/verify`
   },
-  chatDB: "mongodb://203.148.255.29:27017/chats",
+  chatDB: "mongodb://chats:chats1234@smelink.animation-genius.com:27017/chats",
   fileDB: "",
   port: 80,
   timeout: 10000,
