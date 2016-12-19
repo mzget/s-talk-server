@@ -1,7 +1,7 @@
 ﻿let devApi = "http://smelink.animation-genius.com:3002";
 let masterApi = "http://203.148.250.152:3002";
 
-const config = {
+const devConfig = {
   api: {
     authen: `${devApi}/api/authenticate/verify`
   },
@@ -49,7 +49,7 @@ function getConfig() {
   // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
   // console.log(process.env.NODE_ENV, conf.chatDB);
 
-  return masterConfig;
+  return devConfig;
 }
 
 export const Config = getConfig();

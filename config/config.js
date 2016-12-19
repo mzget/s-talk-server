@@ -1,7 +1,7 @@
 "use strict";
 var devApi = "http://smelink.animation-genius.com:3002";
 var masterApi = "http://203.148.250.152:3002";
-var config = {
+var devConfig = {
     api: {
         authen: devApi + "/api/authenticate/verify"
     },
@@ -44,6 +44,6 @@ var masterConfig = {
 function getConfig() {
     // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
     // console.log(process.env.NODE_ENV, conf.chatDB);
-    return masterConfig;
+    return devConfig;
 }
 exports.Config = getConfig();
