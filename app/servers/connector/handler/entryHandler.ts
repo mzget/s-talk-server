@@ -9,6 +9,8 @@ import { UserManager } from '../../../controller/UserManager';
 import async = require('async');
 import mongodb = require('mongodb');
 import request = require('request');
+import Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
@@ -41,55 +43,100 @@ const handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
 	let self = this;
-	let token = msg.token;
-
-	let options = {
-		url: Config.api.authen,
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({
-			token: token
-		})
+	let schema = {
+		token: Joi.string().allow(null),
+		user: Joi.object().optional()
 	};
+	const result = Joi.validate(msg._object, schema);
 
-	function callback(error, response, body) {
-		if (error) {
-			next(error, null);
-		}
-		else if (!error && response.statusCode == 200) {
-			let data = JSON.parse(body);
-			let decoded: DecodedToken = data.decoded;
-			console.log("AuthenBody", decoded);
-
-			session.__sessionService__.kick(decoded._id, "New login...");
-			self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
-				// 	//@ Signing success.
-				session.bind(decoded._id);
-				session.on('closed', onUserLeave.bind(null, self.app));
-
-				let param = {
-					route: Code.sharedEvents.onUserLogin,
-					data: { _id: decoded._id }
-				};
-
-				channelService.broadcast("connector", param.route, param.data);
-
-				addOnlineUser(self.app, session, decoded);
-				next(null, { code: Code.OK, data: body });
-				if (!user) {
-				}
-				else {
-					console.warn("Duplicate user by onlineUsers collections.");
-					// next(null, { code: Code.DuplicatedLogin, data: body });
-					// session.__sessionService__.kick();
-				}
-			});
-		}
+	if (result.error) {
+		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	request.post(options, callback);
+	if (msg.token) {
+		let token = msg.token;
+		let options = {
+			url: Config.api.authen,
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				token: token
+			})
+		};
+
+		let callback = (error, response, body) => {
+			if (error) {
+				next(error, null);
+			}
+			else if (!error && response.statusCode == 200) {
+				let data = JSON.parse(body);
+				let decoded: DecodedToken = data.decoded;
+				console.log("AuthenBody", decoded);
+
+				session.__sessionService__.kick(decoded._id, "New login...");
+				self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
+					// 	//@ Signing success.
+					session.bind(decoded._id);
+					session.on('closed', onUserLeave.bind(null, self.app));
+
+					let param = {
+						route: Code.sharedEvents.onUserLogin,
+						data: { _id: decoded._id }
+					};
+
+					channelService.broadcast("connector", param.route, param.data);
+
+					addOnlineUser(self.app, session, decoded);
+					next(null, { code: Code.OK, data: body });
+					if (!user) {
+					}
+					else {
+						console.warn("Duplicate user by onlineUsers collections.");
+						// next(null, { code: Code.DuplicatedLogin, data: body });
+						// session.__sessionService__.kick();
+					}
+				});
+			}
+		}
+
+		request.post(options, callback);
+	}
+	else if (msg.user) {
+		if (!msg.user._id && !!msg.user.username) {
+			return next(null, { code: Code.FAIL, message: "missing user info" });
+		}
+
+		tokenService.signToken(msg.user, (err, encode) => {
+			if (err) {
+				return next(null, { code: Code.FAIL, message: err });
+			}
+			else {
+				session.__sessionService__.kick(msg.user._id, "New login...");
+				self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+					// 	//@ Signing success.
+					session.bind(msg.user._id);
+					session.on('closed', onUserLeave.bind(null, self.app));
+
+					let param = {
+						route: Code.sharedEvents.onUserLogin,
+						data: { _id: msg.user._id }
+					};
+
+					channelService.broadcast("connector", param.route, param.data);
+
+					addOnlineUser(self.app, session, msg.user);
+					next(null, { code: Code.OK, data: { success: true, token: encode } });
+					if (!user) {
+					}
+					else {
+						console.warn("Duplicate user by onlineUsers collections.");
+					}
+				});
+			}
+		});
+	}
 }
 
 handler.logout = function (msg, session, next) {

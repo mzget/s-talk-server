@@ -9,6 +9,8 @@ var UserManager_1 = require("../../../controller/UserManager");
 var async = require("async");
 var mongodb = require("mongodb");
 var request = require("request");
+var Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi);
 var config_1 = require("../../../../config/config");
 var ObjectID = mongodb.ObjectID;
 var tokenService = new tokenService_1.default();
@@ -31,46 +33,86 @@ var handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
     var self = this;
-    var token = msg.token;
-    var options = {
-        url: config_1.Config.api.authen,
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            token: token
-        })
+    var schema = {
+        token: Joi.string().allow(null),
+        user: Joi.object().optional()
     };
-    function callback(error, response, body) {
-        if (error) {
-            next(error, null);
-        }
-        else if (!error && response.statusCode == 200) {
-            var data = JSON.parse(body);
-            var decoded_1 = data.decoded;
-            console.log("AuthenBody", decoded_1);
-            session.__sessionService__.kick(decoded_1._id, "New login...");
-            self.app.rpc.auth.authRemote.getOnlineUser(session, decoded_1._id, function (err, user) {
-                // 	//@ Signing success.
-                session.bind(decoded_1._id);
-                session.on('closed', onUserLeave.bind(null, self.app));
-                var param = {
-                    route: Code_1.default.sharedEvents.onUserLogin,
-                    data: { _id: decoded_1._id }
-                };
-                channelService.broadcast("connector", param.route, param.data);
-                addOnlineUser(self.app, session, decoded_1);
-                next(null, { code: Code_1.default.OK, data: body });
-                if (!user) {
-                }
-                else {
-                    console.warn("Duplicate user by onlineUsers collections.");
-                }
-            });
-        }
+    var result = Joi.validate(msg._object, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    request.post(options, callback);
+    if (msg.token) {
+        var token = msg.token;
+        var options = {
+            url: config_1.Config.api.authen,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: token
+            })
+        };
+        var callback = function (error, response, body) {
+            if (error) {
+                next(error, null);
+            }
+            else if (!error && response.statusCode == 200) {
+                var data = JSON.parse(body);
+                var decoded_1 = data.decoded;
+                console.log("AuthenBody", decoded_1);
+                session.__sessionService__.kick(decoded_1._id, "New login...");
+                self.app.rpc.auth.authRemote.getOnlineUser(session, decoded_1._id, function (err, user) {
+                    // 	//@ Signing success.
+                    session.bind(decoded_1._id);
+                    session.on('closed', onUserLeave.bind(null, self.app));
+                    var param = {
+                        route: Code_1.default.sharedEvents.onUserLogin,
+                        data: { _id: decoded_1._id }
+                    };
+                    channelService.broadcast("connector", param.route, param.data);
+                    addOnlineUser(self.app, session, decoded_1);
+                    next(null, { code: Code_1.default.OK, data: body });
+                    if (!user) {
+                    }
+                    else {
+                        console.warn("Duplicate user by onlineUsers collections.");
+                    }
+                });
+            }
+        };
+        request.post(options, callback);
+    }
+    else if (msg.user) {
+        if (!msg.user._id && !!msg.user.username) {
+            return next(null, { code: Code_1.default.FAIL, message: "missing user info" });
+        }
+        tokenService.signToken(msg.user, function (err, encode) {
+            if (err) {
+                return next(null, { code: Code_1.default.FAIL, message: err });
+            }
+            else {
+                session.__sessionService__.kick(msg.user._id, "New login...");
+                self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+                    // 	//@ Signing success.
+                    session.bind(msg.user._id);
+                    session.on('closed', onUserLeave.bind(null, self.app));
+                    var param = {
+                        route: Code_1.default.sharedEvents.onUserLogin,
+                        data: { _id: msg.user._id }
+                    };
+                    channelService.broadcast("connector", param.route, param.data);
+                    addOnlineUser(self.app, session, msg.user);
+                    next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
+                    if (!user) {
+                    }
+                    else {
+                        console.warn("Duplicate user by onlineUsers collections.");
+                    }
+                });
+            }
+        });
+    }
 };
 handler.logout = function (msg, session, next) {
     console.log("logout", msg);
