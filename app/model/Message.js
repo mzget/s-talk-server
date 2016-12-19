@@ -15,9 +15,3 @@ var MessageMeta = (function () {
     return MessageMeta;
 }());
 exports.MessageMeta = MessageMeta;
-var Message = (function () {
-    function Message() {
-    }
-    return Message;
-}());
-exports.Message = Message;

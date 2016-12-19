@@ -3,7 +3,7 @@ import { UserManager } from "../../../controller/UserManager";
 import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
 import MRoom = require('../../../model/Room');
-import MMessage = require('../../../model/Message');
+import { Message } from '../../../model/Message';
 import Code from '../../../../shared/Code';
 import MPushService = require('../../../services/ParsePushService');
 import { AccountService } from '../../../services/accountService';
@@ -80,23 +80,20 @@ handler.send = function (msg, session, next) {
             return;
         }
         else {
-            let _msg = new MMessage.Message();
-            _msg.rid = msg.rid,
-                _msg.type = msg.type,
-                _msg.body = msg.content,
-                _msg.sender = msg.sender,
-                _msg.createTime = new Date(),
-                _msg.meta = msg.meta;
+            delete msg.__route__;
+            let _msg = { ...msg } as Message;
+            _msg.createTime = new Date();
 
             chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                 if (!err && docs !== null) {
-                    let resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
+                    let resultMsg: Message = JSON.parse(JSON.stringify(docs[0]));
                     //<!-- send callback to user who send chat msg.
                     let params = {
                         messageId: resultMsg._id,
                         type: resultMsg.type,
                         createTime: resultMsg.createTime,
-                        uuid: clientUUID
+                        uuid: clientUUID,
+                        resultMsg
                     };
                     next(null, { code: Code.OK, data: params });
                     clearTimeout(timeout_id);
@@ -112,7 +109,7 @@ handler.send = function (msg, session, next) {
     });
 };
 
-function pushMessage(app, session, room: MRoom.Room, message: MMessage.Message, clientUUID: string, target: string) {
+function pushMessage(app, session, room: MRoom.Room, message: Message, clientUUID: string, target: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 

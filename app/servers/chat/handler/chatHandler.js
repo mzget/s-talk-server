@@ -1,9 +1,16 @@
 "use strict";
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var UserManager_1 = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
 var MRoom = require("../../../model/Room");
-var MMessage = require("../../../model/Message");
 var Code_1 = require("../../../../shared/Code");
 var MPushService = require("../../../services/ParsePushService");
 var mongodb = require("mongodb");
@@ -68,13 +75,9 @@ handler.send = function (msg, session, next) {
             return;
         }
         else {
-            var _msg = new MMessage.Message();
-            _msg.rid = msg.rid,
-                _msg.type = msg.type,
-                _msg.body = msg.content,
-                _msg.sender = msg.sender,
-                _msg.createTime = new Date(),
-                _msg.meta = msg.meta;
+            delete msg.__route__;
+            var _msg = __assign({}, msg);
+            _msg.createTime = new Date();
             chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                 if (!err && docs !== null) {
                     var resultMsg = JSON.parse(JSON.stringify(docs[0]));
@@ -83,7 +86,8 @@ handler.send = function (msg, session, next) {
                         messageId: resultMsg._id,
                         type: resultMsg.type,
                         createTime: resultMsg.createTime,
-                        uuid: clientUUID
+                        uuid: clientUUID,
+                        resultMsg: resultMsg
                     };
                     next(null, { code: Code_1.default.OK, data: params });
                     clearTimeout(timeout_id);
