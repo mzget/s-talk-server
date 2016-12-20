@@ -6,7 +6,6 @@ var User = require("../../../model/User");
 var userDAL = require("../../../dal/userDataAccess");
 var tokenService_1 = require("../../../services/tokenService");
 var UserManager_1 = require("../../../controller/UserManager");
-var async = require("async");
 var mongodb = require("mongodb");
 var request = require("request");
 var Joi = require("joi");
@@ -175,37 +174,51 @@ handler.getMe = function (msg, session, next) {
     });
 };
 function addOnlineUser(app, session, tokenDecoded) {
-    app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result) {
-        console.log("joining onlineUser", JSON.stringify(result));
-        var onlineUser = new User.OnlineUser();
-        var userTransaction = new User.UserTransaction();
-        if (result.code == Code_1.default.OK) {
-            var datas = JSON.parse(JSON.stringify(result.result));
-            var my = datas[0];
-            onlineUser.uid = my._id;
-            onlineUser.username = my.firstname;
-            onlineUser.serverId = session.frontendId;
-            onlineUser.registrationIds = my.deviceTokens || [];
-            userTransaction.uid = my._id;
-            userTransaction.username = my.firstname;
-        }
-        else {
-            onlineUser.uid = tokenDecoded._id;
-            onlineUser.username = tokenDecoded.email;
-            onlineUser.serverId = session.frontendId;
-            onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
-            userTransaction.uid = tokenDecoded._id;
-            userTransaction.username = tokenDecoded.email;
-        }
-        //!-- check uid in onlineUsers list.
-        //var usersDict = userManager.onlineUsers;
-        //for (var i in usersDict) {
-        //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-        //}
+    console.log("addOnlineUser", tokenDecoded);
+    var onlineUser = new User.OnlineUser();
+    var userTransaction = new User.UserTransaction();
+    if (!tokenDecoded.username) {
+        app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result) {
+            console.log("joining onlineUser", JSON.stringify(result));
+            if (result.code == Code_1.default.OK) {
+                var datas = JSON.parse(JSON.stringify(result.result));
+                var my = datas[0];
+                onlineUser.uid = my._id;
+                onlineUser.username = my.firstname;
+                onlineUser.serverId = session.frontendId;
+                onlineUser.registrationIds = my.deviceTokens || [];
+                userTransaction.uid = my._id;
+                userTransaction.username = my.firstname;
+            }
+            else {
+                onlineUser.uid = tokenDecoded._id;
+                onlineUser.username = tokenDecoded.email;
+                onlineUser.serverId = session.frontendId;
+                onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+                userTransaction.uid = tokenDecoded._id;
+                userTransaction.username = tokenDecoded.email;
+            }
+            //!-- check uid in onlineUsers list.
+            //var usersDict = userManager.onlineUsers;
+            //for (var i in usersDict) {
+            //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
+            //}
+            console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
+            app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+            app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+        });
+    }
+    else {
+        onlineUser.uid = tokenDecoded._id;
+        onlineUser.username = tokenDecoded.username;
+        onlineUser.serverId = session.frontendId;
+        onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+        userTransaction.uid = tokenDecoded._id;
+        userTransaction.username = tokenDecoded.email;
         console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
         app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
         app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
-    });
+    }
 }
 /**
 * getLastAccessRooms.
@@ -221,36 +234,31 @@ handler.getLastAccessRooms = function (msg, session, next) {
         console.warn(errMsg);
         return;
     }
-    async.series([function (cb1) {
-            self.app.rpc.auth.authRemote.getOnlineUser(session, uid, function (err, user) {
-                if (err || user === null) {
-                    cb1(err, null);
-                }
-                else {
-                    cb1(null, user);
+    self.app.rpc.auth.authRemote.getOnlineUser(session, uid, function (err, user) {
+        if (err || user === null) {
+            next(null, { code: Code_1.default.FAIL, message: err });
+        }
+        else {
+            next(null, { code: Code_1.default.OK });
+            UserManager_1.UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
+                if (err || res.length > 0) {
+                    var onAccessRooms = {
+                        route: Code_1.default.sharedEvents.onAccessRooms,
+                        data: res
+                    };
+                    if (user) {
+                        var uidsGroup = new Array();
+                        var group = {
+                            uid: user.uid,
+                            sid: user.serverId
+                        };
+                        uidsGroup.push(group);
+                        channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
+                    }
                 }
             });
-        }], function (err, results) {
-        UserManager_1.UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
-            if (err || res.length > 0) {
-                var onAccessRooms = {
-                    route: Code_1.default.sharedEvents.onAccessRooms,
-                    data: res
-                };
-                var user = results[0];
-                if (user) {
-                    var uidsGroup = new Array();
-                    var group = {
-                        uid: user.uid,
-                        sid: user.serverId
-                    };
-                    uidsGroup.push(group);
-                    channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
-                }
-            }
-        });
+        }
     });
-    next(null, { code: Code_1.default.OK });
 };
 handler.getCompanyInfo = function (msg, session, next) {
     var self = this;
