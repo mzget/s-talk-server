@@ -1,8 +1,5 @@
 "use strict";
-var BOLAccount = (function () {
-    function BOLAccount() {
-    }
-    return BOLAccount;
-}());
+class BOLAccount {
+}
 exports.BOLAccount = BOLAccount;
 ;

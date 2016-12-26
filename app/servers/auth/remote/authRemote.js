@@ -1,19 +1,19 @@
 /// <reference path="../../../../typings/index.d.ts" />
 "use strict";
-var Code_1 = require("../../../../shared/Code");
-var tokenService_1 = require("../../../services/tokenService");
-var UserManager_1 = require("../../../controller/UserManager");
-var Mcontroller = require("../../../controller/ChatRoomManager");
-var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var tokenService = new tokenService_1.default();
+const Code_1 = require("../../../../shared/Code");
+const tokenService_1 = require("../../../services/tokenService");
+const UserManager_1 = require("../../../controller/UserManager");
+const Mcontroller = require("../../../controller/ChatRoomManager");
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+const tokenService = new tokenService_1.default();
 var accountService;
 var channelService;
-var failedPassword = "Authentication failed.";
-var userNotFound = "Authentication failed. User not found.";
+const failedPassword = "Authentication failed.";
+const userNotFound = "Authentication failed. User not found.";
 module.exports = function (app) {
     return new AuthenRemote(app);
 };
-var AuthenRemote = function (app) {
+const AuthenRemote = function (app) {
     this.app = app;
     channelService = app.get("channelService");
     if (app.getServerType() === 'auth') {
@@ -21,16 +21,16 @@ var AuthenRemote = function (app) {
         initServer();
     }
 };
-var remote = AuthenRemote.prototype;
+const remote = AuthenRemote.prototype;
 /**
  * Init Server this function call when server start.
  * for load room members from database to cache in memmory before.
  */
-var initServer = function () {
+const initServer = function () {
     chatRoomManager.getAllRooms(function (rooms) {
         //<!-- To reduce database retrive data. We store rooms Map data to server memory.
         console.log("init AuthenServer for get all rooms data to server memory.");
-        accountService.setRoomsMap(rooms, function () { });
+        accountService.setRoomsMap(rooms, () => { });
     });
 };
 /**
@@ -84,36 +84,36 @@ remote.updateRoomMembers = function (data, cb) {
 * UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
 */
 remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
-    rooms.forEach(function (room) {
+    rooms.forEach(room => {
         if (!accountService.RoomsMap[room._id]) {
             accountService.addRoom(room);
             //<!-- Notice all member of new room to know they have a new room.   
-            var param = {
+            let param = {
                 route: Code_1.default.sharedEvents.onNewGroupCreated,
                 data: room
             };
-            var pushGroup_1 = new Array();
-            room.members.forEach(function (member) {
-                accountService.getOnlineUser(member.id, function (err, user) {
+            let pushGroup = new Array();
+            room.members.forEach(member => {
+                accountService.getOnlineUser(member.id, (err, user) => {
                     if (!err) {
                         var item = { uid: user.uid, sid: user.serverId };
-                        pushGroup_1.push(item);
+                        pushGroup.push(item);
                     }
                 });
             });
-            channelService.pushMessageByUids(param.route, param.data, pushGroup_1);
+            channelService.pushMessageByUids(param.route, param.data, pushGroup);
         }
     });
     cb();
 };
 remote.checkedCanAccessRoom = function (roomId, userId, callback) {
-    accountService.getRoom(roomId, function (err, room) {
-        var result = false;
+    accountService.getRoom(roomId, (err, room) => {
+        let result = false;
         if (err || !room) {
             callback(null, result);
         }
         else {
-            result = room.members.some(function (value) {
+            result = room.members.some(value => {
                 if (value.id === userId) {
                     return true;
                 }
@@ -138,14 +138,14 @@ remote.tokenService = function (bearerToken, cb) {
  * require => username, password, bearerToken
  */
 remote.me = function (msg, cb) {
-    var username = msg.username;
-    var password = msg.password;
-    var bearerToken = msg.token;
-    var query = { username: username.toLowerCase() };
-    var projection = { roomAccess: 0 };
+    let username = msg.username;
+    let password = msg.password;
+    let bearerToken = msg.token;
+    let query = { username: username.toLowerCase() };
+    let projection = { roomAccess: 0 };
     new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
         if (err || res === null) {
-            var errMsg = "Get my user data is invalid.";
+            let errMsg = "Get my user data is invalid.";
             console.error(errMsg);
             cb({ code: Code_1.default.FAIL, message: errMsg });
             return;
@@ -154,7 +154,7 @@ remote.me = function (msg, cb) {
     });
 };
 remote.myProfile = function (userId, cb) {
-    UserManager_1.UserManager.getInstance().getMemberProfile(userId, function (err, res) {
+    UserManager_1.UserManager.getInstance().getMemberProfile(userId, (err, res) => {
         if (res === null) {
             var errMsg = "Get my user data is invalid.";
             console.error(errMsg);
@@ -165,9 +165,9 @@ remote.myProfile = function (userId, cb) {
     });
 };
 remote.auth = function (username, password, callback) {
-    var query = { username: username };
-    var projection = { username: 1, password: 1 };
-    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function (err, res) {
+    let query = { username: username };
+    let projection = { username: 1, password: 1 };
+    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, (err, res) => {
         if (!err && res.length > 0) {
             onAuthentication(password, res[0], callback);
         }
@@ -176,21 +176,21 @@ remote.auth = function (username, password, callback) {
         }
     });
 };
-var onAuthentication = function (_password, userInfo, callback) {
+const onAuthentication = function (_password, userInfo, callback) {
     if (userInfo !== null) {
-        var obj_1 = JSON.parse(JSON.stringify(userInfo));
-        if (obj_1.password == _password) {
-            accountService.getOnlineUser(obj_1._id, function (error, user) {
+        let obj = JSON.parse(JSON.stringify(userInfo));
+        if (obj.password == _password) {
+            accountService.getOnlineUser(obj._id, (error, user) => {
                 if (!user) {
                     // if user is found and password is right
                     // create a token
-                    tokenService.signToken(obj_1, function (err, encode) {
-                        callback(null, { code: Code_1.default.OK, uid: obj_1._id, token: encode });
+                    tokenService.signToken(obj, (err, encode) => {
+                        callback(null, { code: Code_1.default.OK, uid: obj._id, token: encode });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback(null, { code: Code_1.default.DuplicatedLogin, message: "duplicate log in.", uid: obj_1._id, });
+                    callback(null, { code: Code_1.default.DuplicatedLogin, message: "duplicate log in.", uid: obj._id, });
                 }
             });
         }

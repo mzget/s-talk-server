@@ -1,12 +1,11 @@
 ﻿/// <reference path="../../typings/index.d.ts" />
 
 import * as  User from '../model/User';
-import *as Room from'../model/Room';
-import RoomAccessData from  '../model/RoomAccessData';
+import *as Room from '../model/Room';
+import RoomAccessData from '../model/RoomAccessData';
 import Mdb = require('../db/dbClient');
 import mongodb = require('mongodb');
 import async = require('async');
-import generic = require('../util/collections');
 import assert = require('assert');
 const MongoClient = mongodb.MongoClient;
 const ObjectID = mongodb.ObjectID;

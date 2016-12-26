@@ -1,8 +1,8 @@
-﻿export  default class Code  {
+﻿export default class Code {
     static OK = 200;
     static RequestTimeout = 408;
     static FAIL = 500;
-    
+
     static DuplicatedLogin = 1004;
 
     ENTRY = {
@@ -30,6 +30,7 @@
         onUserLogin: "onUserLogin",
 
         onChat: "onChat",
+        ON_PUSH: "ON_PUSH",
 
         onAccessRooms: "onAccessRooms",
         onUpdatedLastAccessTime: "onUpdatedLastAccessTime",
@@ -41,7 +42,7 @@
         onTheLineIsBusy: "onTheLineIsBusy",
 
         onGetMe: "onGetMe",
-        onGetCompanyInfo:"onGetCompanyInfo",
+        onGetCompanyInfo: "onGetCompanyInfo",
         onGetCompanyMembers: "onGetCompanyMembers",
         onGetPrivateGroups: "onGetPrivateGroups",
         onGetOrganizeGroups: "onGetOrganizeGroups",
@@ -57,6 +58,12 @@
     }
 
     public static friendEvents = {
-        addFriendEvent : "addFriendEvent"
+        addFriendEvent: "addFriendEvent"
     }
+}
+
+export interface SessionInfo {
+    id: string;
+    frontendId: string;
+    uid: string;
 }

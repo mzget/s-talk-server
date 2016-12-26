@@ -1,21 +1,21 @@
 /// <reference path="../../typings/index.d.ts" />
 "use strict";
-var jwt = require("jsonwebtoken");
-var sessionConfig = require('../../config/session.json');
-var TokenService = (function () {
+const jwt = require("jsonwebtoken");
+const sessionConfig = require('../../config/session.json');
+class TokenService {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
-    function TokenService() {
+    constructor() {
         this.secret = "";
         this.secret = sessionConfig.secret; // || this.DEFAULT_SECRET;
         this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
     }
-    TokenService.prototype.signToken = function (signObj, callback) {
+    signToken(signObj, callback) {
         jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
-    };
+    }
     /**
      * reture token decoded.
      */
-    TokenService.prototype.ensureAuthorized = function (token, callback) {
+    ensureAuthorized(token, callback) {
         // decode token
         if (token) {
             // verifies secret and checks exp
@@ -37,8 +37,7 @@ var TokenService = (function () {
                 message: 'No token provided.'
             });
         }
-    };
-    return TokenService;
-}());
+    }
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = TokenService;

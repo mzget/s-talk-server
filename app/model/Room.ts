@@ -3,9 +3,8 @@
     admin = 1,
     owner
 }
-
 export interface IMembersStatus {
-    uid:string;
+    uid: string;
     status: string;
 }
 export class Member {

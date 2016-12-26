@@ -3,24 +3,24 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
-var Mdb = require("../../../db/dbClient");
-var Code_1 = require("../../../../shared/Code");
-var UserManager_1 = require("../../../controller/UserManager");
-var User = require("../../../model/User");
-var Room = require("../../../model/Room");
-var dbClient = Mdb.DbController.DbClient.GetInstance();
-var ObjectID = require('mongodb').ObjectID;
-var userManager = UserManager_1.UserManager.getInstance();
+const Mdb = require("../../../db/dbClient");
+const Code_1 = require("../../../../shared/Code");
+const UserManager_1 = require("../../../controller/UserManager");
+const User = require("../../../model/User");
+const Room = require("../../../model/Room");
+const dbClient = Mdb.DbController.DbClient.GetInstance();
+const ObjectID = require('mongodb').ObjectID;
+const userManager = UserManager_1.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate profileHandler.");
     return new ProfileHandler(app);
 };
-var ProfileHandler = function (app) {
+const ProfileHandler = function (app) {
     this.app = app;
     channelService = app.get('channelService');
 };
-var profileHandler = ProfileHandler.prototype;
+const profileHandler = ProfileHandler.prototype;
 /*
 * update or edit user profile.
 */
@@ -32,8 +32,8 @@ profileHandler.profileUpdate = function (msg, session, next) {
     else {
         console.info("profileUpdate: ", msg);
     }
-    var uid = msg._id;
-    var updateParams = new User.StalkAccount();
+    let uid = msg._id;
+    let updateParams = new User.StalkAccount();
     if (msg.displayname && msg.displayname !== "")
         updateParams.displayname = msg.displayname;
     //if (msg.firstname && msg.firstname !== "")
@@ -137,7 +137,7 @@ profileHandler.editFavoriteMembers = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
-    userManager.updateFavoriteMembers(editType, member, uid, function (err, res) {
+    userManager.updateFavoriteMembers(editType, member, uid, (err, res) => {
         if (err || res === null) {
             next(null, { code: Code_1.default.FAIL });
         }
@@ -158,7 +158,7 @@ profileHandler.updateFavoriteGroups = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
-    userManager.updateFavoriteGroups(editType, group, uid, function (err, res) {
+    userManager.updateFavoriteGroups(editType, group, uid, (err, res) => {
         if (err || res === null) {
             next(null, { code: Code_1.default.FAIL });
         }
@@ -181,7 +181,7 @@ profileHandler.updateClosedNoticeUsers = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
-    userManager.updateClosedNoticeUsersList(editType, member, uid, function (err, res) {
+    userManager.updateClosedNoticeUsersList(editType, member, uid, (err, res) => {
         if (err || res === null) {
             next(null, { code: Code_1.default.FAIL });
         }
@@ -205,13 +205,13 @@ profileHandler.updateClosedNoticeGroups = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: _errMsg });
         return;
     }
-    this.app.rpc.chat.chatRoomRemote.checkedRoomType(session, group, function (err, res) {
+    this.app.rpc.chat.chatRoomRemote.checkedRoomType(session, group, (err, res) => {
         if (err || res === null) {
             console.error("checkedRoomType fail.");
             next(null, { code: Code_1.default.FAIL, message: "checkedRoomType fail." });
         }
         else if (res.type === Room.RoomType.privateGroup) {
-            userManager.updateClosedNoticeGroups(editType, group, uid, function (err, res) {
+            userManager.updateClosedNoticeGroups(editType, group, uid, (err, res) => {
                 if (err || res === null) {
                     next(null, { code: Code_1.default.FAIL });
                 }
