@@ -2,11 +2,11 @@
  *  friend Manager.
  */
 "use strict";
-var Mdb = require('../../app/db/dbClient');
-var mongodb = require('mongodb');
+var Mdb = require("../../app/db/dbClient");
+var mongodb = require("mongodb");
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
-var assert = require('assert');
+var assert = require("assert");
 var DbClient = Mdb.DbController.DbClient.GetInstance();
 var FriendManager = (function () {
     function FriendManager() {

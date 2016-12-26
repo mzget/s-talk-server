@@ -1,7 +1,7 @@
 "use strict";
-var Code_1 = require('../../../../shared/Code');
-var tokenService_1 = require('../../../services/tokenService');
-var dispatcher_1 = require('../../../util/dispatcher');
+var Code_1 = require("../../../../shared/Code");
+var tokenService_1 = require("../../../services/tokenService");
+var dispatcher_1 = require("../../../util/dispatcher");
 var tokenService = new tokenService_1.default();
 module.exports = function (app) {
     return new Handler(app);

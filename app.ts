@@ -1,10 +1,16 @@
 ﻿const pomelo = require('pomelo');
-import routeUtil from   './app/util/routeUtil';
+import routeUtil from './app/util/routeUtil';
 import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
 const webConfig = require('./config/webConfig');
 
+// start app
+process.env.TZ = 'UTC';
+process.env.NODE_ENV = 'development';
+process.on('uncaughtException', function (err) {
+    console.error(' Caught exception: ' + err.stack);
+});
 /**
  * Init app for client.
  */
@@ -59,10 +65,4 @@ app.configure('production|development', 'chat', function () {
 //net.Start();
 //});
 
-// start app
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'production';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
-});
 app.start();

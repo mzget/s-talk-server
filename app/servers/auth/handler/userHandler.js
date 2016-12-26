@@ -3,8 +3,8 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
-var Mdb = require('../../../db/dbClient');
-var Code_1 = require('../../../../shared/Code');
+var Mdb = require("../../../db/dbClient");
+var Code_1 = require("../../../../shared/Code");
 var friendManager_1 = require("../../../../smelinkApp/appLayer/friendManager");
 var dbClient = Mdb.DbController.DbClient.GetInstance();
 var ObjectID = require('mongodb').ObjectID;

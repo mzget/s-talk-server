@@ -1,5 +1,5 @@
 "use strict";
-var dispatcher_1 = require('./dispatcher');
+var dispatcher_1 = require("./dispatcher");
 /**
  * routeUtil
  */

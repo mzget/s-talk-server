@@ -1,9 +1,9 @@
 /// <reference path="../../../../typings/index.d.ts" />
 "use strict";
-var Code_1 = require('../../../../shared/Code');
-var tokenService_1 = require('../../../services/tokenService');
-var UserManager_1 = require('../../../controller/UserManager');
-var Mcontroller = require('../../../controller/ChatRoomManager');
+var Code_1 = require("../../../../shared/Code");
+var tokenService_1 = require("../../../services/tokenService");
+var UserManager_1 = require("../../../controller/UserManager");
+var Mcontroller = require("../../../controller/ChatRoomManager");
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var tokenService = new tokenService_1.default();
 var accountService;

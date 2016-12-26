@@ -1,6 +1,6 @@
 "use strict";
-var Mcontroller = require('../../../controller/ChatRoomManager');
-var mongodb = require('mongodb');
+var Mcontroller = require("../../../controller/ChatRoomManager");
+var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;
 var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var channelService;

@@ -1,10 +1,8 @@
 {
-  "chatDB": "mongodb://chitchat:cc54321@203.113.25.44:27017/chatDB",
+  "chatDB": "mongodb://git.animation-genius.com:27017/chatDB",
   "port": 80,
   "timeout": 10000,
-  "webserver": "http://203.113.25.44",
-
-  
+  "webserver": "http://git.animation-genius.com",
   "pushServer": "smelink.animation-genius.com",
   "pushPort": 4040,
   "pushPath": "/parse/push",

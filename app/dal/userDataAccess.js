@@ -1,7 +1,7 @@
 "use strict";
-var mongodb = require('mongodb');
-var assert = require('assert');
-var Mdb = require('../db/dbClient');
+var mongodb = require("mongodb");
+var assert = require("assert");
+var Mdb = require("../db/dbClient");
 var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 var UserDataAccess = (function () {

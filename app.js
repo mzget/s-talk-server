@@ -1,10 +1,16 @@
 "use strict";
 var pomelo = require('pomelo');
-var routeUtil_1 = require('./app/util/routeUtil');
-var accountService_1 = require('./app/services/accountService');
+var routeUtil_1 = require("./app/util/routeUtil");
+var accountService_1 = require("./app/services/accountService");
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
 var webConfig = require('./config/webConfig');
+// start app
+process.env.TZ = 'UTC';
+process.env.NODE_ENV = 'development';
+process.on('uncaughtException', function (err) {
+    console.error(' Caught exception: ' + err.stack);
+});
 /**
  * Init app for client.
  */
@@ -49,10 +55,4 @@ app.configure('production|development', 'chat', function () {
 //var net = new netserver.NetServer();
 //net.Start();
 //});
-// start app
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'production';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
-});
 app.start();

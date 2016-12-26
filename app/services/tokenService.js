@@ -1,6 +1,6 @@
 /// <reference path="../../typings/index.d.ts" />
 "use strict";
-var jwt = require('jsonwebtoken');
+var jwt = require("jsonwebtoken");
 var sessionConfig = require('../../config/session.json');
 var TokenService = (function () {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
