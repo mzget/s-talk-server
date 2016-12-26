@@ -8,7 +8,7 @@ const tokenService_1 = require("../../../services/tokenService");
 const UserManager_1 = require("../../../controller/UserManager");
 const async = require("async");
 const mongodb = require("mongodb");
-const webConfig = require('../../../../config/webConfig.json');
+const config_1 = require("../../../../config/config");
 const ObjectID = mongodb.ObjectID;
 const http = require('http');
 const tokenService = new tokenService_1.default();
@@ -21,7 +21,6 @@ module.exports = function (app) {
 };
 const Handler = function (app) {
     this.app = app;
-    this.webServer = webConfig.webserver;
     channelService = app.get('channelService');
 };
 const handler = Handler.prototype;
@@ -38,7 +37,7 @@ handler.login = function (msg, session, next) {
     // let pass = msg.password;
     let id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "login timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (err, result) {
         if (!!result) {
             if (result.code === Code_1.default.OK) {
@@ -149,7 +148,7 @@ handler.getMe = function (msg, session, next) {
     }
     let timeOut = setTimeout(function () {
         next(null, { code: Code_1.default.FAIL, message: "getMe timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
         if (err) {
             console.log(err);
@@ -253,7 +252,7 @@ handler.getCompanyInfo = function (msg, session, next) {
     var token = msg.token;
     let timeout = setTimeout(() => {
         next(null, { code: Code_1.default.FAIL, message: "getCompanyInfo timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
         if (err) {
             console.log(err);
@@ -445,7 +444,7 @@ handler.enterRoom = function (msg, session, next) {
     let timeOut_id = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
         return;
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
         self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
         self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {

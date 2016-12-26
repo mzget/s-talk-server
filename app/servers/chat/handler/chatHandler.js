@@ -8,7 +8,7 @@ const Code_1 = require("../../../../shared/Code");
 const MPushService = require("../../../services/ParsePushService");
 const mongodb = require("mongodb");
 const async = require("async");
-const webConfig = require('../../../../config/webConfig.json');
+const config_1 = require("../../../../config/config");
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager_1.UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();
@@ -47,7 +47,7 @@ handler.send = function (msg, session, next) {
     }
     let timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     //<!-- Get online members of room.
     let thisRoom = null;
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
@@ -216,7 +216,7 @@ handler.getChatHistory = function (msg, session, next) {
     let _timeOut = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "getChatHistory request timeout." });
         return;
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     let utc = new Date(lastMessageTime);
     chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
         console.log("getChatHistory: ", result.length);
@@ -262,7 +262,7 @@ handler.getOlderMessageChunk = function (msg, session, next) {
     let _timeOut = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {
@@ -286,7 +286,7 @@ handler.checkOlderMessagesCount = function (msg, session, next) {
     let _timeOut = setTimeout(() => {
         next(null, { code: Code_1.default.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
         return;
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info('getOlderMessageChunk:', res.length);
         if (!!res) {

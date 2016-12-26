@@ -1,4 +1,4 @@
-import jwt = require('jsonwebtoken');
+import * as jwt from 'jsonwebtoken';
 const sessionConfig = require('../../config/session.json');
 
 export default class TokenService {

@@ -8,7 +8,7 @@ const crypto = require("crypto");
 const Room = require("../../../model/Room");
 const UserRole_1 = require("../../../model/UserRole");
 const async = require("async");
-const webConfig = require('../../../../config/webConfig.json');
+const config_1 = require("../../../../config/config");
 const ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager_1.UserManager.getInstance();
@@ -356,7 +356,7 @@ handler.getUnreadRoomMessage = function (msg, session, next) {
     let _timeOut = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "getUnreadRoomMessage request timeout." });
         return;
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, roomId, uid, function (err, res) {
         if (err || res === false) {
             clearTimeout(_timeOut);

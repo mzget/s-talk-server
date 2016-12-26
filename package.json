@@ -7,12 +7,13 @@
     "async": "^2.1.4",
     "crc": "0.2.0",
     "form-data": "0.2.0",
-    "jsonwebtoken": "^7.1.9",
+    "jsonwebtoken": "^7.2.1",
     "mongodb": "^2.2.16",
     "pomelo": "^1.2.3"
   },
   "devDependencies": {
     "@types/async": "^2.0.37",
+    "@types/jsonwebtoken": "^7.1.33",
     "@types/mongodb": "^2.1.36",
     "@types/node": "^6.0.53",
     "nodemon": "^1.11.0"

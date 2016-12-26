@@ -14,9 +14,9 @@ import FriendManager from "../../../../smelinkApp/appLayer/friendManager";
 
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;
-const webConfig = require('../../../../config/webConfig.json');
+import { Config } from '../../../../config/config';
 var channelService;
-var chatService : AccountService;
+var chatService: AccountService;
 
 module.exports = function (app) {
     console.info("instanctiate userHandler.");
@@ -49,7 +49,7 @@ handler.addFriend = function (msg, session, next) {
 
     let id = setTimeout(function () {
         next(null, { code: code.RequestTimeout, message: "request timeout..." });
-    }, webConfig.timeout);
+    }, Config.timeout);
 
     let friendManager = new FriendManager();
     friendManager.addFriends(myUid, targetUid, (err, res) => {
@@ -69,7 +69,7 @@ handler.addFriend = function (msg, session, next) {
                 data: res
             };
 
-            let pushGroup = new Array();            
+            let pushGroup = new Array();
             self.app.rpc.chat.chatRemote.getOnlineUser(session, targetUid, (err, user: User.OnlineUser) => {
                 if (!err) {
                     let item = { uid: user.uid, sid: user.serverId };

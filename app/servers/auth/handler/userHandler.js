@@ -8,7 +8,7 @@ const Code_1 = require("../../../../shared/Code");
 const friendManager_1 = require("../../../../smelinkApp/appLayer/friendManager");
 const dbClient = Mdb.DbController.DbClient.GetInstance();
 const ObjectID = require('mongodb').ObjectID;
-const webConfig = require('../../../../config/webConfig.json');
+const config_1 = require("../../../../config/config");
 var channelService;
 var chatService;
 module.exports = function (app) {
@@ -37,7 +37,7 @@ handler.addFriend = function (msg, session, next) {
     }
     let id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "request timeout..." });
-    }, webConfig.timeout);
+    }, config_1.Config.timeout);
     let friendManager = new friendManager_1.default();
     friendManager.addFriends(myUid, targetUid, (err, res) => {
         if (err) {
