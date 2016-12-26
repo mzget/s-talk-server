@@ -1,22 +1,17 @@
 "use strict";
 const https = require("https");
 const http = require("http");
-const MWebConfig = require("../../config/WebConfig");
-const configJson = require('../../config/webConfig.json');
+const config_1 = require("../../config/config");
 class ParsePushService {
-    constructor() {
-        this.webConfig = new MWebConfig.WebConfig();
-        this.webConfig = JSON.parse(JSON.stringify(configJson));
-    }
     queryingInstallations() {
         var options = {
-            hostname: this.webConfig.pushServer,
+            hostname: config_1.Config.pushServer,
             port: 443,
             path: "/1/installations",
             method: 'GET',
             headers: {
-                'X-Parse-Application-Id': this.webConfig.ParseApplicationId,
-                'X-Parse-Master-Key': this.webConfig.ParseMasterKey
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-Master-Key': config_1.Config.ParseMasterKey
             }
         };
         var req = https.request(options, function (res) {
@@ -46,13 +41,13 @@ class ParsePushService {
         };
         var postJson = JSON.stringify(data);
         var options = {
-            hostname: self.webConfig.pushServer,
+            hostname: config_1.Config.pushServer,
             port: 443,
             path: "/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-REST-API-Key': config_1.Config.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };
@@ -91,13 +86,13 @@ class ParsePushService {
         };
         var postJson = JSON.stringify(data);
         var options = {
-            hostname: self.webConfig.pushServer,
+            hostname: config_1.Config.pushServer,
             port: 443,
             path: "/1/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-REST-API-Key': config_1.Config.ParseRESTAPIKey,
                 'Content-Type': 'application/json'
             }
         };
@@ -138,14 +133,14 @@ class ParsePushService {
         };
         let postJson = JSON.stringify(data);
         let options = {
-            host: self.webConfig.pushServer,
-            port: configJson.pushPort,
-            path: configJson.pushPath,
+            host: config_1.Config.pushServer,
+            port: config_1.Config.pushPort,
+            path: config_1.Config.pushPath,
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': self.webConfig.ParseApplicationId,
-                'X-Parse-REST-API-Key': self.webConfig.ParseRESTAPIKey,
-                'X-Parse-Master-Key': self.webConfig.ParseMasterKey,
+                'X-Parse-Application-Id': config_1.Config.ParseApplicationId,
+                'X-Parse-REST-API-Key': config_1.Config.ParseRESTAPIKey,
+                'X-Parse-Master-Key': config_1.Config.ParseMasterKey,
                 'Content-Type': 'application/json'
             }
         };
