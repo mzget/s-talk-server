@@ -94,9 +94,11 @@ remote.addRoom = function (room: Room) {
 remote.updateRoomMembers = function (data, cb) {
     accountService.addRoom(data);
 
-    if (!!cb) {
-        cb();
-    }
+    setTimeout(function () {
+        if (!!cb) {
+            cb();
+        }
+    }, 100);
 }
 /**
 * UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
@@ -114,7 +116,7 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
 
             let pushGroup = new Array();
             room.members.forEach(member => {
-                accountService.getOnlineUser(member.id, (err, user) => {
+                accountService.getOnlineUser(member._id, (err, user) => {
                     if (!err) {
                         var item = { uid: user.uid, sid: user.serverId };
                         pushGroup.push(item);
@@ -132,13 +134,12 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
 remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
     accountService.getRoom(roomId, (err, room) => {
         let result: boolean = false;
-
         if (err || !room) {
             callback(null, result);
         }
         else {
             result = room.members.some(value => {
-                if (value.id === userId) {
+                if (value._id === userId) {
                     return true;
                 }
             });

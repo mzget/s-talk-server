@@ -6,7 +6,7 @@ var Room = require("../model/Room");
 var UserManager_1 = require("./UserManager");
 var ObjectID = mongodb.ObjectID;
 var dbClient = MDb.DbController.DbClient.GetInstance();
-var Db = mongodb.Db, MongoClient = mongodb.MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
+var MongoClient = mongodb.MongoClient;
 var Controller;
 (function (Controller) {
     var ChatRoomManager = (function () {
@@ -24,8 +24,21 @@ var Controller;
             }
             return ChatRoomManager._Instance;
         };
-        ChatRoomManager.prototype.GetChatRoomInfo = function (query, projections, callback) {
-            dbClient.FindDocument(MDb.DbController.roomColl, callback, query, projections);
+        ChatRoomManager.prototype.GetChatRoomInfo = function (room_id, projection) {
+            return new Promise(function (resolve, reject) {
+                MongoClient.connect(MDb.DbController.chatDB).then(function (db) {
+                    var roomColl = db.collection(MDb.DbController.roomColl);
+                    roomColl.find({ _id: new ObjectID(room_id) }).project(projection).limit(1).toArray().then(function (docs) {
+                        db.close();
+                        resolve(docs);
+                    }).catch(function (err) {
+                        db.close();
+                        reject(err);
+                    });
+                }).catch(function (err) {
+                    reject(err);
+                });
+            });
         };
         ChatRoomManager.prototype.getProjectBaseGroups = function (userId, callback) {
             this.roomDAL.findProjectBaseGroups(userId, callback);
@@ -39,7 +52,7 @@ var Controller;
             var _tempArr = doc.members;
             for (var i in _tempArr) {
                 var user = new Room.Member();
-                user.id = _tempArr[i];
+                user._id = _tempArr[i];
                 members.push(user);
             }
             var _room = new Room.Room();
@@ -133,7 +146,6 @@ var Controller;
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
                 collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), docs);
                     }
@@ -198,7 +210,6 @@ var Controller;
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
@@ -290,7 +301,6 @@ var Controller;
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
@@ -311,7 +321,6 @@ var Controller;
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 collection.createIndex({ rid: 1 }, { background: true, w: 1 }).then(function (indexName) {
@@ -344,7 +353,7 @@ var Controller;
             var members = new Array();
             memberIds.forEach(function (val, id, arr) {
                 var member = new Room.Member();
-                member.id = val;
+                member._id = val;
                 members.push(member);
             });
             var newRoom = new Room.Room();
@@ -374,12 +383,10 @@ var Controller;
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.insertOne(newRoom, function (err, result) {
-                    assert.equal(null, err);
                     callback(err, result.ops);
                     db.close();
                 });
@@ -400,7 +407,6 @@ var Controller;
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.updateOne({ _id: new ObjectID(roomId) }, { $push: { members: { $each: members } } }, function (err, result) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), null);
                     }
@@ -420,8 +426,7 @@ var Controller;
                     // Get the documents collection
                     var collection = db.collection(MDb.DbController.roomColl);
                     // Find some documents
-                    collection.updateOne({ _id: new ObjectID(roomId) }, { $pull: { members: { id: item.id } } }, function (err, result) {
-                        assert.equal(null, err);
+                    collection.updateOne({ _id: new ObjectID(roomId) }, { $pull: { members: { id: item._id } } }, function (err, result) {
                         if (err) {
                             errCb(new Error(err.message));
                         }
@@ -450,7 +455,6 @@ var Controller;
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.updateOne({ _id: new ObjectID(roomId) }, { $set: { name: newGroupName } }, function (err, result) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), null);
                     }
@@ -465,8 +469,7 @@ var Controller;
             MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 // Get the collection
                 var col = db.collection(MDb.DbController.roomColl);
-                col.updateOne({ _id: new ObjectID(roomId), "members.id": member.id }, { $set: { "members.$": member } }, function (err, result) {
-                    assert.equal(1, result.matchedCount);
+                col.updateOne({ _id: new ObjectID(roomId), "members.id": member._id }, { $set: { "members.$": member } }, function (err, result) {
                     callback(null, result);
                     // Finish up test
                     db.close();

@@ -6,16 +6,7 @@ import message = require("../model/Message");
 import { UserManager } from './UserManager';
 const ObjectID = mongodb.ObjectID;
 const dbClient = MDb.DbController.DbClient.GetInstance();
-const Db = mongodb.Db,
-    MongoClient = mongodb.MongoClient,
-    Server = require('mongodb').Server,
-    ReplSetServers = require('mongodb').ReplSetServers,
-    Binary = require('mongodb').Binary,
-    GridStore = require('mongodb').GridStore,
-    Grid = require('mongodb').Grid,
-    Code = require('mongodb').Code,
-    BSON = require('mongodb').Bson,
-    assert = require('assert');
+const MongoClient = mongodb.MongoClient;
 
 module Controller {
     export class ChatRoomManager {
@@ -38,8 +29,22 @@ module Controller {
             return ChatRoomManager._Instance;
         }
 
-        public GetChatRoomInfo(query, projections, callback: (res: any) => void) {
-            dbClient.FindDocument(MDb.DbController.roomColl, callback, query, projections);
+        public GetChatRoomInfo(room_id: string, projection?: any): Promise<any[]> {
+            return new Promise((resolve, reject) => {
+                MongoClient.connect(MDb.DbController.chatDB).then((db: mongodb.Db) => {
+                    let roomColl = db.collection(MDb.DbController.roomColl);
+
+                    roomColl.find({ _id: new ObjectID(room_id) }).project(projection).limit(1).toArray().then(docs => {
+                        db.close();
+                        resolve(docs);
+                    }).catch(err => {
+                        db.close();
+                        reject(err);
+                    });
+                }).catch(err => {
+                    reject(err);
+                });
+            });
         }
 
         public getProjectBaseGroups(userId: string, callback: (err, res) => void) {
@@ -56,7 +61,7 @@ module Controller {
             var _tempArr = doc.members;
             for (var i in _tempArr) {
                 var user = new Room.Member();
-                user.id = _tempArr[i];
+                user._id = _tempArr[i];
                 members.push(user);
             }
 
@@ -163,7 +168,6 @@ module Controller {
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
                 collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), docs);
                     }
@@ -234,7 +238,6 @@ module Controller {
         public GetChatContent(messageId: string, callback: (err, res: any[]) => void) {
             MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
-                assert.equal(null, err);
 
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
@@ -330,7 +333,6 @@ module Controller {
             // Use connect method to connect to the Server
             MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
-                assert.equal(null, err);
 
                 // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
@@ -351,7 +353,6 @@ module Controller {
             // Use connect method to connect to the Server
             MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
-                assert.equal(null, err);
 
                 // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
@@ -388,7 +389,7 @@ module Controller {
 
             memberIds.forEach((val, id, arr) => {
                 var member: Room.Member = new Room.Member();
-                member.id = val;
+                member._id = val;
                 members.push(member);
             });
 
@@ -420,13 +421,11 @@ module Controller {
 
             MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
-                assert.equal(null, err);
 
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.insertOne(newRoom, (err, result) => {
-                    assert.equal(null, err);
 
                     callback(err, result.ops);
 
@@ -451,7 +450,6 @@ module Controller {
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.updateOne({ _id: new ObjectID(roomId) }, { $push: { members: { $each: members } } }, function (err, result) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), null);
                     }
@@ -471,8 +469,7 @@ module Controller {
                     // Get the documents collection
                     var collection = db.collection(MDb.DbController.roomColl);
                     // Find some documents
-                    collection.updateOne({ _id: new ObjectID(roomId) }, { $pull: { members: { id: item.id } } }, function (err, result) {
-                        assert.equal(null, err);
+                    collection.updateOne({ _id: new ObjectID(roomId) }, { $pull: { members: { id: item._id } } }, function (err, result) {
                         if (err) {
                             errCb(new Error(err.message));
                         }
@@ -501,7 +498,6 @@ module Controller {
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.updateOne({ _id: new ObjectID(roomId) }, { $set: { name: newGroupName } }, function (err, result) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), null);
                     }
@@ -517,8 +513,7 @@ module Controller {
             MongoClient.connect(MDb.DbController.chatDB, (err, db) => {
                 // Get the collection
                 var col = db.collection(MDb.DbController.roomColl);
-                col.updateOne({ _id: new ObjectID(roomId), "members.id": member.id }, { $set: { "members.$": member } }, function (err, result) {
-                    assert.equal(1, result.matchedCount);
+                col.updateOne({ _id: new ObjectID(roomId), "members.id": member._id }, { $set: { "members.$": member } }, function (err, result) {
 
                     callback(null, result);
                     // Finish up test

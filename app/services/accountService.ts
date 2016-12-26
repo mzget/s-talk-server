@@ -103,7 +103,7 @@ export class AccountService {
     * Require Room object. Must be { Room._id, Room.members }
     */
     addRoom(data) {
-        var room: Room.Room = JSON.parse(JSON.stringify(data));
+        let room: Room.Room = JSON.parse(JSON.stringify(data));
         if (!this.roomsMap[room._id]) {
             this.roomsMap[room._id] = room;
         }

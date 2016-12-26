@@ -467,30 +467,33 @@ handler.enterRoom = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
         return;
     }, config_1.Config.timeout);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
-        self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
-        self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-            console.log("checkedCanAccessRoom: ", res);
-            if (err || res === false) {
-                clearTimeout(timeOut_id);
-                next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-            }
-            else {
-                session.set('rid', rid);
-                session.push('rid', function (err) {
-                    if (err) {
-                        console.error('set rid for session service failed! error is : %j', err.stack);
-                    }
-                });
-                var onlineUser = new User.OnlineUser();
-                onlineUser.username = uname;
-                onlineUser.uid = uid;
-                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+    chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
+        self.app.rpc.auth.authRemote.updateRoomMembers(session, result, function () {
+            self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
+                console.log("checkedCanAccessRoom: ", res);
+                if (err || res === false) {
                     clearTimeout(timeOut_id);
-                    next(null, { code: Code_1.default.OK, data: result });
-                });
-            }
+                    next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+                }
+                else {
+                    session.set('rid', rid);
+                    session.push('rid', function (err) {
+                        if (err) {
+                            console.error('set rid for session service failed! error is : %j', err.stack);
+                        }
+                    });
+                    var onlineUser = new User.OnlineUser();
+                    onlineUser.username = uname;
+                    onlineUser.uid = uid;
+                    addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+                        clearTimeout(timeOut_id);
+                        next(null, { code: Code_1.default.OK, data: result });
+                    });
+                }
+            });
         });
+    }).catch(function (err) {
+        next(null, { code: Code_1.default.FAIL, message: err });
     });
 };
 var addChatUser = function (app, session, user, sid, rid, next) {

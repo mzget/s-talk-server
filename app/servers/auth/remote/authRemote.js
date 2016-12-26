@@ -79,9 +79,11 @@ remote.addRoom = function (room) {
 };
 remote.updateRoomMembers = function (data, cb) {
     accountService.addRoom(data);
-    if (!!cb) {
-        cb();
-    }
+    setTimeout(function () {
+        if (!!cb) {
+            cb();
+        }
+    }, 100);
 };
 /**
 * UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
@@ -97,7 +99,7 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
             };
             var pushGroup_1 = new Array();
             room.members.forEach(function (member) {
-                accountService.getOnlineUser(member.id, function (err, user) {
+                accountService.getOnlineUser(member._id, function (err, user) {
                     if (!err) {
                         var item = { uid: user.uid, sid: user.serverId };
                         pushGroup_1.push(item);
@@ -117,7 +119,7 @@ remote.checkedCanAccessRoom = function (roomId, userId, callback) {
         }
         else {
             result = room.members.some(function (value) {
-                if (value.id === userId) {
+                if (value._id === userId) {
                     return true;
                 }
             });

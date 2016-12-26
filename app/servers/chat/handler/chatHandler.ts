@@ -115,9 +115,9 @@ function pushMessage(app, session, room: MRoom.Room, message: Message, clientUUI
 
     //@ Try to push message to other ...
     async.map(room.members, (item, resultCallback) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item.id, function (err2, user) {
+        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
             if (err2 || user === null) {
-                offlineMembers.push(item.id);
+                offlineMembers.push(item._id);
             }
             else {
                 onlineMembers.push(user);
@@ -606,18 +606,17 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
 
         async.waterfall([t => {
             //<!-- checking roomType
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, (result) => {
-                if (!result) {
-                    var errMsg = "checkedRoomType fail.";
-                    console.error(errMsg);
-                    t(new Error(errMsg), null);
-                }
-                else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+            chatRoomManager.GetChatRoomInfo(room._id, { type: 1 }).then(result => {
+                if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
                     t(null, {});
                 }
                 else {
                     t(null, result.type);
                 }
+            }).catch(err => {
+                let errMsg = "checkedRoomType fail.";
+                console.error(errMsg);
+                t(new Error(errMsg), null);
             })
         }, (arg1, cb) => {
             if (arg1 === null) {

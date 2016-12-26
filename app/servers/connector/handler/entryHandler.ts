@@ -481,9 +481,9 @@ handler.getProjectBaseGroups = function (msg, session, next) {
  * request user_id for query your member authority groups.
  */
 handler.getMyPrivateGroupChat = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	var uid = session.uid;
+	let self = this;
+	let token = msg.token;
+	let uid = session.uid;
 	if (!uid) {
 		console.warn("uid cannot empty or null.!");
 		next(null, { code: Code.FAIL, message: "session uid is missing.." });
@@ -498,7 +498,7 @@ handler.getMyPrivateGroupChat = function (msg, session, next) {
 		}
 		else {
 			chatRoomManager.getPrivateGroupChat(uid, function (err, res) {
-				var result;
+				let result;
 				if (err) {
 					console.error("Fail to getMyPrivateGroupChat: ", err);
 					result = null;
@@ -556,34 +556,36 @@ handler.enterRoom = function (msg, session, next) {
 		return;
 	}, Config.timeout);
 
-	chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
-		self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
+	chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
+		self.app.rpc.auth.authRemote.updateRoomMembers(session, result, () => {
+			self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
+				console.log("checkedCanAccessRoom: ", res);
 
-		self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-			console.log("checkedCanAccessRoom: ", res);
-
-			if (err || res === false) {
-				clearTimeout(timeOut_id);
-				next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-			}
-			else {
-				session.set('rid', rid);
-				session.push('rid', function (err) {
-					if (err) {
-						console.error('set rid for session service failed! error is : %j', err.stack);
-					}
-				});
-
-				let onlineUser = new User.OnlineUser();
-				onlineUser.username = uname;
-				onlineUser.uid = uid;
-
-				addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+				if (err || res === false) {
 					clearTimeout(timeOut_id);
-					next(null, { code: Code.OK, data: result });
-				});
-			}
+					next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+				}
+				else {
+					session.set('rid', rid);
+					session.push('rid', function (err) {
+						if (err) {
+							console.error('set rid for session service failed! error is : %j', err.stack);
+						}
+					});
+
+					let onlineUser = new User.OnlineUser();
+					onlineUser.username = uname;
+					onlineUser.uid = uid;
+
+					addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+						clearTimeout(timeOut_id);
+						next(null, { code: Code.OK, data: result });
+					});
+				}
+			});
 		});
+	}).catch(err => {
+		next(null, { code: Code.FAIL, message: err });
 	});
 };
 

@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/async": "^2.0.37",
     "@types/mongodb": "^2.1.36",
-    "@types/node": "^6.0.51",
+    "@types/node": "^6.0.53",
     "@types/promise": "^7.1.30",
     "nodemon": "^1.11.0"
   },
