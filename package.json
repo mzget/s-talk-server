@@ -8,19 +8,20 @@
     "crc": "0.2.0",
     "form-data": "0.2.0",
     "jsonwebtoken": "^7.1.9",
-    "mongodb": "^2.2.11",
+    "mongodb": "^2.2.16",
     "pomelo": "^1.2.3"
   },
   "devDependencies": {
-    "nodemon": "^1.11.0",
     "@types/async": "^2.0.37",
     "@types/mongodb": "^2.1.36",
-    "@types/node": "^6.0.53"
+    "@types/node": "^6.0.53",
+    "nodemon": "^1.11.0"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/nodemon/bin/nodemon.js app.js"
+    "start": "node app.js",
+    "dev": "./node_modules/nodemon/bin/nodemon.js app.js"
   },
   "repository": {
     "type": "git",

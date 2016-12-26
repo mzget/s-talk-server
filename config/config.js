@@ -4,7 +4,7 @@ exports.Config = {
     fileDB: "",
     port: 80,
     timeout: 10000,
-    webserver: "http://203.113.25.44",
+    webserver: "http://git.animation-genius.com",
     pushServer: "smelink.animation-genius.com",
     pushPort: 4040,
     pushPath: "/parse/push",

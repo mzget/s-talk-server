@@ -1,6 +1,4 @@
-﻿/// <reference path="../../typings/index.d.ts" />
-
-import * as  User from '../model/User';
+﻿import * as  User from '../model/User';
 import *as Room from '../model/Room';
 import RoomAccessData from '../model/RoomAccessData';
 import Mdb = require('../db/dbClient');

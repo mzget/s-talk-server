@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 "use strict";
 const Room = require("../model/Room");
 const RoomAccessData_1 = require("../model/RoomAccessData");

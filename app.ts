@@ -1,13 +1,8 @@
 ﻿const pomelo = require('pomelo');
 import routeUtil from './app/util/routeUtil';
 import { AccountService } from './app/services/accountService';
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
 import webConfig = require('./config/config');
 
-global.rootRequire = function (name) {
-    return require(__dirname + '/' + name);
-}
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {
@@ -31,8 +26,8 @@ app.configure('production|development', function () {
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
-    app.set('connectorConfig',
-        {
+    /** websocket connector.
+        app.set('connectorConfig', {
             connector: pomelo.connectors.hybridconnector,
             // connector : pomelo.connectors.sioconnector,
             //websocket, polling
@@ -40,7 +35,7 @@ app.configure('production|development', function () {
             heartbeatTimeout: 60,
             heartbeatInterval: 25
         });
-
+    */
     //@ require monitor in pomelo@2x
     //   app.set('monitorConfig',
     //     {
@@ -57,13 +52,6 @@ app.configure('production|development', 'auth', function () {
 app.configure('production|development', 'chat', function () {
 
 });
-
-//app.configure('production|development', 'master', function () {
-//var http = new HttpDebug();
-//http.start();
-//var net = new netserver.NetServer();
-//net.Start();
-//});
 
 // start app
 app.start();

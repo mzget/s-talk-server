@@ -1,4 +1,3 @@
-/// <reference path="../../../../typings/index.d.ts" />
 "use strict";
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");

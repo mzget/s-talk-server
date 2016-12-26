@@ -2,8 +2,6 @@
  *  friend Manager.
  */
 
-/// <reference path="../../typings/index.d.ts" />
-
 import User = require('../dataLayer/bolAccount');
 import Mdb = require('../../app/db/dbClient');
 import mongodb = require('mongodb');

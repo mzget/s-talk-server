@@ -1,6 +1,4 @@
-﻿/// <reference path="../../../../typings/index.d.ts" />
-
-import Code from '../../../../shared/Code';
+﻿import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
