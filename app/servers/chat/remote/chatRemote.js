@@ -1,18 +1,18 @@
 "use strict";
-var UserManager_1 = require("../../../controller/UserManager");
-var Code_1 = require("../../../../shared/Code");
-var ObjectID = require('mongodb').ObjectID;
-var userManager = UserManager_1.UserManager.getInstance();
+const UserManager_1 = require("../../../controller/UserManager");
+const Code_1 = require("../../../../shared/Code");
+const ObjectID = require('mongodb').ObjectID;
+const userManager = UserManager_1.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
     return new ChatRemote(app);
 };
-var ChatRemote = function (app) {
+const ChatRemote = function (app) {
     this.app = app;
     channelService = app.get('channelService');
 };
-var remote = ChatRemote.prototype;
+const remote = ChatRemote.prototype;
 /**
 * Add user into chat channel.
 * @param {String} uid unique id for user
@@ -21,11 +21,11 @@ var remote = ChatRemote.prototype;
 * @param {boolean} flag channel parameter
 */
 remote.add = function (user, sid, rid, flag, cb) {
-    var channel = channelService.getChannel(rid, flag);
-    var username = user.username;
-    var uid = user.uid;
+    let channel = channelService.getChannel(rid, flag);
+    let username = user.username;
+    let uid = user.uid;
     console.log("chatRemote.add : user %s to room %s", user.username, rid);
-    var param = {
+    let param = {
         route: 'onAdd',
         user: user
     };
@@ -68,29 +68,29 @@ remote.getUsers = function (name, flag) {
 * @param {String} name channel name
 */
 remote.kick = function (user, sid, rid, cb) {
-    var self = this;
+    let self = this;
     cb();
     if (!rid) {
         return;
     }
     userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
-        var printR = (accessInfo) ? accessInfo.result : null;
+        let printR = (accessInfo) ? accessInfo.result : null;
         console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
         userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
             console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
             if (err || res.length <= 0)
                 return;
-            var targetId = { uid: user.uid, sid: user.serverId };
-            var group = new Array();
+            let targetId = { uid: user.uid, sid: user.serverId };
+            let group = new Array();
             group.push(targetId);
-            var param = {
+            let param = {
                 route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
                 data: res[0]
             };
             channelService.pushMessageByUids(param.route, param.data, group);
         });
     });
-    var channel = channelService.getChannel(rid, false);
+    let channel = channelService.getChannel(rid, false);
     //<!-- when user leave channel.
     if (!!channel) {
         var username = user.username;

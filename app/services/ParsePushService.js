@@ -1,11 +1,11 @@
 "use strict";
-var https = require("https");
-var http = require("http");
-var config_1 = require("../../config/config");
-var ParsePushService = (function () {
-    function ParsePushService() {
+const https = require("https");
+const http = require("http");
+const config_1 = require("../../config/config");
+class ParsePushService {
+    constructor() {
     }
-    ParsePushService.prototype.queryingInstallations = function () {
+    queryingInstallations() {
         var options = {
             hostname: config_1.Config.pushServer,
             port: 443,
@@ -29,10 +29,10 @@ var ParsePushService = (function () {
             });
         });
         req.end();
-    };
-    ParsePushService.prototype.sendPushToChannels = function (channels, alert) {
+    }
+    sendPushToChannels(channels, alert) {
         //var data = "{\"where\": { \"channels\": \"RFL\" }, \"data\": { \"alert\": \"The Giants scored a run! The score is now 2-2.\"}}";
-        var self = this;
+        let self = this;
         var data = {
             "where": {
                 "channels": channels
@@ -70,9 +70,9 @@ var ParsePushService = (function () {
         });
         request.write(postJson);
         request.end();
-    };
-    ParsePushService.prototype.sendPushToInstallationsId = function (installationsId, alert) {
-        var self = this;
+    }
+    sendPushToInstallationsId(installationsId, alert) {
+        let self = this;
         if (!installationsId || installationsId.length === 0) {
             return;
         }
@@ -115,14 +115,14 @@ var ParsePushService = (function () {
         });
         request.write(postJson);
         request.end();
-    };
-    ParsePushService.prototype.sendPushToTargetDevices = function (registrationIds, alert) {
-        var self = this;
+    }
+    sendPushToTargetDevices(registrationIds, alert) {
+        let self = this;
         if (!registrationIds || registrationIds.length === 0) {
             return;
         }
         //        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
-        var data = {
+        let data = {
             "where": {
                 "deviceToken": { "$in": registrationIds }
             },
@@ -133,8 +133,8 @@ var ParsePushService = (function () {
                 "badge": "Increment"
             }
         };
-        var postJson = JSON.stringify(data);
-        var options = {
+        let postJson = JSON.stringify(data);
+        let options = {
             host: config_1.Config.pushServer,
             port: config_1.Config.pushPort,
             path: config_1.Config.pushPath,
@@ -146,7 +146,7 @@ var ParsePushService = (function () {
                 'Content-Type': 'application/json'
             }
         };
-        var request = http.request(options, function (res) {
+        let request = http.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
@@ -163,7 +163,6 @@ var ParsePushService = (function () {
         });
         request.write(postJson);
         request.end();
-    };
-    return ParsePushService;
-}());
+    }
+}
 exports.ParsePushService = ParsePushService;

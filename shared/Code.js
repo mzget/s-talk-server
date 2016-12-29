@@ -1,6 +1,6 @@
 "use strict";
-var Code = (function () {
-    function Code() {
+class Code {
+    constructor() {
         this.ENTRY = {
             FA_TOKEN_INVALID: 1001,
             FA_TOKEN_EXPIRE: 1002,
@@ -10,8 +10,7 @@ var Code = (function () {
             FA_NO_SERVER_AVAILABLE: 2001
         };
     }
-    return Code;
-}());
+}
 Code.OK = 200;
 Code.RequestTimeout = 408;
 Code.FAIL = 500;

@@ -2,25 +2,25 @@
  *  friend Manager.
  */
 "use strict";
-var Mdb = require("../../app/db/dbClient");
-var mongodb = require("mongodb");
-var MongoClient = mongodb.MongoClient;
-var ObjectID = mongodb.ObjectID;
-var DbClient = Mdb.DbController.DbClient.GetInstance();
-var FriendManager = (function () {
-    function FriendManager() {
+const Mdb = require("../../app/db/dbClient");
+const mongodb = require("mongodb");
+const MongoClient = mongodb.MongoClient;
+const ObjectID = mongodb.ObjectID;
+const DbClient = Mdb.DbController.DbClient.GetInstance();
+class FriendManager {
+    constructor() {
     }
-    FriendManager.prototype.addFriends = function (myUid, targetId, next) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(function (db) {
+    addFriends(myUid, targetId, next) {
+        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
             // Get the documents collection
-            var userCollection = db.collection(Mdb.DbController.userColl);
+            let userCollection = db.collection(Mdb.DbController.userColl);
             userCollection.find({ _id: new ObjectID(targetId) }).limit(1).toArray().then(function (docs) {
                 if (docs.length != 0) {
-                    var user = JSON.parse(JSON.stringify(docs[0]));
-                    var linkRequests = user.link_requests;
+                    let user = JSON.parse(JSON.stringify(docs[0]));
+                    let linkRequests = user.link_requests;
                     if (!linkRequests)
                         linkRequests = [];
-                    var _hasMyLinkRequest = linkRequests.some(function (val, id, arr) {
+                    let _hasMyLinkRequest = linkRequests.some((val, id, arr) => {
                         if (val === myUid)
                             return true;
                     });
@@ -34,7 +34,7 @@ var FriendManager = (function () {
                         .then(function (r) {
                         next(null, r);
                         db.close();
-                    }).catch(function (error) {
+                    }).catch(error => {
                         next(error, null);
                         db.close();
                     });
@@ -43,15 +43,14 @@ var FriendManager = (function () {
                     next(new Error("No have target user."), null);
                     db.close();
                 }
-            }).catch(function (err) {
+            }).catch(err => {
                 db.close();
                 next(new Error("No have target user."), null);
             });
-        }).catch(function (err) {
+        }).catch(err => {
             next(new Error("Cannot connect database."), null);
         });
-    };
-    return FriendManager;
-}());
+    }
+}
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = FriendManager;

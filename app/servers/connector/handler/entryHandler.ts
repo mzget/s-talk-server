@@ -607,30 +607,52 @@ handler.leaveRoom = function (msg, session, next) {
 	let uid = session.uid;
 	let sid = self.app.get('serverId');
 
-	if (!rid || !msg.username) {
-		next(null, { code: Code.FAIL, message: "rid or username is null." });
-		return;
+	let schema = {
+		token: Joi.string().required(),
+		rid: Joi.string().required()
+	};
+	const result = Joi.validate(msg._object, schema);
+
+	if (result.error) {
+		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	let onlineUser = new User.OnlineUser();
-	onlineUser.username = msg.username;
-	onlineUser.uid = uid;
-	onlineUser.serverId = sid;
+	tokenService.ensureAuthorized(token, (err, result) => {
+		if (err) {
+			return next(null, { code: Code.FAIL, message: err });
+		}
+		// {
+		// 	success: true,
+		// 		decoded: 
+		// 	{
+		// 		_id: '5854e010c28e49f12d05a398',
+		// 			user_id: '123456',
+		// 				username: 'mzget',
+		// 					role: 'admin',
+		// 						iat: 1482987323
+		// 	}
+		// }
 
-	self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
-		session.set('rid', null);
-		session.push('rid', function (err) {
+		let onlineUser = new User.OnlineUser();
+		onlineUser.username = result.decoded.username;
+		onlineUser.uid = uid;
+		onlineUser.serverId = sid;
+
+		self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+			session.set('rid', null);
+			session.push('rid', function (err) {
+				if (err) {
+					console.error('set rid for session service failed! error is : %j', err.stack);
+				}
+			});
+
 			if (err) {
-				console.error('set rid for session service failed! error is : %j', err.stack);
+				next(null, { code: Code.FAIL, message: "leaveRoom with error." });
+			}
+			else {
+				next(null, { code: Code.OK });
 			}
 		});
-
-		if (err) {
-			next(null, { code: Code.FAIL, message: "leaveRoom with error." });
-		}
-		else {
-			next(null, { code: Code.OK });
-		}
 	});
 }
 

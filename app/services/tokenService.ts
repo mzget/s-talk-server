@@ -18,13 +18,13 @@ export default class TokenService {
 	/**
 	 * reture token decoded.
 	 */
-	public ensureAuthorized(token, callback) {
+	public ensureAuthorized(token, callback: (err: any, data: { success: boolean, decoded: any }) => void) {
 		// decode token
 		if (token) {
 			// verifies secret and checks exp
 			jwt.verify(token, this.secret, function (err, decoded) {
 				if (err) {
-					callback(err, { success: false, message: 'Failed to authenticate token.' });
+					callback(err, null);
 				}
 				else {
 					// if everything is good, save to request for use in other routes
@@ -35,10 +35,7 @@ export default class TokenService {
 		} else {
 			// if there is no token
 			// return an error
-			callback(new Error("There is no token provide."), {
-				success: false,
-				message: 'No token provided.'
-			});
+			callback(new Error("There is no token provide."), null);
 		}
 	}
 }

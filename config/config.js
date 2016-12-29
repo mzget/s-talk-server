@@ -1,9 +1,9 @@
 "use strict";
-var devApi = "http://smelink.animation-genius.com:3002";
-var masterApi = "http://203.148.250.152:3002";
-var devConfig = {
+let devApi = "http://smelink.animation-genius.com:3002";
+let masterApi = "http://203.148.250.152:3002";
+const devConfig = {
     api: {
-        authen: devApi + "/api/authenticate/verify"
+        authen: `${devApi}/api/authenticate/verify`
     },
     chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
     fileDB: "",
@@ -21,9 +21,9 @@ var devConfig = {
         secret: "ahoostudio_session_secret"
     }
 };
-var masterConfig = {
+const masterConfig = {
     api: {
-        authen: masterApi + "/api/authenticate/verify"
+        authen: `${masterApi}/api/authenticate/verify`
     },
     chatDB: "mongodb://chats:chats1234@smelink.animation-genius.com:27017/chats",
     fileDB: "",
