@@ -89,31 +89,15 @@ export class AccountService {
     /**
      * roomMembers the dict for keep roomId pair with array of uid who is a member of room.
      */
-    private roomsMap: Map<string, Room.Room>;
-    public get RoomsMap(): Map<string, Room.Room> {
-        return this.roomsMap;
-    }
-    setRoomsMap(data: Array<any>, callback) {
-        console.log("ChatService.setRoomMembers");
-
-        if (!this.roomsMap) {
-            this.roomsMap = new Map();
-            client.del('room_map', function (err, reply) {
-                console.log(reply);
-            });
-        }
-
+    setRoomsMap(data: Array<any>, callback: () => void) {
         data.forEach(element => {
             let room: Room.Room = JSON.parse(JSON.stringify(element));
-            this.roomsMap.set(room._id, room);
-
             client.hmset("room_map", element._id, JSON.stringify(room), redis.print);
         });
 
         callback();
     }
     getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
-        let self = this;
         client.hmget("room_map", roomId, function (err, roomMap) {
             let room: Room.Room = JSON.parse(roomMap[0]);
             console.dir(roomMap);
@@ -121,7 +105,6 @@ export class AccountService {
                 callback("Have no a roomId in roomMembers dict." + err, null);
             }
             else {
-                self.roomsMap.set(room._id, room);
                 callback(null, room);
             }
         });
@@ -133,7 +116,6 @@ export class AccountService {
     addRoom(room: Room.Room) {
         console.log("addRoom", room);
 
-        this.roomsMap.set(room._id, room);
         client.hmset("room_map", room._id, JSON.stringify(room), redis.print);
     }
 

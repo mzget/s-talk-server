@@ -105,7 +105,7 @@ remote.updateRoomMembers = function (data: Room, cb) {
 */
 remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Function) {
     rooms.forEach(room => {
-        if (!accountService.RoomsMap[room._id]) {
+        if (!accountService.getRoom[room._id]) {
             accountService.addRoom(room);
 
             //<!-- Notice all member of new room to know they have a new room.   
@@ -135,6 +135,7 @@ remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback
     accountService.getRoom(roomId, (err, room) => {
         let result: boolean = false;
         if (err || !room) {
+            console.warn("getRoom fail", err);
             callback(null, result);
         }
         else {

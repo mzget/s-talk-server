@@ -108,26 +108,17 @@ class AccountService {
             this._userTransaction = {};
         return this._userTransaction;
     }
-    get RoomsMap() {
-        return this.roomsMap;
-    }
+    /**
+     * roomMembers the dict for keep roomId pair with array of uid who is a member of room.
+     */
     setRoomsMap(data, callback) {
-        console.log("ChatService.setRoomMembers");
-        if (!this.roomsMap) {
-            this.roomsMap = new Map();
-            client.del('room_map', function (err, reply) {
-                console.log(reply);
-            });
-        }
         data.forEach(element => {
             let room = JSON.parse(JSON.stringify(element));
-            this.roomsMap.set(room._id, room);
             client.hmset("room_map", element._id, JSON.stringify(room), redis.print);
         });
         callback();
     }
     getRoom(roomId, callback) {
-        let self = this;
         client.hmget("room_map", roomId, function (err, roomMap) {
             let room = JSON.parse(roomMap[0]);
             console.dir(roomMap);
@@ -135,7 +126,6 @@ class AccountService {
                 callback("Have no a roomId in roomMembers dict." + err, null);
             }
             else {
-                self.roomsMap.set(room._id, room);
                 callback(null, room);
             }
         });
@@ -145,7 +135,6 @@ class AccountService {
     */
     addRoom(room) {
         console.log("addRoom", room);
-        this.roomsMap.set(room._id, room);
         client.hmset("room_map", room._id, JSON.stringify(room), redis.print);
     }
     /**
