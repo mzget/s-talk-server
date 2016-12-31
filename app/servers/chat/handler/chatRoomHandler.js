@@ -394,7 +394,12 @@ handler.getRoomInfo = function (msg, session, next) {
         }
         else {
             chatRoomManager.GetChatRoomInfo(rid).then(function (res) {
-                next(null, { code: Code_1.default.OK, data: res });
+                if (res.length > 0) {
+                    next(null, { code: Code_1.default.OK, data: res });
+                }
+                else {
+                    next(null, { code: Code_1.default.FAIL, message: "Your request roomInfo is no longer." });
+                }
             }).catch(err => {
                 next(null, { code: Code_1.default.FAIL, message: "Your request roomInfo is no longer." });
             });

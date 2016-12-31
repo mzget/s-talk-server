@@ -91,7 +91,7 @@ remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
 remote.addRoom = function (room: Room) {
     accountService.addRoom(room);
 }
-remote.updateRoomMembers = function (data, cb) {
+remote.updateRoomMembers = function (data: Room, cb) {
     accountService.addRoom(data);
 
     setTimeout(function () {
@@ -138,6 +138,8 @@ remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback
             callback(null, result);
         }
         else {
+            console.log("getRoom success", room._id);
+
             result = room.members.some(value => {
                 if (value._id === userId) {
                     return true;

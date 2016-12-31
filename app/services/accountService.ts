@@ -4,9 +4,28 @@ import Room = require('../model/Room');
 
 const dispatcher = require('../util/dispatcher');
 
-interface IRoomsMap {
-    [rid: string]: Room.Room;
-}
+import redis = require('redis');
+import { Config } from "../../config/config";
+const client = redis.createClient(Config.redis_port, Config.redis_host);
+client.on('connect', function () {
+    console.log('redis connected');
+});
+client.on("error", function (err) {
+    console.log("redis Error " + err);
+});
+/*
+client.set("string key", "string val", redis.print);
+client.hset("hash key", "hashtest 1", "some value", redis.print);
+client.hset(["hash key", "hashtest 2", "some other value"], redis.print);
+client.hkeys("hash key", function (err, replies) {
+    console.log(replies.length + " replies:");
+    replies.forEach(function (reply, i) {
+        console.log("    " + i + ": " + reply);
+    });
+    client.quit();
+});
+*/
+
 interface IUsersMap {
     [uid: string]: User.UserTransaction
 }
@@ -70,46 +89,52 @@ export class AccountService {
     /**
      * roomMembers the dict for keep roomId pair with array of uid who is a member of room.
      */
-    private roomsMap: IRoomsMap;
-    public get RoomsMap(): IRoomsMap {
+    private roomsMap: Map<string, Room.Room>;
+    public get RoomsMap(): Map<string, Room.Room> {
         return this.roomsMap;
     }
     setRoomsMap(data: Array<any>, callback) {
         console.log("ChatService.setRoomMembers");
 
-        if (!this.roomsMap)
-            this.roomsMap = {};
+        if (!this.roomsMap) {
+            this.roomsMap = new Map();
+            client.del('room_map', function (err, reply) {
+                console.log(reply);
+            });
+        }
 
         data.forEach(element => {
-            var room: Room.Room = JSON.parse(JSON.stringify(element));
-            if (!this.roomsMap[element.id]) {
-                this.roomsMap[element._id] = room;
-            }
+            let room: Room.Room = JSON.parse(JSON.stringify(element));
+            this.roomsMap.set(room._id, room);
+
+            client.hmset("room_map", element._id, JSON.stringify(room), redis.print);
         });
 
         callback();
     }
     getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
-        if (!this.roomsMap[roomId]) {
-            callback("Have no a roomId in roomMembers dict.", null);
-            return;
-        }
-
-        let room = this.roomsMap[roomId];
-        callback(null, room);
+        let self = this;
+        client.hmget("room_map", roomId, function (err, roomMap) {
+            let room: Room.Room = JSON.parse(roomMap[0]);
+            console.dir(roomMap);
+            if (err || room == null) {
+                callback("Have no a roomId in roomMembers dict." + err, null);
+            }
+            else {
+                self.roomsMap.set(room._id, room);
+                callback(null, room);
+            }
+        });
     }
 
     /**
     * Require Room object. Must be { Room._id, Room.members }
     */
-    addRoom(data) {
-        let room: Room.Room = JSON.parse(JSON.stringify(data));
-        if (!this.roomsMap[room._id]) {
-            this.roomsMap[room._id] = room;
-        }
-        else {
-            this.roomsMap[room._id] = room;
-        }
+    addRoom(room: Room.Room) {
+        console.log("addRoom", room);
+
+        this.roomsMap.set(room._id, room);
+        client.hmset("room_map", room._id, JSON.stringify(room), redis.print);
     }
 
     constructor(app: any) {

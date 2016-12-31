@@ -19,7 +19,9 @@ const devConfig = {
     session: {
         expire: "1 days",
         secret: "ahoostudio_session_secret"
-    }
+    },
+    redis_port: 6379,
+    redis_host: "http://smelink.animation-genius.com"
 };
 const masterConfig = {
     api: {
@@ -39,7 +41,9 @@ const masterConfig = {
     session: {
         expire: "1 days",
         secret: "ahoostudio_session_secret"
-    }
+    },
+    redis_port: 6379,
+    redis_host: "http://smelink.animation-genius.com"
 };
 function getConfig() {
     // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;

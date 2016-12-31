@@ -468,7 +468,11 @@ handler.enterRoom = function (msg, session, next) {
         return;
     }, config_1.Config.timeout);
     chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-        self.app.rpc.auth.authRemote.updateRoomMembers(session, result, () => {
+        if (result.length == 0) {
+            next(null, { code: Code_1.default.FAIL, message: "no have room room info." });
+            return;
+        }
+        self.app.rpc.auth.authRemote.updateRoomMembers(session, result[0], () => {
             self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
                 console.log("checkedCanAccessRoom: ", res);
                 if (err || res === false) {
