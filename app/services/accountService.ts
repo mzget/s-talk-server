@@ -109,7 +109,6 @@ export class AccountService {
             }
         });
     }
-
     /**
     * Require Room object. Must be { Room._id, Room.members }
     */
