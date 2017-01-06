@@ -42,6 +42,7 @@ module Controller {
                         reject(err);
                     });
                 }).catch(err => {
+                    console.error("Cannot access database, ", err);
                     reject(err);
                 });
             });
