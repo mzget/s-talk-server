@@ -1,5 +1,5 @@
 ﻿export const Config = {
-  chatDB: "mongodb://git.animation-genius.com:27017/chatDB",
+  chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chatDB",
   fileDB: "",
   port: 80,
   timeout: 10000,
