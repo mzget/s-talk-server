@@ -23,7 +23,7 @@ const devConfig = {
   },
 
   redis_port: 6379,
-  redis_host: "http://smelink.animation-genius.com"
+  redis_host: "smelink.animation-genius.com"
 }
 
 const masterConfig = {
@@ -48,7 +48,7 @@ const masterConfig = {
   },
 
   redis_port: 6379,
-  redis_host: "http://smelink.animation-genius.com"
+  redis_host: "smelink.animation-genius.com"
 }
 
 function getConfig() {
