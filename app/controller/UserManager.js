@@ -50,9 +50,6 @@ class UserManager {
     updateImageProfile(uid, newUrl, callback) {
         this.userDataAccess.updateImageProfile(uid, newUrl, callback);
     }
-    getRoomAccessForUser(uid, callback) {
-        this.userDataAccess.getRoomAccessForUser(uid, callback);
-    }
     getRoomAccessOfRoom(uid, rid, callback) {
         this.userDataAccess.getRoomAccessOfRoom(uid, rid, callback);
     }
@@ -253,20 +250,6 @@ class UserDataAccessService {
         DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
             callback(null, result);
         }, { _id: new ObjectID(uid) }, { lastEditProfile: 1 });
-    }
-    getRoomAccessForUser(uid, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
-            let userColl = db.collection(Mdb.DbController.userColl);
-            userColl.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(docs => {
-                db.close();
-                callback(null, docs);
-            }).catch(err => {
-                db.close();
-                callback(err, null);
-            });
-        }).catch(err => {
-            callback(err, null);
-        });
     }
     AddRidToRoomAccessField(uid, roomId, date, callback) {
         let self = this;

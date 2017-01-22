@@ -268,50 +268,6 @@ function addOnlineUser(app, session, tokenDecoded: DecodedToken) {
 	}
 }
 
-/**
-* getLastAccessRooms.
-* Require uid.
-* Return : null.
-*/
-handler.getLastAccessRooms = function (msg, session, next) {
-	let self = this;
-	let uid = session.uid;
-	if (!uid) {
-		let errMsg = "Require userId is empty or null.";
-		next(null, { code: Code.FAIL, message: errMsg });
-		console.warn(errMsg);
-		return;
-	}
-
-	self.app.rpc.auth.authRemote.getOnlineUser(session, uid, (err, user) => {
-		if (err || user === null) {
-			next(null, { code: Code.FAIL, message: err });
-		}
-		else {
-			next(null, { code: Code.OK });
-
-			UserManager.getInstance().getRoomAccessForUser(uid, function (err, res: Array<any>) {
-				if (err || res.length > 0) {
-					let onAccessRooms = {
-						route: Code.sharedEvents.onAccessRooms,
-						data: res
-					};
-
-					if (user as User.OnlineUser) {
-						let uidsGroup = new Array();
-						let group = {
-							uid: user.uid,
-							sid: user.serverId
-						};
-						uidsGroup.push(group);
-						channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
-					}
-				}
-			});
-		}
-	});
-}
-
 handler.getCompanyInfo = function (msg, session, next) {
 	var self = this;
 	var token = msg.token;
@@ -557,8 +513,8 @@ handler.enterRoom = function (msg, session, next) {
 	}, Config.timeout);
 
 	chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-		if (result.length == 0) {
-			next(null, { code: Code.FAIL, message: "no have room room info." });
+        if (result.length == 0) {
+            next(null, { code: Code.FAIL, message: "no have room info. " + result });
 			return;
 		}
 

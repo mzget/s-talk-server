@@ -39,10 +39,6 @@ export class UserManager {
         this.userDataAccess.updateImageProfile(uid, newUrl, callback);
     }
 
-    public getRoomAccessForUser(uid: string, callback: (err, res: Array<any>) => void) {
-        this.userDataAccess.getRoomAccessForUser(uid, callback);
-    }
-
     public getRoomAccessOfRoom(uid: string, rid: string, callback: (err, res: Array<User.StalkAccount>) => void) {
         this.userDataAccess.getRoomAccessOfRoom(uid, rid, callback);
     }
@@ -225,22 +221,6 @@ export class UserDataAccessService {
         DbClient.FindDocument(Mdb.DbController.userColl, function (result) {
             callback(null, result);
         }, { _id: new ObjectID(uid) }, { lastEditProfile: 1 });
-    }
-
-    public getRoomAccessForUser(uid: string, callback: (err, res: Array<any>) => void) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
-            let userColl = db.collection(Mdb.DbController.userColl);
-
-            userColl.find({ _id: new ObjectID(uid) }).project({ roomAccess: 1 }).limit(1).toArray().then(docs => {
-                db.close();
-                callback(null, docs);
-            }).catch(err => {
-                db.close();
-                callback(err, null);
-            });
-        }).catch(err => {
-            callback(err, null);
-        });
     }
 
 
