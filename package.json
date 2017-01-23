@@ -4,12 +4,6 @@
   "version": "0.0.1",
   "private": false,
   "dependencies": {
-    "@types/async": "^2.0.32",
-    "@types/joi": "^9.0.32",
-    "@types/jsonwebtoken": "^7.1.33",
-    "@types/mongodb": "^2.1.33",
-    "@types/promise": "^7.1.30",
-    "@types/request": "^0.0.31",
     "async": "^2.1.4",
     "crc": "0.2.0",
     "form-data": "0.2.0",
@@ -17,19 +11,23 @@
     "joi-objectid": "^2.0.0",
     "jsonwebtoken": "^7.1.9",
     "mongodb": "^2.2.15",
-    "pomelo": "^1.2.3",
+    "pomelo": "^2.2.5",
     "request": "^2.75.0"
   },
   "devDependencies": {
     "@types/mongodb": "^2.1.36",
     "@types/node": "^6.0.51",
     "@types/promise": "^7.1.30",
-    "nodemon": "^1.11.0"
+    "@types/async": "^2.0.32",
+    "@types/joi": "^9.0.32",
+    "@types/jsonwebtoken": "^7.1.33",
+    "@types/request": "^0.0.31"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/nodemon/bin/nodemon.js app.js"
+    "start": "node app.js",
+    "deploy": "pm2 start app.js --name chat-server -i 0"
   },
   "repository": {
     "type": "git",

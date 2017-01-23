@@ -105,7 +105,6 @@
     <Content Include="shared\config\mysql.json" />
     <Content Include="shared\config\session.json" />
     <Content Include="typings\globals\async\typings.json" />
-    <TypeScriptCompile Include="typings\globals\async\index.d.ts" />
     <Content Include="typings\globals\mongodb\typings.json" />
     <TypeScriptCompile Include="typings\globals\mongodb\index.d.ts" />
     <Content Include="typings\globals\node\typings.json" />
@@ -144,9 +143,9 @@
     <Folder Include="obj\Debug" />
     <Folder Include="shared" />
     <Folder Include="shared\config" />
-    <Folder Include="typings" />
-    <Folder Include="typings\globals" />
-    <Folder Include="typings\globals\async" />
+    <Folder Include="typings\" />
+    <Folder Include="typings\globals\" />
+    <Folder Include="typings\globals\async\" />
     <Folder Include="typings\globals\mongodb" />
     <Folder Include="typings\globals\node" />
     <Folder Include="typings\globals\parse" />
