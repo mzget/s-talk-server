@@ -1,15 +1,13 @@
 "use strict";
-let devApi = "http://smelink.animation-genius.com:3002";
+let devApi = "http://git.animation-genius.com:9000";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
     api: {
         authen: `${devApi}/api/authenticate/verify`
     },
-    chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
+    chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
     fileDB: "",
-    port: 80,
     timeout: 10000,
-    webserver: "http://git.animation-genius.com",
     pushServer: "smelink.animation-genius.com",
     ParseApplicationId: "newSMELink",
     ParseRESTAPIKey: "link1234",
