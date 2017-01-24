@@ -6,7 +6,7 @@ var MongoClient = mongodb.MongoClient;
 var ObjectID = mongodb.ObjectID;
 class UserDataAccess {
     getDeviceTokens(members, callback) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
+        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -26,7 +26,7 @@ class UserDataAccess {
         });
     }
     removeRegistrationId(uid, registrationId) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
+        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -41,7 +41,7 @@ class UserDataAccess {
         });
     }
     removeAllRegistrationId(uid) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
+        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -56,7 +56,7 @@ class UserDataAccess {
         });
     }
     addRegistrationId(uid, registrationId) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
+        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
             if (err) {
                 return console.dir(err);
             }
@@ -71,7 +71,7 @@ class UserDataAccess {
         });
     }
     saveRegistrationId(uid, registrationId) {
-        MongoClient.connect(Mdb.DbController.spartanChatDb_URL, (err, db) => {
+        MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
             if (err) {
                 return console.dir(err);
             }

@@ -4,6 +4,11 @@ import http = require("http");
 import { Config } from '../../config/config';
 
 export class ParsePushService {
+
+    constructor() {
+
+    }
+
     public queryingInstallations() {
         var options = {
             hostname: Config.pushServer,
@@ -65,7 +70,7 @@ export class ParsePushService {
             res.on('data', function (data) {
                 console.log('Response: ' + data);
 
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -116,7 +121,7 @@ export class ParsePushService {
             res.on('data', function (data) {
                 console.log('Response: ' + data);
 
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -170,7 +175,7 @@ export class ParsePushService {
             res.on('data', function (data) {
                 console.log('Response: ' + data);
 
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {

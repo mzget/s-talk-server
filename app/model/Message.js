@@ -12,6 +12,3 @@ var MessageType;
 class MessageMeta {
 }
 exports.MessageMeta = MessageMeta;
-class Message {
-}
-exports.Message = Message;

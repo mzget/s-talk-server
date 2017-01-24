@@ -1,0 +1,18 @@
+
+version: '2'
+
+services:
+  bol-smelink-chat:
+    image: bol-smelink-chat:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+    ports:
+      - 3010:3010
+      - 5858:5858
+    volumes:
+      - .:/usr/src/app
+    ## set your startup file here
+    command: node --debug=5858 app.js

@@ -1,15 +1,15 @@
 "use strict";
 const jwt = require("jsonwebtoken");
-const sessionConfig = require('../../config/session.json');
+const config_1 = require("../../config/config");
 class TokenService {
     //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
     constructor() {
         this.secret = "";
-        this.secret = sessionConfig.secret; // || this.DEFAULT_SECRET;
-        this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
+        this.secret = config_1.Config.session.secret;
+        this.expire = config_1.Config.session.expire;
     }
     signToken(signObj, callback) {
-        jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
+        jwt.sign(signObj, this.secret, {}, callback);
     }
     /**
      * reture token decoded.
@@ -20,7 +20,7 @@ class TokenService {
             // verifies secret and checks exp
             jwt.verify(token, this.secret, function (err, decoded) {
                 if (err) {
-                    callback(err, { success: false, message: 'Failed to authenticate token.' });
+                    callback(err, null);
                 }
                 else {
                     // if everything is good, save to request for use in other routes
@@ -31,10 +31,7 @@ class TokenService {
         else {
             // if there is no token
             // return an error
-            callback(new Error("There is no token provide."), {
-                success: false,
-                message: 'No token provided.'
-            });
+            callback(new Error("There is no token provide."), null);
         }
     }
 }

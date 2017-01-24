@@ -5,12 +5,12 @@ const Code_1 = require("../../../../shared/Code");
 const User = require("../../../model/User");
 const userDAL = require("../../../dal/userDataAccess");
 const tokenService_1 = require("../../../services/tokenService");
-const UserManager_1 = require("../../../controller/UserManager");
-const async = require("async");
 const mongodb = require("mongodb");
+const request = require("request");
+const Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi);
 const config_1 = require("../../../../config/config");
 const ObjectID = mongodb.ObjectID;
-const http = require('http');
 const tokenService = new tokenService_1.default();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -31,78 +31,86 @@ const handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
     let self = this;
-    let registrationId = msg.registrationId;
-    //@ use in "NewSmeLink" app.	
-    // let email = msg.email.toLowerCase();
-    // let pass = msg.password;
-    let id = setTimeout(function () {
-        next(null, { code: Code_1.default.RequestTimeout, message: "login timeout..." });
-    }, config_1.Config.timeout);
-    self.app.rpc.auth.authRemote.auth(session, msg.username.toLowerCase(), msg.password, function (err, result) {
-        if (!!result) {
-            if (result.code === Code_1.default.OK) {
-                //@ Signing success.
-                session.bind(result.uid);
-                session.on('closed', onUserLeave.bind(null, self.app));
-                if (!!registrationId) {
-                    userDAL.prototype.saveRegistrationId(result.uid, registrationId);
-                }
-                let param = {
-                    route: Code_1.default.sharedEvents.onUserLogin,
-                    data: { _id: result.uid }
-                };
-                channelService.broadcast("connector", param.route, param.data);
-            }
-            else if (result.code === Code_1.default.DuplicatedLogin) {
-            }
-            clearTimeout(id);
-            next(null, result);
-        }
-        else {
-            clearTimeout(id);
-            next(null, { code: Code_1.default.FAIL, message: err });
-        }
-    });
-    /*
-    var url: string = this.webServer + "/?api/login";
-    console.log("login", url);
-
-    var data = {
-        username: msg.username,
-        password: msg.password
+    let schema = {
+        token: Joi.string().allow(null),
+        user: Joi.object().optional()
     };
-    var querystring = require("querystring");
-    var qs = querystring.stringify(data);
-    var qslength = qs.length;
-    var options = {
-        hostname: this.webServer,
-        port: 80,
-        path: "/?r=site/login",
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': qslength
+    const result = Joi.validate(msg._object, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
+    }
+    if (msg.token) {
+        let token = msg.token;
+        let options = {
+            url: config_1.Config.api.authen,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: token
+            })
+        };
+        let callback = (error, response, body) => {
+            if (error) {
+                next(error, null);
+            }
+            else if (!error && response.statusCode == 200) {
+                let data = JSON.parse(body);
+                let decoded = data.decoded;
+                console.log("AuthenBody", decoded);
+                session.__sessionService__.kick(decoded._id, "New login...");
+                self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
+                    // 	//@ Signing success.
+                    session.bind(decoded._id);
+                    session.on('closed', onUserLeave.bind(null, self.app));
+                    let param = {
+                        route: Code_1.default.sharedEvents.onUserLogin,
+                        data: { _id: decoded._id }
+                    };
+                    channelService.broadcast("connector", param.route, param.data);
+                    addOnlineUser(self.app, session, decoded);
+                    next(null, { code: Code_1.default.OK, data: body });
+                    if (!user) {
+                    }
+                    else {
+                        console.warn("Duplicate user by onlineUsers collections.");
+                    }
+                });
+            }
+        };
+        request.post(options, callback);
+    }
+    else if (msg.user) {
+        if (!msg.user._id && !!msg.user.username) {
+            return next(null, { code: Code_1.default.FAIL, message: "missing user info" });
         }
-    };
-    
-    var req = http.request(options, function (res) {
-        res.on('data', function (data) {
-            console.log('Response: ' + data);
-            var json = JSON.parse(data);
-            if (json.result === false) {
-                next(null, { code: code.FAIL, message: "login fail from authen server." });
+        tokenService.signToken(msg.user, (err, encode) => {
+            if (err) {
+                return next(null, { code: Code_1.default.FAIL, message: err });
             }
             else {
-
+                session.__sessionService__.kick(msg.user._id, "New login...");
+                self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+                    // 	//@ Signing success.
+                    session.bind(msg.user._id);
+                    session.on('closed', onUserLeave.bind(null, self.app));
+                    let param = {
+                        route: Code_1.default.sharedEvents.onUserLogin,
+                        data: { _id: msg.user._id }
+                    };
+                    channelService.broadcast("connector", param.route, param.data);
+                    addOnlineUser(self.app, session, msg.user);
+                    next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
+                    if (!user) {
+                    }
+                    else {
+                        console.warn("Duplicate user by onlineUsers collections.");
+                    }
+                });
             }
         });
-        res.on('end', function () {
-            console.log(res.statusCode);
-        });
-    });
-    req.write(qs);
-    req.end();
-    */
+    }
 };
 handler.logout = function (msg, session, next) {
     console.log("logout", msg);
@@ -129,9 +137,9 @@ const logOut = function (app, session, next) {
 handler.kickMe = function (msg, session, next) {
     session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
     //!-- log user out.
-    this.app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-    userDAL.prototype.removeAllRegistrationId(session.uid);
-    next(null, null);
+    this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
+    userDAL.prototype.removeAllRegistrationId(msg.uid);
+    next(null, { message: "kicked! " + msg.uid });
 };
 /**
 * require user, password, and token.
@@ -142,7 +150,7 @@ handler.getMe = function (msg, session, next) {
     let self = this;
     let token = msg.token;
     if (!token) {
-        var errMsg = 'invalid entry request: empty token';
+        let errMsg = 'invalid entry request: empty token';
         next(new Error(errMsg), { code: Code_1.default.FAIL, message: errMsg });
         return;
     }
@@ -150,103 +158,67 @@ handler.getMe = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: "getMe timeout..." });
     }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+        console.log("token verify", err, res);
         if (err) {
-            console.log(err);
             next(err, res);
             clearTimeout(timeOut);
         }
         else {
-            self.app.rpc.auth.authRemote.me(session, msg, function (result) {
+            let user = res.decoded;
+            self.app.rpc.auth.authRemote.me(session, user, function (result) {
                 next(null, result);
                 clearTimeout(timeOut);
-                let onGetMe = {
-                    route: Code_1.default.sharedEvents.onGetMe,
-                    data: result
-                };
-                let uidsGroup = [];
-                let group = {
-                    uid: session.uid,
-                    sid: self.app.get('serverId')
-                };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onGetMe.route, onGetMe.data, uidsGroup);
-                let profile = JSON.parse(JSON.stringify(result.data));
-                let onlineUser = new User.OnlineUser();
-                onlineUser.uid = profile._id;
-                onlineUser.username = profile.username;
-                onlineUser.serverId = session.frontendId;
-                onlineUser.registrationIds = profile.deviceTokens;
-                let userTransaction = new User.UserTransaction();
-                userTransaction.uid = profile._id;
-                userTransaction.username = profile.username;
-                console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
-                self.app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
-                self.app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
             });
         }
     });
 };
-function addOnlineUser(app, session, userId) {
-    app.rpc.auth.authRemote.myProfile(session, userId, function (result) {
-        console.log("joining onlineUser", JSON.stringify(result));
-        let datas = JSON.parse(JSON.stringify(result.data));
-        let my = datas[0];
-        let onlineUser = new User.OnlineUser();
-        onlineUser.uid = my._id;
-        onlineUser.username = my.first_name;
+function addOnlineUser(app, session, tokenDecoded) {
+    console.log("addOnlineUser", tokenDecoded);
+    let onlineUser = new User.OnlineUser();
+    let userTransaction = new User.UserTransaction();
+    if (!tokenDecoded.username) {
+        app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result) {
+            console.log("joining onlineUser", JSON.stringify(result));
+            if (result.code == Code_1.default.OK) {
+                let datas = JSON.parse(JSON.stringify(result.result));
+                let my = datas[0];
+                onlineUser.uid = my._id;
+                onlineUser.username = my.firstname;
+                onlineUser.serverId = session.frontendId;
+                onlineUser.registrationIds = my.deviceTokens || [];
+                userTransaction.uid = my._id;
+                userTransaction.username = my.firstname;
+            }
+            else {
+                onlineUser.uid = tokenDecoded._id;
+                onlineUser.username = tokenDecoded.email;
+                onlineUser.serverId = session.frontendId;
+                onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+                userTransaction.uid = tokenDecoded._id;
+                userTransaction.username = tokenDecoded.email;
+            }
+            //!-- check uid in onlineUsers list.
+            //var usersDict = userManager.onlineUsers;
+            //for (var i in usersDict) {
+            //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
+            //}
+            console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
+            app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+            app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+        });
+    }
+    else {
+        onlineUser.uid = tokenDecoded._id;
+        onlineUser.username = tokenDecoded.username;
         onlineUser.serverId = session.frontendId;
-        onlineUser.registrationIds = my.devicesToken;
-        let userTransaction = new User.UserTransaction();
-        userTransaction.uid = my._id;
-        userTransaction.username = my.first_name;
+        onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+        userTransaction.uid = tokenDecoded._id;
+        userTransaction.username = tokenDecoded.email;
         console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
         app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
         app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
-    });
-}
-/**
-* getLastAccessRooms.
-* Require uid.
-* Return : null.
-*/
-handler.getLastAccessRooms = function (msg, session, next) {
-    var self = this;
-    var uid = session.uid;
-    if (!uid) {
-        var errMsg = "Require userId is empty or null.";
-        next(null, { code: Code_1.default.FAIL, message: errMsg });
-        console.warn(errMsg);
-        return;
     }
-    async.series([function (cb1) {
-            self.app.rpc.auth.authRemote.getOnlineUser(session, uid, (err, user) => {
-                if (err || user === null) {
-                    cb1(err, null);
-                }
-                else {
-                    cb1(null, user);
-                }
-            });
-        }], (err, results) => {
-        UserManager_1.UserManager.getInstance().getRoomAccessForUser(uid, function (err, res) {
-            var onAccessRooms = {
-                route: Code_1.default.sharedEvents.onAccessRooms,
-                data: res
-            };
-            var user = results[0];
-            if (user) {
-                var uidsGroup = new Array();
-                var group = {
-                    uid: user.uid,
-                    sid: user.serverId
-                };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
-            }
-        });
-    });
-    next(null, { code: Code_1.default.OK });
-};
+}
 handler.getCompanyInfo = function (msg, session, next) {
     var self = this;
     var token = msg.token;
@@ -319,29 +291,38 @@ handler.getCompanyMember = function (msg, session, next) {
     });
 };
 handler.getCompanyChatRoom = function (msg, session, next) {
-    let self = this;
-    let token = msg.token;
-    let uid = session.uid;
-    companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
-        let result;
-        if (res !== null) {
-            console.log("GetCompanyChatRooms: ", res.length);
-            result = JSON.parse(JSON.stringify(res));
-            updateRoomsMap(self.app, session, result);
+    var self = this;
+    var token = msg.token;
+    var uid = session.uid;
+    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+        if (err) {
+            console.log(err);
+            next(err, { code: Code_1.default.FAIL, message: err });
+            return;
         }
         else {
-            console.log("Fail to getCompanyChatRooms");
-            result = null;
+            companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
+                var result;
+                if (res !== null) {
+                    console.log("GetCompanyChatRooms: ", res.length);
+                    result = JSON.parse(JSON.stringify(res));
+                    updateRoomsMap(self.app, session, result);
+                }
+                else {
+                    console.log("Fail to getCompanyChatRooms");
+                    result = null;
+                }
+                var params = {
+                    route: Code_1.default.sharedEvents.onGetOrganizeGroups,
+                    data: result
+                };
+                var target = new Array();
+                target.push({ uid: session.uid, sid: self.app.get('serverId') });
+                channelService.pushMessageByUids(params.route, params.data, target);
+            });
         }
-        var params = {
-            route: Code_1.default.sharedEvents.onGetOrganizeGroups,
-            data: result
-        };
-        var target = new Array();
-        target.push({ uid: session.uid, sid: self.app.get('serverId') });
-        channelService.pushMessageByUids(params.route, params.data, target);
+        next(null, { code: Code_1.default.OK });
     });
-    next(null, { code: Code_1.default.OK });
 };
 handler.getProjectBaseGroups = function (msg, session, next) {
     var self = this;
@@ -381,9 +362,9 @@ handler.getProjectBaseGroups = function (msg, session, next) {
  * request user_id for query your member authority groups.
  */
 handler.getMyPrivateGroupChat = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    var uid = session.uid;
+    let self = this;
+    let token = msg.token;
+    let uid = session.uid;
     if (!uid) {
         console.warn("uid cannot empty or null.!");
         next(null, { code: Code_1.default.FAIL, message: "session uid is missing.." });
@@ -397,7 +378,7 @@ handler.getMyPrivateGroupChat = function (msg, session, next) {
         }
         else {
             chatRoomManager.getPrivateGroupChat(uid, function (err, res) {
-                var result;
+                let result;
                 if (err) {
                     console.error("Fail to getMyPrivateGroupChat: ", err);
                     result = null;
@@ -445,30 +426,37 @@ handler.enterRoom = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
         return;
     }, config_1.Config.timeout);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
-        self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
-        self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-            console.log("checkedCanAccessRoom: ", res);
-            if (err || res === false) {
-                clearTimeout(timeOut_id);
-                next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-            }
-            else {
-                session.set('rid', rid);
-                session.push('rid', function (err) {
-                    if (err) {
-                        console.error('set rid for session service failed! error is : %j', err.stack);
-                    }
-                });
-                let onlineUser = new User.OnlineUser();
-                onlineUser.username = uname;
-                onlineUser.uid = uid;
-                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+    chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
+        if (result.length == 0) {
+            next(null, { code: Code_1.default.FAIL, message: "no have room info. " + result });
+            return;
+        }
+        self.app.rpc.auth.authRemote.updateRoomMembers(session, result[0], () => {
+            self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
+                console.log("checkedCanAccessRoom: ", res);
+                if (err || res === false) {
                     clearTimeout(timeOut_id);
-                    next(null, { code: Code_1.default.OK, data: result });
-                });
-            }
+                    next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+                }
+                else {
+                    session.set('rid', rid);
+                    session.push('rid', function (err) {
+                        if (err) {
+                            console.error('set rid for session service failed! error is : %j', err.stack);
+                        }
+                    });
+                    let onlineUser = new User.OnlineUser();
+                    onlineUser.username = uname;
+                    onlineUser.uid = uid;
+                    addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+                        clearTimeout(timeOut_id);
+                        next(null, { code: Code_1.default.OK, data: result });
+                    });
+                }
+            });
         });
+    }).catch(err => {
+        next(null, { code: Code_1.default.FAIL, message: err });
     });
 };
 const addChatUser = function (app, session, user, sid, rid, next) {
@@ -487,27 +475,47 @@ handler.leaveRoom = function (msg, session, next) {
     let rid = msg.rid;
     let uid = session.uid;
     let sid = self.app.get('serverId');
-    if (!rid || !msg.username) {
-        next(null, { code: Code_1.default.FAIL, message: "rid or username is null." });
-        return;
+    let schema = {
+        token: Joi.string().required(),
+        rid: Joi.string().required()
+    };
+    const result = Joi.validate(msg._object, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    let onlineUser = new User.OnlineUser();
-    onlineUser.username = msg.username;
-    onlineUser.uid = uid;
-    onlineUser.serverId = sid;
-    self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
-        session.set('rid', null);
-        session.push('rid', function (err) {
+    tokenService.ensureAuthorized(token, (err, result) => {
+        if (err) {
+            return next(null, { code: Code_1.default.FAIL, message: err });
+        }
+        // {
+        // 	success: true,
+        // 		decoded: 
+        // 	{
+        // 		_id: '5854e010c28e49f12d05a398',
+        // 			user_id: '123456',
+        // 				username: 'mzget',
+        // 					role: 'admin',
+        // 						iat: 1482987323
+        // 	}
+        // }
+        let onlineUser = new User.OnlineUser();
+        onlineUser.username = result.decoded.username;
+        onlineUser.uid = uid;
+        onlineUser.serverId = sid;
+        self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+            session.set('rid', null);
+            session.push('rid', function (err) {
+                if (err) {
+                    console.error('set rid for session service failed! error is : %j', err.stack);
+                }
+            });
             if (err) {
-                console.error('set rid for session service failed! error is : %j', err.stack);
+                next(null, { code: Code_1.default.FAIL, message: "leaveRoom with error." });
+            }
+            else {
+                next(null, { code: Code_1.default.OK });
             }
         });
-        if (err) {
-            next(null, { code: Code_1.default.FAIL, message: "leaveRoom with error." });
-        }
-        else {
-            next(null, { code: Code_1.default.OK });
-        }
     });
 };
 /**

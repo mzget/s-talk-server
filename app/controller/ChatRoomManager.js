@@ -6,7 +6,7 @@ const Room = require("../model/Room");
 const UserManager_1 = require("./UserManager");
 const ObjectID = mongodb.ObjectID;
 const dbClient = MDb.DbController.DbClient.GetInstance();
-const Db = mongodb.Db, MongoClient = mongodb.MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').Bson, assert = require('assert');
+const MongoClient = mongodb.MongoClient;
 var Controller;
 (function (Controller) {
     class ChatRoomManager {
@@ -24,8 +24,22 @@ var Controller;
             }
             return ChatRoomManager._Instance;
         }
-        GetChatRoomInfo(query, projections, callback) {
-            dbClient.FindDocument(MDb.DbController.roomColl, callback, query, projections);
+        GetChatRoomInfo(room_id, projection) {
+            return new Promise((resolve, reject) => {
+                MongoClient.connect(MDb.DbController.chatDB).then((db) => {
+                    let roomColl = db.collection(MDb.DbController.roomColl);
+                    roomColl.find({ _id: new ObjectID(room_id) }).project(projection).limit(1).toArray().then(docs => {
+                        db.close();
+                        resolve(docs);
+                    }).catch(err => {
+                        db.close();
+                        reject(err);
+                    });
+                }).catch(err => {
+                    console.error("Cannot access database, ", err);
+                    reject(err);
+                });
+            });
         }
         getProjectBaseGroups(userId, callback) {
             this.roomDAL.findProjectBaseGroups(userId, callback);
@@ -39,7 +53,7 @@ var Controller;
             var _tempArr = doc.members;
             for (var i in _tempArr) {
                 var user = new Room.Member();
-                user.id = _tempArr[i];
+                user._id = _tempArr[i];
                 members.push(user);
             }
             var _room = new Room.Room();
@@ -74,8 +88,7 @@ var Controller;
             this.roomDAL.editGroupName(roomId, newGroupName, callback);
         }
         AddChatRecord(object, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
-                // Get the collection
+            MongoClient.connect(MDb.DbController.chatDB).then(db => {
                 let col = db.collection(MDb.DbController.messageColl);
                 col.insertOne(object, { w: 1 }).then(function (r) {
                     callback(null, r.ops);
@@ -84,6 +97,8 @@ var Controller;
                     callback(err, null);
                     db.close();
                 });
+            }).catch(err => {
+                callback(err, null);
             });
         }
         createProjectBaseGroup(groupName, members, callback) {
@@ -98,7 +113,7 @@ var Controller;
         *@lastAccessTime for query only message who newer than lastAccessTime.
         */
         getNewerMessageOfChatRoom(roomId, isoDate, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(db => {
+            MongoClient.connect(MDb.DbController.chatDB).then(db => {
                 // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
                 // Create an index on the a field
@@ -124,7 +139,7 @@ var Controller;
         }
         getOlderMessageChunkOfRid(rid, topEdgeMessageTime, callback) {
             let utc = new Date(topEdgeMessageTime);
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -132,7 +147,6 @@ var Controller;
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
                 collection.find({ rid: rid, createTime: { $lt: new Date(utc.toISOString()) } }).limit(100).sort({ createTime: -1 }).toArray(function (err, docs) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), docs);
                     }
@@ -156,7 +170,7 @@ var Controller;
         */
         getMessagesReaders(userId, roomId, topEdgeMessageTime, callback) {
             let utc = new Date(topEdgeMessageTime);
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.error(err);
                 }
@@ -193,11 +207,10 @@ var Controller;
             this.roomDAL.getWhoReadMessage(messageId, callback);
         }
         GetChatContent(messageId, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
@@ -211,7 +224,7 @@ var Controller;
             let self = this;
             let isoDate = new Date(lastAccessTime).toISOString();
             // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL).then(db => {
+            MongoClient.connect(MDb.DbController.chatDB).then(db => {
                 // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
                 collection.createIndex({ rid: 1, createTime: 1 }, { background: true, w: 1 }).then(indexName => {
@@ -284,11 +297,10 @@ var Controller;
         getLastMsgContentInMessagesIdArray(docs, callback) {
             var lastDoc = docs[docs.length - 1];
             // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
                 // Find some documents
@@ -305,11 +317,10 @@ var Controller;
         }
         getLastMessageContentOfRoom(rid, callback) {
             // Use connect method to connect to the Server
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 let collection = db.collection(MDb.DbController.messageColl);
                 collection.createIndex({ rid: 1 }, { background: true, w: 1 }).then(indexName => {
@@ -342,7 +353,7 @@ var Controller;
             var members = new Array();
             memberIds.forEach((val, id, arr) => {
                 var member = new Room.Member();
-                member.id = val;
+                member._id = val;
                 members.push(member);
             });
             var newRoom = new Room.Room();
@@ -368,16 +379,14 @@ var Controller;
             newRoom.createTime = new Date();
             newRoom.status = Room.RoomStatus.active;
             newRoom.nodeId = 0;
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
-                assert.equal(null, err);
                 // Get the documents collection
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.insertOne(newRoom, (err, result) => {
-                    assert.equal(null, err);
                     callback(err, result.ops);
                     db.close();
                 });
@@ -390,7 +399,7 @@ var Controller;
             }, { _id: new ObjectID(roomId) }, { $set: { image: newUrl } }, { w: 1, upsert: true });
         }
         addGroupMembers(roomId, members, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -398,7 +407,6 @@ var Controller;
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.updateOne({ _id: new ObjectID(roomId) }, { $push: { members: { $each: members } } }, function (err, result) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), null);
                     }
@@ -411,15 +419,14 @@ var Controller;
         }
         removeGroupMembers(roomId, members, callback) {
             async.eachSeries(members, function iterator(item, errCb) {
-                MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+                MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                     if (err) {
                         return console.dir(err);
                     }
                     // Get the documents collection
                     var collection = db.collection(MDb.DbController.roomColl);
                     // Find some documents
-                    collection.updateOne({ _id: new ObjectID(roomId) }, { $pull: { members: { id: item.id } } }, function (err, result) {
-                        assert.equal(null, err);
+                    collection.updateOne({ _id: new ObjectID(roomId) }, { $pull: { members: { id: item._id } } }, function (err, result) {
                         if (err) {
                             errCb(new Error(err.message));
                         }
@@ -440,7 +447,7 @@ var Controller;
             });
         }
         editGroupName(roomId, newGroupName, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(MDb.DbController.chatDB, function (err, db) {
                 if (err) {
                     return console.dir(err);
                 }
@@ -448,7 +455,6 @@ var Controller;
                 var collection = db.collection(MDb.DbController.roomColl);
                 // Find some documents
                 collection.updateOne({ _id: new ObjectID(roomId) }, { $set: { name: newGroupName } }, function (err, result) {
-                    assert.equal(null, err);
                     if (err) {
                         callback(new Error(err.message), null);
                     }
@@ -460,11 +466,10 @@ var Controller;
             });
         }
         editMemberInfoInProjectBase(roomId, member, callback) {
-            MongoClient.connect(MDb.DbController.spartanChatDb_URL, (err, db) => {
+            MongoClient.connect(MDb.DbController.chatDB, (err, db) => {
                 // Get the collection
                 var col = db.collection(MDb.DbController.roomColl);
-                col.updateOne({ _id: new ObjectID(roomId), "members.id": member.id }, { $set: { "members.$": member } }, function (err, result) {
-                    assert.equal(1, result.matchedCount);
+                col.updateOne({ _id: new ObjectID(roomId), "members.id": member._id }, { $set: { "members.$": member } }, function (err, result) {
                     callback(null, result);
                     // Finish up test
                     db.close();

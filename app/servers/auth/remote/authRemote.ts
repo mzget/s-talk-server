@@ -1,16 +1,15 @@
-﻿import Code from '../../../../shared/Code';
+﻿import mongodb = require("mongodb");
+import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import { Room } from "../../../model/Room";
-import code = require('../../../../shared/Code');
 import { AccountService } from '../../../services/accountService';
 import Mcontroller = require('../../../controller/ChatRoomManager');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-
 const tokenService: TokenService = new TokenService();
-var accountService: AccountService;
-var channelService;
+let accountService: AccountService;
+let channelService;
 
 const failedPassword = "Authentication failed.";
 const userNotFound = "Authentication failed. User not found.";
@@ -89,20 +88,24 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
 remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
     accountService.getRoom(rid, callback);
 }
-
-remote.updateRoomMembers = function (data, cb) {
+remote.addRoom = function (room: Room) {
+    accountService.addRoom(room);
+}
+remote.updateRoomMembers = function (data: Room, cb) {
     accountService.addRoom(data);
 
-    if (!!cb) {
-        cb();
-    }
+    setTimeout(function () {
+        if (!!cb) {
+            cb();
+        }
+    }, 100);
 }
 /**
 * UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
 */
 remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Function) {
     rooms.forEach(room => {
-        if (!accountService.RoomsMap[room._id]) {
+        if (!accountService.getRoom[room._id]) {
             accountService.addRoom(room);
 
             //<!-- Notice all member of new room to know they have a new room.   
@@ -113,7 +116,7 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
 
             let pushGroup = new Array();
             room.members.forEach(member => {
-                accountService.getOnlineUser(member.id, (err, user) => {
+                accountService.getOnlineUser(member._id, (err, user) => {
                     if (!err) {
                         var item = { uid: user.uid, sid: user.serverId };
                         pushGroup.push(item);
@@ -131,13 +134,15 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
 remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
     accountService.getRoom(roomId, (err, room) => {
         let result: boolean = false;
-
         if (err || !room) {
+            console.warn("getRoom fail", err);
             callback(null, result);
         }
         else {
+            console.log("getRoom success", room._id);
+
             result = room.members.some(value => {
-                if (value.id === userId) {
+                if (value._id === userId) {
                     return true;
                 }
             });
@@ -148,10 +153,10 @@ remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback
 }
 
 
-remote.tokenService = function (bearerToken: string, cb: Function) {
+remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) => void) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
-            console.info("ensureAuthorized error: ", err);
+            console.warn("ensureAuthorized error: ", err);
             cb(err, { code: Code.FAIL, message: err });
         }
         else {
@@ -165,12 +170,8 @@ remote.tokenService = function (bearerToken: string, cb: Function) {
  * require => username, password, bearerToken
  */
 remote.me = function (msg, cb) {
-    let username = msg.username;
-    let password = msg.password;
-    let bearerToken = msg.token;
-
-    let query = { username: username.toLowerCase() };
-    let projection = { roomAccess: 0 };
+    let query = { _id: new mongodb.ObjectID(msg._id) };
+    let projection = {};
     new UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
         if (err || res === null) {
             let errMsg = "Get my user data is invalid.";
@@ -183,23 +184,24 @@ remote.me = function (msg, cb) {
     });
 }
 
-remote.myProfile = function (userId: string, cb: Function) {
-    UserManager.getInstance().getMemberProfile(userId, (err, res) => {
-        if (res === null) {
-            var errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
+remote.myProfile = function (userId: string, cb: ({ code: number, result: string }) => void) {
+    let query = { _id: new mongodb.ObjectID(userId) };
+    let projection = { roomAccess: 0 };
+    UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
+        if (res === null || res.length == 0) {
+            let errMsg = "Get my user data is invalid.";
+            console.warn(errMsg);
+            cb({ code: Code.FAIL, result: errMsg });
             return;
         }
 
-        cb({ code: Code.OK, data: res });
+        cb({ code: Code.OK, result: res });
     });
 }
 
-
-remote.auth = function (username, password, callback: (err, res) => void) {
-    let query = { username: username };
-    let projection = { username: 1, password: 1 };
+remote.auth = function (email, password, callback) {
+    let query = { email: email };
+    let projection = { email: 1, password: 1 };
     new UserDataAccessService().getUserProfile(query, projection, (err, res) => {
         if (!err && res.length > 0) {
             onAuthentication(password, res[0], callback);
@@ -210,30 +212,46 @@ remote.auth = function (username, password, callback: (err, res) => void) {
     });
 }
 
-const onAuthentication = function (_password, userInfo, callback: (err, res) => void) {
-    if (userInfo !== null) {
-        let obj: User.StalkAccount = JSON.parse(JSON.stringify(userInfo));
+const onAuthentication = function (_password, userInfo, callback) {
+    console.log("onAuthentication: ", userInfo);
 
-        if (obj.password == _password) {
+    if (userInfo !== null) {
+        let obj = JSON.parse(JSON.stringify(userInfo));
+
+        if (obj.password === _password) {
             accountService.getOnlineUser(obj._id, (error, user) => {
                 if (!user) {
                     // if user is found and password is right
                     // create a token
                     tokenService.signToken(obj, (err, encode) => {
-                        callback(null, { code: Code.OK, uid: obj._id, token: encode });
+                        callback({
+                            code: Code.OK,
+                            uid: obj._id,
+                            token: encode
+                        });
                     });
                 }
                 else {
                     console.warn("Duplicate user by onlineUsers collections.");
-                    callback(null, { code: Code.DuplicatedLogin, message: "duplicate log in.", uid: obj._id, });
+                    callback({
+                        code: Code.DuplicatedLogin,
+                        message: "duplicate log in.",
+                        uid: obj._id,
+                    });
                 }
             });
         }
         else {
-            callback(null, { code: Code.FAIL, message: failedPassword });
+            callback({
+                code: Code.FAIL,
+                message: "Authentication failed. User not found."
+            });
         }
     }
     else {
-        callback(null, { code: Code.FAIL, message: userNotFound });
+        callback({
+            code: Code.FAIL,
+            message: "Authentication failed. User not found."
+        });
     }
 };

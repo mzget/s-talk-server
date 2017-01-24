@@ -8,7 +8,7 @@ export interface IMembersStatus {
     status: string;
 }
 export class Member {
-    id: string;
+    _id: string;
     role: MemberRole;
     joinTime: Date;
     status: string;

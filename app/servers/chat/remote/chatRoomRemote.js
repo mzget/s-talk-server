@@ -1,7 +1,5 @@
 "use strict";
 const Mcontroller = require("../../../controller/ChatRoomManager");
-const mongodb = require("mongodb");
-var ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var channelService;
 module.exports = function (app) {
@@ -13,14 +11,11 @@ const ChatRoomRemote = function (app) {
 };
 const remote = ChatRoomRemote.prototype;
 remote.checkedRoomType = function (roomId, cb) {
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, { type: 1 }, (result) => {
-        if (!result) {
-            var errMsg = "checkedRoomType fail.";
-            console.error(errMsg);
-            cb(errMsg, null);
-        }
-        else {
-            cb(null, result);
-        }
+    chatRoomManager.GetChatRoomInfo(roomId, { type: 1 }).then(result => {
+        cb(null, result);
+    }).catch(err => {
+        var errMsg = "checkedRoomType fail.";
+        console.error(errMsg);
+        cb(errMsg, null);
     });
 };

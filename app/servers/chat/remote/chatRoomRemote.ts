@@ -18,14 +18,11 @@ const ChatRoomRemote = function (app) {
 const remote = ChatRoomRemote.prototype;
 
 remote.checkedRoomType = function (roomId: string, cb: (err, res) => void) {
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, { type: 1 }, (result) => {
-        if (!result) {
-            var errMsg = "checkedRoomType fail.";
-            console.error(errMsg);
-            cb(errMsg, null);
-        }
-        else {
-            cb(null, result);
-        }
+    chatRoomManager.GetChatRoomInfo(roomId, { type: 1 }).then(result => {
+        cb(null, result);
+    }).catch(err => {
+        var errMsg = "checkedRoomType fail.";
+        console.error(errMsg);
+        cb(errMsg, null);
     });
 }

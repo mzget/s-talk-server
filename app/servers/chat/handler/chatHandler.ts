@@ -3,12 +3,14 @@ import { UserManager } from "../../../controller/UserManager";
 import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
 import MRoom = require('../../../model/Room');
-import MMessage = require('../../../model/Message');
+import { Message } from '../../../model/Message';
 import Code from '../../../../shared/Code';
 import MPushService = require('../../../services/ParsePushService');
 import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
 import async = require('async');
+import Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -53,7 +55,12 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code.FAIL, message: errMsg, body: msg });
         return;
     }
-
+    // let schema = {
+    //     token: Joi.string(),
+    //     ownerId: Joi.objectId(),
+    //     roommateId: Joi.objectId()
+    // };
+    // const result = Joi.validate(msg._object, schema);
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
@@ -73,23 +80,20 @@ handler.send = function (msg, session, next) {
             return;
         }
         else {
-            let _msg = new MMessage.Message();
-            _msg.rid = msg.rid,
-                _msg.type = msg.type,
-                _msg.body = msg.content,
-                _msg.sender = msg.sender,
-                _msg.createTime = new Date(),
-                _msg.meta = msg.meta;
+            delete msg.__route__;
+            let _msg = { ...msg } as Message;
+            _msg.createTime = new Date();
 
             chatRoomManager.AddChatRecord(_msg, function (err, docs) {
                 if (!err && docs !== null) {
-                    let resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
+                    let resultMsg: Message = JSON.parse(JSON.stringify(docs[0]));
                     //<!-- send callback to user who send chat msg.
                     let params = {
                         messageId: resultMsg._id,
                         type: resultMsg.type,
                         createTime: resultMsg.createTime,
-                        uuid: clientUUID
+                        uuid: clientUUID,
+                        resultMsg
                     };
                     next(null, { code: Code.OK, data: params });
                     clearTimeout(timeout_id);
@@ -105,16 +109,15 @@ handler.send = function (msg, session, next) {
     });
 };
 
-function pushMessage(app, session, room: MRoom.Room, message: MMessage.Message, clientUUID: string, target: string) {
-
+function pushMessage(app, session, room: MRoom.Room, message: Message, clientUUID: string, target: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 
     //@ Try to push message to other ...
     async.map(room.members, (item, resultCallback) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item.id, function (err2, user) {
+        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
             if (err2 || user === null) {
-                offlineMembers.push(item.id);
+                offlineMembers.push(item._id);
             }
             else {
                 onlineMembers.push(user);
@@ -268,16 +271,18 @@ handler.getChatHistory = function (msg, session, next) {
                 self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, function (err, user) {
                     if (user) {
                         userManager.getRoomAccessOfRoom(user.uid, rid, function (err, res) {
-                            let targetId = { uid: user.uid, sid: user.serverId };
-                            let group = new Array();
-                            group.push(targetId);
+                            if (!err && res.length > 0) {
+                                let targetId = { uid: user.uid, sid: user.serverId };
+                                let group = new Array();
+                                group.push(targetId);
 
-                            let param = {
-                                route: Code.sharedEvents.onUpdatedLastAccessTime,
-                                data: res
-                            };
+                                let param = {
+                                    route: Code.sharedEvents.onUpdatedLastAccessTime,
+                                    data: res[0]
+                                };
 
-                            channelService.pushMessageByUids(param.route, param.data, group);
+                                channelService.pushMessageByUids(param.route, param.data, group);
+                            }
                         });
                     }
                 });
@@ -601,18 +606,17 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
 
         async.waterfall([t => {
             //<!-- checking roomType
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, (result) => {
-                if (!result) {
-                    var errMsg = "checkedRoomType fail.";
-                    console.error(errMsg);
-                    t(new Error(errMsg), null);
-                }
-                else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+            chatRoomManager.GetChatRoomInfo(room._id, { type: 1 }).then(result => {
+                if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
                     t(null, {});
                 }
                 else {
                     t(null, result.type);
                 }
+            }).catch(err => {
+                let errMsg = "checkedRoomType fail.";
+                console.error(errMsg);
+                t(new Error(errMsg), null);
             })
         }, (arg1, cb) => {
             if (arg1 === null) {
@@ -717,7 +721,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 console.warn("getUserTransaction", err, userTrans);
-                if (!!err) {
+                if (!!err || !userTrans) {
                     console.warn(err);
 
                     reject(err);

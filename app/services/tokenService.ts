@@ -1,5 +1,5 @@
-import * as jwt from 'jsonwebtoken';
-const sessionConfig = require('../../config/session.json');
+import jwt = require('jsonwebtoken');
+import { Config } from '../../config/config';
 
 export default class TokenService {
 	private secret = "";
@@ -7,24 +7,24 @@ export default class TokenService {
 	//	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
 
 	constructor() {
-		this.secret = sessionConfig.secret; // || this.DEFAULT_SECRET;
-		this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
+		this.secret = Config.session.secret;
+		this.expire = Config.session.expire;
 	}
 
 	public signToken(signObj, callback: (err, encode) => void) {
-		jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
+		jwt.sign(signObj, this.secret, {}, callback);
 	}
 
 	/**
 	 * reture token decoded.
 	 */
-	public ensureAuthorized(token, callback) {
+	public ensureAuthorized(token, callback: (err: any, data: { success: boolean, decoded: any }) => void) {
 		// decode token
 		if (token) {
 			// verifies secret and checks exp
 			jwt.verify(token, this.secret, function (err, decoded) {
 				if (err) {
-					callback(err, { success: false, message: 'Failed to authenticate token.' });
+					callback(err, null);
 				}
 				else {
 					// if everything is good, save to request for use in other routes
@@ -35,10 +35,7 @@ export default class TokenService {
 		} else {
 			// if there is no token
 			// return an error
-			callback(new Error("There is no token provide."), {
-				success: false,
-				message: 'No token provided.'
-			});
+			callback(new Error("There is no token provide."), null);
 		}
 	}
 }

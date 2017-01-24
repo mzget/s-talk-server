@@ -3,6 +3,8 @@ const https = require("https");
 const http = require("http");
 const config_1 = require("../../config/config");
 class ParsePushService {
+    constructor() {
+    }
     queryingInstallations() {
         var options = {
             hostname: config_1.Config.pushServer,
@@ -56,7 +58,7 @@ class ParsePushService {
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
                 console.log('Response: ' + data);
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -101,7 +103,7 @@ class ParsePushService {
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
                 console.log('Response: ' + data);
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -149,7 +151,7 @@ class ParsePushService {
             console.log("headers: ", res.headers);
             res.on('data', function (data) {
                 console.log('Response: ' + data);
-                var json = JSON.parse(data);
+                var json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
