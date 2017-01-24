@@ -21,7 +21,7 @@ export class Room {
     nodeId: number;
     name: string;
     type: RoomType;
-    members: Member[];
+    members: Member[] | string;
     image: string;
     description: string;
     status: RoomStatus;

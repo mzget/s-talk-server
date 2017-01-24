@@ -27,7 +27,7 @@ client.hkeys("hash key", function (err, replies) {
 */
 
 interface IUsersMap {
-    [uid: string]: User.UserTransaction
+    [uid: string]: User.UserTransaction;
 }
 
 export class AccountService {
