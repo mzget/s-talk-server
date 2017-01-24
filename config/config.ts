@@ -5,7 +5,7 @@ const devConfig = {
   api: {
     authen: `${devApi}/api/authenticate/verify`
   },
-  chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
+  chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
   fileDB: "",
   port: 80,
   timeout: 10000,
