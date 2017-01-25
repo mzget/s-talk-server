@@ -289,30 +289,6 @@ handler.getOlderMessageChunk = function (msg, session, next) {
         }
     });
 };
-handler.checkOlderMessagesCount = function (msg, session, next) {
-    let self = this;
-    let rid = msg.rid;
-    let topEdgeMessageTime = msg.topEdgeMessageTime;
-    if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code_1.default.FAIL, message: "rid or topEdgeMessageTime is missing." });
-        return;
-    }
-    let _timeOut = setTimeout(() => {
-        next(null, { code: Code_1.default.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
-        return;
-    }, config_1.Config.timeout);
-    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
-        console.info('getOlderMessageChunk:', res.length);
-        if (!!res) {
-            clearTimeout(_timeOut);
-            next(null, { code: Code_1.default.OK, data: res.length });
-        }
-        else {
-            clearTimeout(_timeOut);
-            next(null, { code: Code_1.default.FAIL });
-        }
-    });
-};
 /*
 * Get last limit query messages of specific user and room then return messages info.
 * Require:
