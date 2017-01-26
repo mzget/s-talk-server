@@ -104,10 +104,3 @@ remote.kick = function (user, sid, rid, cb) {
         channel.leave(uid, sid);
     }
 };
-remote.updateRoomAccess = function (uid, rid, date, cb) {
-    userManager.updateLastAccessTimeOfRoom(uid, rid, date, function (err, accessInfo) {
-        console.log("updateLastAccessRoom rid is %s: ", rid, accessInfo.result);
-        if (!!cb)
-            cb(err, accessInfo);
-    });
-};
