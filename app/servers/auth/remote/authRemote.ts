@@ -84,7 +84,6 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
     }
 }
 
-
 remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
     accountService.getRoom(rid, callback);
 }

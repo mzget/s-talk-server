@@ -1,5 +1,4 @@
-﻿import Mcontroller = require('../../../controller/ChatRoomManager');
-import { UserManager } from "../../../controller/UserManager";
+﻿import { UserManager } from "../../../controller/UserManager";
 import User = require('../../../model/User');
 import UserService = require("../../../dal/userDataAccess");
 import MRoom = require('../../../model/Room');
@@ -12,8 +11,10 @@ import async = require('async');
 import Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+import * as ChatRoomManager from "../../../controller/ChatRoomManager";
+const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
+
 import { Config } from '../../../../config/config';
-const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();
 const ObjectID = mongodb.ObjectID;
@@ -52,27 +53,17 @@ handler.send = function (msg, session, next) {
 
     if (!rid) {
         let errMsg = "rid is invalid please chaeck.";
-        next(null, { code: Code.FAIL, message: errMsg, body: msg });
-        return;
+        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
     }
-    // let schema = {
-    //     token: Joi.string(),
-    //     ownerId: Joi.objectId(),
-    //     roommateId: Joi.objectId()
-    // };
-    // const result = Joi.validate(msg._object, schema);
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
     }, Config.timeout);
 
-    //<!-- Get online members of room.
-    let thisRoom: MRoom.Room = null;
-
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
-        console.log("get members from room: %s name: %s members: %s", rid, room.name, room.members.length);
+        console.log("room info: ", room);
 
-        thisRoom = room;
+        let thisRoom: MRoom.Room = room;
         if (!thisRoom.members) {
             let errMsg = "Room no have a members.";
             next(null, { code: Code.FAIL, message: errMsg });
@@ -84,9 +75,9 @@ handler.send = function (msg, session, next) {
             let _msg = { ...msg } as Message;
             _msg.createTime = new Date();
 
-            chatRoomManager.AddChatRecord(_msg, function (err, docs) {
-                if (!err && docs !== null) {
-                    let resultMsg: Message = JSON.parse(JSON.stringify(docs[0]));
+            ChatRoomManager.AddChatRecord(_msg).then(docs => {
+                if (docs.length > 0) {
+                    let resultMsg = docs[0] as Message;
                     //<!-- send callback to user who send chat msg.
                     let params = {
                         messageId: resultMsg._id,
@@ -104,6 +95,9 @@ handler.send = function (msg, session, next) {
                     next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
                     clearTimeout(timeout_id);
                 }
+            }).catch(err => {
+                next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                clearTimeout(timeout_id);
             });
         }
     });
