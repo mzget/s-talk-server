@@ -1,8 +1,4 @@
 "use strict";
-const UserManager_1 = require("../../../controller/UserManager");
-const Code_1 = require("../../../../shared/Code");
-const ObjectID = require('mongodb').ObjectID;
-const userManager = UserManager_1.UserManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
@@ -68,28 +64,10 @@ remote.getUsers = function (name, flag) {
 * @param {String} name channel name
 */
 remote.kick = function (user, sid, rid, cb) {
-    let self = this;
     cb();
     if (!rid) {
         return;
     }
-    userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
-        let printR = (accessInfo) ? accessInfo.result : null;
-        console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
-        userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
-            console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
-            if (err || res.length <= 0)
-                return;
-            let targetId = { uid: user.uid, sid: user.serverId };
-            let group = new Array();
-            group.push(targetId);
-            let param = {
-                route: Code_1.default.sharedEvents.onUpdatedLastAccessTime,
-                data: res[0]
-            };
-            channelService.pushMessageByUids(param.route, param.data, group);
-        });
-    });
     let channel = channelService.getChannel(rid, false);
     //<!-- when user leave channel.
     if (!!channel) {
