@@ -438,7 +438,7 @@ class RoomDataAccess {
                     db.close();
                 });
             });
-        }, function done(err) {
+        }, (err) => {
             if (err) {
                 console.error('removeGroupMembers has a problem!', err.message);
                 callback(err, null);

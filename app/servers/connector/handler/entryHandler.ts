@@ -5,15 +5,11 @@ import User = require('../../../model/User');
 import userDAL = require('../../../dal/userDataAccess');
 import Room = require('../../../model/Room');
 import TokenService from '../../../services/tokenService';
-import { UserManager } from '../../../controller/UserManager';
-import async = require('async');
-import mongodb = require('mongodb');
 import request = require('request');
 import Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
-const ObjectID = mongodb.ObjectID;
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -137,7 +133,7 @@ handler.login = function (msg, session, next) {
 			}
 		});
 	}
-}
+};
 
 handler.logout = function (msg, session, next) {
 	console.log("logout", msg);
@@ -151,7 +147,7 @@ handler.logout = function (msg, session, next) {
 	}
 	logOut(self.app, session, null);
 	next();
-}
+};
 
 const logOut = function (app, session, next) {
 	app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
@@ -164,7 +160,7 @@ const logOut = function (app, session, next) {
 
 	if (next !== null)
 		next();
-}
+};
 
 handler.kickMe = function (msg, session, next) {
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
@@ -174,7 +170,7 @@ handler.kickMe = function (msg, session, next) {
 	userDAL.prototype.removeAllRegistrationId(msg.uid);
 
 	next(null, { message: "kicked! " + msg.uid });
-}
+};
 
 /**
 * require user, password, and token.
@@ -513,8 +509,8 @@ handler.enterRoom = function (msg, session, next) {
 	}, Config.timeout);
 
 	chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-        if (result.length == 0) {
-            next(null, { code: Code.FAIL, message: "no have room info. " + result });
+		if (result.length == 0) {
+			next(null, { code: Code.FAIL, message: "no have room info. " + result });
 			return;
 		}
 
@@ -615,7 +611,7 @@ handler.leaveRoom = function (msg, session, next) {
 			}
 		});
 	});
-}
+};
 
 /**
  * User log out handler
