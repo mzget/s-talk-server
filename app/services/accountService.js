@@ -120,13 +120,13 @@ class AccountService {
     }
     getRoom(roomId, callback) {
         client.hmget("room_map", roomId, function (err, roomMap) {
-            let room = JSON.parse(roomMap[0]);
-            console.dir(roomMap);
-            if (err || room == null) {
-                callback("Have no a roomId in roomMembers dict." + err, null);
+            let rooms = JSON.parse(JSON.stringify(roomMap));
+            if (rooms && rooms.length > 0) {
+                let room = JSON.parse(rooms[0]);
+                callback(null, room);
             }
             else {
-                callback(null, room);
+                callback("Have no a roomId in roomMembers dict." + err, null);
             }
         });
     }

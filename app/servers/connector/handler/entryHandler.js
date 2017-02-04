@@ -425,7 +425,7 @@ handler.enterRoom = function (msg, session, next) {
         return;
     }, config_1.Config.timeout);
     chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-        if (result.length == 0) {
+        if (result.length === 0) {
             next(null, { code: Code_1.default.FAIL, message: "no have room info. " + result });
             return;
         }

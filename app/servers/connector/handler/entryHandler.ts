@@ -509,7 +509,7 @@ handler.enterRoom = function (msg, session, next) {
 	}, Config.timeout);
 
 	chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-		if (result.length == 0) {
+		if (result.length === 0) {
 			next(null, { code: Code.FAIL, message: "no have room info. " + result });
 			return;
 		}

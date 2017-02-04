@@ -119,8 +119,7 @@ remote.checkedCanAccessRoom = function (roomId, userId, callback) {
             callback(null, result);
         }
         else {
-            let members = room.members;
-            result = members.some(value => {
+            result = room.members.some(value => {
                 if (value._id === userId) {
                     return true;
                 }
