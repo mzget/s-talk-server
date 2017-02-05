@@ -53,7 +53,7 @@ handler.login = function (msg, session, next) {
             if (error) {
                 next(error, null);
             }
-            else if (!error && response.statusCode == 200) {
+            else if (!error && response.statusCode === 200) {
                 let data = JSON.parse(body);
                 let decoded = data.decoded;
                 console.log("AuthenBody", decoded);
@@ -177,7 +177,7 @@ function addOnlineUser(app, session, tokenDecoded) {
     if (!tokenDecoded.username) {
         app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result) {
             console.log("joining onlineUser", JSON.stringify(result));
-            if (result.code == Code_1.default.OK) {
+            if (result.code === Code_1.default.OK) {
                 let datas = JSON.parse(JSON.stringify(result.result));
                 let my = datas[0];
                 onlineUser.uid = my._id;

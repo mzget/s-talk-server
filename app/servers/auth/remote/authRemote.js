@@ -8,7 +8,6 @@ const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const tokenService = new tokenService_1.default();
 let accountService;
 let channelService;
-const failedPassword = "Authentication failed.";
 const userNotFound = "Authentication failed. User not found.";
 module.exports = function (app) {
     return new AuthenRemote(app);
@@ -160,7 +159,7 @@ remote.myProfile = function (userId, cb) {
     let query = { _id: new mongodb.ObjectID(userId) };
     let projection = { roomAccess: 0 };
     UserManager_1.UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
-        if (res === null || res.length == 0) {
+        if (res === null || res.length === 0) {
             let errMsg = "Get my user data is invalid.";
             console.warn(errMsg);
             cb({ code: Code_1.default.FAIL, result: errMsg });

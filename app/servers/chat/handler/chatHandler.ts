@@ -5,7 +5,6 @@ import MRoom = require('../../../model/Room');
 import { Message } from '../../../model/Message';
 import Code from '../../../../shared/Code';
 import MPushService = require('../../../services/ParsePushService');
-import { AccountService } from '../../../services/accountService';
 import mongodb = require('mongodb');
 import async = require('async');
 import Joi = require('joi');
@@ -23,13 +22,13 @@ var channelService;
 
 module.exports = function (app) {
     return new Handler(app);
-}
+};
 
 const Handler = function (app) {
     console.info("ChatHandler construc...");
     this.app = app;
     channelService = this.app.get('channelService');
-}
+};
 
 const handler = Handler.prototype;
 
@@ -177,10 +176,10 @@ handler.getSyncDateTime = function (msg, session, next) {
     var param = {
         code: Code.OK,
         data: date
-    }
+    };
 
     next(null, param);
-}
+};
 
 /**
 * UpLoadContentFinish ,
@@ -222,7 +221,7 @@ handler.uploadImageFinished = function (msg, session, next) {
 
         next(null, { code: Code.OK, data: res });
     });
-}
+};
 
 /**
 * Get older message for chat room.
@@ -254,7 +253,7 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
             next(null, { code: Code.FAIL });
         }
     });
-}
+};
 
 /* 
 * Get last limit query messages of specific user and room then return messages info. 
@@ -300,7 +299,7 @@ handler.getMessagesReaders = function (msg, session, next) {
     });
 
     next(null, { code: Code.OK });
-}
+};
 
 /**
 * get log message content by message_id. 
@@ -325,7 +324,7 @@ handler.getMessageContent = function (msg, session, next) {
             next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
         }
     });
-}
+};
 
 /*
 * Update who read message by specific message_id.
@@ -385,7 +384,7 @@ handler.updateWhoReadMessage = function (msg, session, next) {
     }
 
     next(null, { code: Code.OK });
-}
+};
 
 /*
 * Update who read message by specific message_id.
@@ -430,7 +429,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     }
 
     next(null, { code: Code.OK });
-}
+};
 
 //<!-- Push who read message to sender.
 function getWhoReadMessages(messages: Array<string>, channel) {
@@ -518,7 +517,7 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
                 let errMsg = "checkedRoomType fail.";
                 console.error(errMsg);
                 t(new Error(errMsg), null);
-            })
+            });
         }, (arg1, cb) => {
             if (arg1 === null) {
                 cb(null, null);

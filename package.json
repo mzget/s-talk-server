@@ -3,6 +3,12 @@
   "main": "app.js",
   "version": "0.0.1",
   "private": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "deploy": "pm2 start app.js --name chitchat-node"
+  },
   "dependencies": {
     "async": "^2.1.4",
     "crc": "0.2.0",
@@ -26,12 +32,6 @@
     "@types/request": "^0.0.31"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "deploy": "pm2 start app.js --name chitchat-node"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://mz_nattapon@bitbucket.org/mz_nattapon/stalk-node-server.git"

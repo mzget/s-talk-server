@@ -66,7 +66,7 @@ handler.login = function (msg, session, next) {
 			if (error) {
 				next(error, null);
 			}
-			else if (!error && response.statusCode == 200) {
+			else if (!error && response.statusCode === 200) {
 				let data = JSON.parse(body);
 				let decoded: DecodedToken = data.decoded;
 				console.log("AuthenBody", decoded);
@@ -95,7 +95,7 @@ handler.login = function (msg, session, next) {
 					}
 				});
 			}
-		}
+		};
 
 		request.post(options, callback);
 	}
@@ -204,7 +204,7 @@ handler.getMe = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 function addOnlineUser(app, session, tokenDecoded: DecodedToken) {
 	console.log("addOnlineUser", tokenDecoded);
@@ -215,7 +215,7 @@ function addOnlineUser(app, session, tokenDecoded: DecodedToken) {
 	if (!tokenDecoded.username) {
 		app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result: { code: number, result: any }) {
 			console.log("joining onlineUser", JSON.stringify(result));
-			if (result.code == Code.OK) {
+			if (result.code === Code.OK) {
 				let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.result));
 				let my = datas[0];
 
@@ -307,7 +307,7 @@ handler.getCompanyInfo = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 handler.getCompanyMember = function (msg, session, next) {
 	var self = this;
@@ -346,7 +346,7 @@ handler.getCompanyMember = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
+};
 
 handler.getCompanyChatRoom = function (msg, session, next) {
 	var self = this;
@@ -387,7 +387,7 @@ handler.getCompanyChatRoom = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
+};
 
 handler.getProjectBaseGroups = function (msg, session, next) {
 	var self = this;
@@ -427,7 +427,7 @@ handler.getProjectBaseGroups = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
+};
 
 /***
  * request user_id for query your member authority groups.
@@ -475,7 +475,7 @@ handler.getMyPrivateGroupChat = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
+};
 
 /**
  * New client entry chat server.
@@ -549,7 +549,7 @@ handler.enterRoom = function (msg, session, next) {
 const addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next) {
 	//put user into channel
 	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
-}
+};
 
 /**
  * leaveRoom.
@@ -682,7 +682,7 @@ handler.videoCallRequest = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 /**
 * Requesting for voice call to target user.
@@ -734,7 +734,7 @@ handler.voiceCallRequest = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 /**
 * Call this function when want to send hangupCall signaling to other.
@@ -783,7 +783,7 @@ handler.hangupCall = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 /**
 * Call theLineIsBusy function when WebRTC call status is not idle.
@@ -821,7 +821,7 @@ handler.theLineIsBusy = function (msg, session, next) {
 	});
 
 	next(null, { code: Code.OK });
-}
+};
 
 /**
  * For update roomsPairMembers collection.
@@ -831,4 +831,4 @@ const updateRoomsMap = function (app, session, roomsData: Array<Room.Room>) {
 	let rooms: Array<Room.Room> = JSON.parse(JSON.stringify(roomsData));
 
 	app.rpc.auth.authRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
-}
+};
