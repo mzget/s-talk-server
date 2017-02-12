@@ -141,57 +141,6 @@ handler.editMemberInfoInProjectBase = function (msg, session, next) {
     });
     next(null, { code: Code_1.default.OK });
 };
-/** user create new group chat.
-    * @param : msg request
-    * groupName:string,
-    * memberIds:string[]
-    * type: isPrivate <bool>
-    * *******************************
-    * @Return: group_id.
-    */
-handler.userCreateGroupChat = function (msg, session, next) {
-    let self = this;
-    let groupName = msg.groupName;
-    let memberIds = JSON.parse(msg.memberIds);
-    if (!groupName || !memberIds) {
-        let errMessage = "cannot create group may be you missing some variable.";
-        console.error(errMessage);
-        next(null, { code: Code_1.default.FAIL, message: errMessage });
-        return;
-    }
-    chatRoomManager.createPrivateGroup(groupName, memberIds, function (err, result) {
-        if (result !== null) {
-            console.info("CreateGroupChatRoom response: ", result);
-            let room = JSON.parse(JSON.stringify(result[0]));
-            next(null, { code: Code_1.default.OK, data: room });
-            //<!-- Update list of roomsMember mapping.
-            self.app.rpc.auth.authRemote.addRoom(session, room);
-            pushNewRoomAccessToNewMembers(self.app, session, room._id, room.members);
-            let memberIds = new Array();
-            room.members.forEach(value => {
-                memberIds.push(value._id);
-            });
-            //<!-- Notice all member of new room to know they have a new room.   
-            let param = {
-                route: Code_1.default.sharedEvents.onCreateGroupSuccess,
-                data: room
-            };
-            let pushGroup = new Array();
-            memberIds.forEach(element => {
-                self.app.rpc.auth.authRemote.getOnlineUser(session, element, (err, user) => {
-                    if (!err) {
-                        let item = { uid: user.uid, sid: user.serverId };
-                        pushGroup.push(item);
-                    }
-                });
-            });
-            channelService.pushMessageByUids(param.route, param.data, pushGroup);
-        }
-        else {
-            next(null, { code: Code_1.default.FAIL, message: "CreateGroupChatRoom has a problem...T_T" });
-        }
-    });
-};
 /**
 * require
 - group_id for relation of imagePath,
