@@ -356,47 +356,6 @@ handler.getProjectBaseGroups = function (msg, session, next) {
         next(null, { code: Code_1.default.OK });
     });
 };
-/***
- * request user_id for query your member authority groups.
- */
-handler.getMyPrivateGroupChat = function (msg, session, next) {
-    let self = this;
-    let token = msg.token;
-    let uid = session.uid;
-    if (!uid) {
-        console.warn("uid cannot empty or null.!");
-        next(null, { code: Code_1.default.FAIL, message: "session uid is missing.." });
-        return;
-    }
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, { code: Code_1.default.FAIL, message: err });
-            return;
-        }
-        else {
-            chatRoomManager.getPrivateGroupChat(uid, function (err, res) {
-                let result;
-                if (err) {
-                    console.error("Fail to getMyPrivateGroupChat: ", err);
-                    result = null;
-                }
-                else {
-                    console.info("getMyPrivateGroupChat: ", res.length);
-                    result = JSON.parse(JSON.stringify(res));
-                }
-                var params = {
-                    route: Code_1.default.sharedEvents.onGetPrivateGroups,
-                    data: result
-                };
-                var target = new Array();
-                target.push({ uid: session.uid, sid: self.app.get('serverId') });
-                channelService.pushMessageByUids(params.route, params.data, target);
-            });
-        }
-        next(null, { code: Code_1.default.OK });
-    });
-};
 /**
  * New client entry chat server.
  *
