@@ -1,15 +1,16 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
 const redis = require("redis");
-const config_1 = require("../../config/config");
-const client = redis.createClient(config_1.Config.redis_port, config_1.Config.redis_host);
-client.on('connect', function () {
-    console.log('redis connected');
-});
-client.on("error", function (err) {
-    console.log("redis Error " + err);
-});
+const RedisClient_1 = require("./RedisClient");
 class AccountService {
     constructor(app) {
         this.uidMap = {};
@@ -114,19 +115,24 @@ class AccountService {
     setRoomsMap(data, callback) {
         data.forEach(element => {
             let room = JSON.parse(JSON.stringify(element));
-            client.hmset("room_map", element._id, JSON.stringify(room), redis.print);
+            RedisClient_1.default.hset(RedisClient_1.ROOM_MAP_KEY, element._id.toString(), JSON.stringify(room), redis.print);
         });
         callback();
     }
     getRoom(roomId, callback) {
-        client.hmget("room_map", roomId, function (err, roomMap) {
-            let rooms = JSON.parse(JSON.stringify(roomMap));
-            if (rooms && rooms.length > 0) {
-                let room = JSON.parse(rooms[0]);
-                callback(null, room);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (RedisClient_1.redisStatus == RedisClient_1.RedisStatus.ready) {
+                let roomMap = yield RedisClient_1.default.hgetAsync(RedisClient_1.ROOM_MAP_KEY, roomId);
+                if (roomMap) {
+                    let room = JSON.parse(roomMap);
+                    callback(null, room);
+                }
+                else {
+                    callback(new Error("Cannot get room info from cache server !"), null);
+                }
             }
             else {
-                callback("Have no a roomId in roomMembers dict." + err, null);
+                callback(new Error("Cannot get room info from cache server !"), null);
             }
         });
     }
@@ -135,7 +141,7 @@ class AccountService {
     */
     addRoom(room) {
         console.log("addRoom", room);
-        client.hmset("room_map", room._id, JSON.stringify(room), redis.print);
+        RedisClient_1.default.hset(RedisClient_1.ROOM_MAP_KEY, room._id.toString(), JSON.stringify(room), redis.print);
     }
     /**
      * Add player into the channel

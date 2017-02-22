@@ -6,25 +6,7 @@ const dispatcher = require('../util/dispatcher');
 
 import redis = require('redis');
 import { Config } from "../../config/config";
-const client = redis.createClient(Config.redis_port, Config.redis_host);
-client.on('connect', function () {
-    console.log('redis connected');
-});
-client.on("error", function (err) {
-    console.log("redis Error " + err);
-});
-/*
-client.set("string key", "string val", redis.print);
-client.hset("hash key", "hashtest 1", "some value", redis.print);
-client.hset(["hash key", "hashtest 2", "some other value"], redis.print);
-client.hkeys("hash key", function (err, replies) {
-    console.log(replies.length + " replies:");
-    replies.forEach(function (reply, i) {
-        console.log("    " + i + ": " + reply);
-    });
-    client.quit();
-});
-*/
+import RedisClient, { redisStatus, RedisStatus, ROOM_KEY, ROOM_MAP_KEY } from "./RedisClient";
 
 interface IUsersMap {
     [uid: string]: User.UserTransaction;
@@ -92,22 +74,25 @@ export class AccountService {
     setRoomsMap(data: Array<any>, callback: () => void) {
         data.forEach(element => {
             let room: Room.Room = JSON.parse(JSON.stringify(element));
-            client.hmset("room_map", element._id, JSON.stringify(room), redis.print);
+            RedisClient.hset(ROOM_MAP_KEY, element._id.toString(), JSON.stringify(room), redis.print);
         });
 
         callback();
     }
-    getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
-        client.hmget("room_map", roomId, function (err, roomMap) {
-            let rooms = JSON.parse(JSON.stringify(roomMap));
-            if (rooms && rooms.length > 0) {
-                let room = JSON.parse(rooms[0]) as Room.Room;
+    async getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
+        if (redisStatus == RedisStatus.ready) {
+            let roomMap = await RedisClient.hgetAsync(ROOM_MAP_KEY, roomId);
+            if (roomMap) {
+                let room = JSON.parse(roomMap) as Room.Room;
                 callback(null, room);
             }
             else {
-                callback("Have no a roomId in roomMembers dict." + err, null);
+                callback(new Error("Cannot get room info from cache server !"), null);
             }
-        });
+        }
+        else {
+            callback(new Error("Cannot get room info from cache server !"), null);
+        }
     }
     /**
     * Require Room object. Must be { Room._id, Room.members }
@@ -115,7 +100,7 @@ export class AccountService {
     addRoom(room: Room.Room) {
         console.log("addRoom", room);
 
-        client.hmset("room_map", room._id, JSON.stringify(room), redis.print);
+        RedisClient.hset(ROOM_MAP_KEY, room._id.toString(), JSON.stringify(room), redis.print);
     }
 
     constructor(app: any) {
