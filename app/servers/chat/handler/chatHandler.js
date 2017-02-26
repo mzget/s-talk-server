@@ -1,12 +1,5 @@
 "use strict";
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
-};
+Object.defineProperty(exports, "__esModule", { value: true });
 const UserManager_1 = require("../../../controller/UserManager");
 const UserService = require("../../../dal/userDataAccess");
 const MRoom = require("../../../model/Room");
@@ -67,7 +60,7 @@ handler.send = function (msg, session, next) {
         }
         else {
             delete msg.__route__;
-            let _msg = __assign({}, msg);
+            let _msg = Object.assign({}, msg);
             _msg.createTime = new Date();
             ChatRoomManager.AddChatRecord(_msg).then(docs => {
                 if (docs.length > 0) {
@@ -152,6 +145,7 @@ function pushMessage(app, session, room, message, clientUUID, target) {
             });
         }
         else {
+            //the target is specific user
         }
     });
 }
@@ -478,6 +472,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                         userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
                             //<!-- if result is contain in unsubscribe list. we ignore this member.
                             if (!err && results !== null) {
+                                // console.log("checkUnsubscribeRoom");
                             }
                             else {
                                 var objId = new ObjectID(item);

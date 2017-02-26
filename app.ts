@@ -1,16 +1,17 @@
 ﻿const pomelo = require('pomelo');
 import routeUtil from './app/util/routeUtil';
-import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-import webConfig = require('./config/config');
 import mongodb = require('mongodb');
+import { AccountService } from './app/services/accountService';
 
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
+
+import webConfig = require('./config/config');
 
 /**
  * Init app for client.

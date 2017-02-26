@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 let devApi = "http://git.animation-genius.com:9000";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {

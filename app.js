@@ -1,16 +1,17 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const pomelo = require('pomelo');
 const routeUtil_1 = require("./app/util/routeUtil");
-const accountService_1 = require("./app/services/accountService");
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-const webConfig = require("./config/config");
 const mongodb = require("mongodb");
+const accountService_1 = require("./app/services/accountService");
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
+const webConfig = require("./config/config");
 /**
  * Init app for client.
  */

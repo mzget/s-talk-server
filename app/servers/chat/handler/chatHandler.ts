@@ -51,7 +51,7 @@ handler.send = function (msg, session, next) {
     let target = msg.target;
 
     if (!rid) {
-        let errMsg = "rid is invalid please chaeck.";
+        let errMsg = "rid is invalid please check.";
         return next(null, { code: Code.FAIL, message: errMsg, body: msg });
     }
 
