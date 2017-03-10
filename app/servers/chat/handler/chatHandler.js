@@ -43,7 +43,7 @@ handler.send = function (msg, session, next) {
     let clientUUID = msg.uuid;
     let target = msg.target;
     if (!rid) {
-        let errMsg = "rid is invalid please chaeck.";
+        let errMsg = "rid is invalid please check.";
         return next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
     }
     let timeout_id = setTimeout(function () {
