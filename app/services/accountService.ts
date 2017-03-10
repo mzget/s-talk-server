@@ -79,19 +79,19 @@ export class AccountService {
 
         callback();
     }
-    async getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
+    async getRoom(roomId: string) {
         if (redisStatus == RedisStatus.ready) {
             let roomMap = await RedisClient.hgetAsync(ROOM_MAP_KEY, roomId);
             if (roomMap) {
                 let room = JSON.parse(roomMap) as Room.Room;
-                callback(null, room);
+                return room;
             }
             else {
-                callback(new Error("Cannot get room info from cache server !"), null);
+                throw new Error("Cannot get room info from cache server !");
             }
         }
         else {
-            callback(new Error("Cannot get room info from cache server !"), null);
+            throw new Error("Cannot get room info from cache server !");
         }
     }
     /**

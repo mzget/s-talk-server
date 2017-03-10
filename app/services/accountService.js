@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
 const redis = require("redis");
@@ -120,20 +119,20 @@ class AccountService {
         });
         callback();
     }
-    getRoom(roomId, callback) {
+    getRoom(roomId) {
         return __awaiter(this, void 0, void 0, function* () {
             if (RedisClient_1.redisStatus == RedisClient_1.RedisStatus.ready) {
                 let roomMap = yield RedisClient_1.default.hgetAsync(RedisClient_1.ROOM_MAP_KEY, roomId);
                 if (roomMap) {
                     let room = JSON.parse(roomMap);
-                    callback(null, room);
+                    return room;
                 }
                 else {
-                    callback(new Error("Cannot get room info from cache server !"), null);
+                    throw new Error("Cannot get room info from cache server !");
                 }
             }
             else {
-                callback(new Error("Cannot get room info from cache server !"), null);
+                throw new Error("Cannot get room info from cache server !");
             }
         });
     }

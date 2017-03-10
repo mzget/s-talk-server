@@ -84,7 +84,11 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
 };
 
 remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
-    accountService.getRoom(rid, callback);
+    accountService.getRoom(rid).then(room => {
+        callback(null, room);
+    }).catch(err => {
+        callback(err, null);
+    });
 };
 remote.addRoom = function (room: Room) {
     accountService.addRoom(room);
@@ -130,20 +134,18 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
 };
 
 remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
-    accountService.getRoom(roomId, (err, room) => {
-        let result: boolean = false;
-        if (err || !room) {
-            console.warn("getRoom fail", err);
-            callback(null, result);
-        }
-        else {
-            result = room.members.some(value => {
-                if (value._id === userId) {
-                    return true;
-                }
-            });
-            callback(null, result);
-        }
+    let result: boolean = false;
+    accountService.getRoom(roomId).then(room => {
+        console.log("room from cache: ", room);
+        result = room.members.some(value => {
+            if (value._id === userId) {
+                return true;
+            }
+        });
+        callback(null, result);
+    }).catch(err => {
+        console.warn("getRoom fail", err);
+        callback(null, result);
     });
 };
 

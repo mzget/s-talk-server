@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb = require("mongodb");
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
@@ -72,7 +71,11 @@ remote.getUserTransaction = function (uid, cb) {
     }
 };
 remote.getRoomMap = function (rid, callback) {
-    accountService.getRoom(rid, callback);
+    accountService.getRoom(rid).then(room => {
+        callback(null, room);
+    }).catch(err => {
+        callback(err, null);
+    });
 };
 remote.addRoom = function (room) {
     accountService.addRoom(room);
@@ -112,20 +115,18 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
     cb();
 };
 remote.checkedCanAccessRoom = function (roomId, userId, callback) {
-    accountService.getRoom(roomId, (err, room) => {
-        let result = false;
-        if (err || !room) {
-            console.warn("getRoom fail", err);
-            callback(null, result);
-        }
-        else {
-            result = room.members.some(value => {
-                if (value._id === userId) {
-                    return true;
-                }
-            });
-            callback(null, result);
-        }
+    let result = false;
+    accountService.getRoom(roomId).then(room => {
+        console.log("room from cache: ", room);
+        result = room.members.some(value => {
+            if (value._id === userId) {
+                return true;
+            }
+        });
+        callback(null, result);
+    }).catch(err => {
+        console.warn("getRoom fail", err);
+        callback(null, result);
     });
 };
 remote.tokenService = function (bearerToken, cb) {
