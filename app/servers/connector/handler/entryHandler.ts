@@ -460,13 +460,11 @@ handler.enterRoom = function (msg, session, next) {
 		return;
 	}, Config.timeout);
 
-	chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-		if (result.length === 0) {
-			next(null, { code: Code.FAIL, message: "no have room info. " + result });
-			return;
-		}
 
-		self.app.rpc.auth.authRemote.updateRoomMembers(session, result[0], () => {
+	self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
+		console.log("getRoomMap", err, res);
+		let room = res;
+		if (!!room) {
 			self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
 				console.log("checkedCanAccessRoom: ", res);
 
@@ -488,13 +486,11 @@ handler.enterRoom = function (msg, session, next) {
 
 					addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
 						clearTimeout(timeOut_id);
-						next(null, { code: Code.OK, data: result });
+						next(null, { code: Code.OK, data: room });
 					});
 				}
 			});
-		});
-	}).catch(err => {
-		next(null, { code: Code.FAIL, message: err });
+		}
 	});
 };
 

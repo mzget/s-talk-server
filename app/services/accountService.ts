@@ -79,6 +79,7 @@ export class AccountService {
 
         callback();
     }
+
     async getRoom(roomId: string) {
         if (redisStatus == RedisStatus.ready) {
             let roomMap = await RedisClient.hgetAsync(ROOM_MAP_KEY, roomId);
@@ -94,6 +95,7 @@ export class AccountService {
             throw new Error("Cannot get room info from cache server !");
         }
     }
+
     /**
     * Require Room object. Must be { Room._id, Room.members }
     */
