@@ -494,7 +494,7 @@ handler.enterRoom = function (msg, session, next) {
 		}
 		else {
 			clearTimeout(timeOut_id);
-			next(null, { code: Code.FAIL, message: err.toString() });
+			next(null, { code: Code.FAIL, message: JSON.stringify(err) });
 		}
 	});
 };
