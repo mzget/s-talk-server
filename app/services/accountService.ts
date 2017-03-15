@@ -100,8 +100,7 @@ export class AccountService {
     * Require Room object. Must be { Room._id, Room.members }
     */
     addRoom(room: Room.Room) {
-        console.log("addRoom", room);
-
+        console.log("addRoom", room._id, room.name);
         RedisClient.hset(ROOM_MAP_KEY, room._id.toString(), JSON.stringify(room), redis.print);
     }
 

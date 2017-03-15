@@ -386,12 +386,10 @@ handler.enterRoom = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
         return;
     }, config_1.Config.timeout);
-    chatRoomManager.GetChatRoomInfo(rid).then(function (result) {
-        if (result.length === 0) {
-            next(null, { code: Code_1.default.FAIL, message: "no have room info. " + result });
-            return;
-        }
-        self.app.rpc.auth.authRemote.updateRoomMembers(session, result[0], () => {
+    self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
+        console.log("getRoomMap", err, res);
+        let room = res;
+        if (!!room) {
             self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
                 console.log("checkedCanAccessRoom: ", res);
                 if (err || res === false) {
@@ -410,13 +408,11 @@ handler.enterRoom = function (msg, session, next) {
                     onlineUser.uid = uid;
                     addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
                         clearTimeout(timeOut_id);
-                        next(null, { code: Code_1.default.OK, data: result });
+                        next(null, { code: Code_1.default.OK, data: room });
                     });
                 }
             });
-        });
-    }).catch(err => {
-        next(null, { code: Code_1.default.FAIL, message: err });
+        }
     });
 };
 const addChatUser = function (app, session, user, sid, rid, next) {

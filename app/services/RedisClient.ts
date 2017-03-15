@@ -7,7 +7,7 @@ export enum RedisStatus {
 }
 
 export let redisStatus: RedisStatus = RedisStatus.error;
-const redisClient = redis.createClient(Config.redis_port, Config.redis_host);
+const redisClient = redis.createClient(Config.redis_port, Config.redis_host, { no_ready_check: true });
 redisClient.on("connect", function () {
     console.log("redis connected");
     redisStatus = RedisStatus.connected;

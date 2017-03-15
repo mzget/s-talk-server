@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
 const redis = require("redis");
@@ -140,7 +141,7 @@ class AccountService {
     * Require Room object. Must be { Room._id, Room.members }
     */
     addRoom(room) {
-        console.log("addRoom", room);
+        console.log("addRoom", room._id, room.name);
         RedisClient_1.default.hset(RedisClient_1.ROOM_MAP_KEY, room._id.toString(), JSON.stringify(room), redis.print);
     }
     /**
