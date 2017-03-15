@@ -94,8 +94,9 @@ var logOut = function (app, session, next) {
     });
     //!-- log user out.
     app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-    if (next !== null)
+    if (!!next) {
         next();
+    }
 };
 handler.kickMe = function (msg, session, next) {
     session.__sessionService__.kick(msg.uid, "kick by logout all session", null);

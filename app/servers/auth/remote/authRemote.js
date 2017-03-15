@@ -45,7 +45,9 @@ remote.addOnlineUser = function (user, cb) {
 };
 remote.removeOnlineUser = function (userId, cb) {
     accountService.removeOnlineUser(userId);
-    cb();
+    if (!!cb) {
+        cb();
+    }
 };
 remote.getOnlineUser = function (userId, callback) {
     accountService.getOnlineUser(userId, callback);
