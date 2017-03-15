@@ -118,7 +118,7 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
 remote.checkedCanAccessRoom = function (roomId, userId, callback) {
     let result = false;
     accountService.getRoom(roomId).then(room => {
-        console.log("room from cache: ", room);
+        console.log("room from cache: ", room.name);
         result = room.members.some(value => {
             if (value._id === userId) {
                 return true;
