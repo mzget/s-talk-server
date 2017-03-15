@@ -1,10 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-let devApi = "http://git.animation-genius.com:9000";
+let devApi = "localhost";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
     api: {
-        authen: `${devApi}/api/authenticate/verify`
+        host: `${devApi}`,
+        port: 9000,
+        apikey: "chitchat1234",
+        authen: `/api/authenticate/verify`,
+        chatroom: `/api/chatroom`
     },
     chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
     fileDB: "",
@@ -16,11 +20,9 @@ const devConfig = {
     pushPort: 4040,
     pushPath: "/parse/push",
     session: {
-        expire: "1 days",
+        expire: "300",
         secret: "ahoostudio_session_secret"
-    },
-    redis_port: 6379,
-    redis_host: "smelink.animation-genius.com"
+    }
 };
 const masterConfig = {
     api: {
@@ -40,9 +42,7 @@ const masterConfig = {
     session: {
         expire: "1 days",
         secret: "ahoostudio_session_secret"
-    },
-    redis_port: 6379,
-    redis_host: "smelink.animation-genius.com"
+    }
 };
 function getConfig() {
     // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;

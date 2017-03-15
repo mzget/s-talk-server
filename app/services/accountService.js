@@ -10,8 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
-const redis = require("redis");
-const RedisClient_1 = require("./RedisClient");
+const config_1 = require("../../config/config");
+const http = require("http");
+const keepAliveAgent = new http.Agent({ keepAlive: true });
 class AccountService {
     constructor(app) {
         this.uidMap = {};
@@ -110,39 +111,45 @@ class AccountService {
             this._userTransaction = {};
         return this._userTransaction;
     }
-    /**
-     * roomMembers the dict for keep roomId pair with array of uid who is a member of room.
-     */
-    setRoomsMap(data, callback) {
-        data.forEach(element => {
-            let room = JSON.parse(JSON.stringify(element));
-            RedisClient_1.default.hset(RedisClient_1.ROOM_MAP_KEY, element._id.toString(), JSON.stringify(room), redis.print);
-        });
-        callback();
-    }
     getRoom(roomId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (RedisClient_1.default.connected) {
-                let roomMap = yield RedisClient_1.default.hgetAsync(RedisClient_1.ROOM_MAP_KEY, roomId);
-                if (roomMap) {
-                    let room = JSON.parse(roomMap);
-                    return room;
-                }
-                else {
-                    throw new Error("Cannot get room info from cache server !");
-                }
-            }
-            else {
-                throw new Error("Cannot get room info from cache server !");
-            }
+            const options = (query) => ({
+                hostname: config_1.Config.api.host,
+                port: config_1.Config.api.port,
+                path: `${config_1.Config.api.chatroom}?room_id=${query}`,
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': `${config_1.Config.api.apikey}`
+                },
+                agent: keepAliveAgent
+            });
+            let p = yield new Promise((resolve, reject) => {
+                let req = http.request(options(roomId), (res) => {
+                    console.log(`res: ${res.statusCode} : ${res.statusMessage}`);
+                    res.setEncoding('utf8');
+                    res.on('data', (chunk) => {
+                        console.log(`BODY: ${chunk}`);
+                        let data = JSON.parse(chunk);
+                        if (data.result && data.result.length > 0) {
+                            resolve(data.result[0]);
+                        }
+                        else {
+                            reject(data);
+                        }
+                    });
+                    res.on('end', () => {
+                        console.log('No more data in response.');
+                    });
+                });
+                req.on('error', (e) => {
+                    console.log(`problem with request: ${e.message}`);
+                    reject(e.message);
+                });
+                req.end();
+            });
+            return p;
         });
-    }
-    /**
-    * Require Room object. Must be { Room._id, Room.members }
-    */
-    addRoom(room) {
-        console.log("addRoom", room._id, room.name);
-        RedisClient_1.default.hset(RedisClient_1.ROOM_MAP_KEY, room._id.toString(), JSON.stringify(room), redis.print);
     }
     /**
      * Add player into the channel

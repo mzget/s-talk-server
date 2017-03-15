@@ -266,14 +266,6 @@ class ChatRoomManager {
             console.error("Cannot connect database.");
         });
     }
-    /**
-     * Retrive all room in db and then get all members from each room.
-     */
-    getAllRooms(cb) {
-        this.roomDAL.getAllRooms(function (res) {
-            cb(res);
-        });
-    }
 }
 ChatRoomManager._Instance = null;
 exports.ChatRoomManager = ChatRoomManager;
@@ -342,14 +334,6 @@ class RoomDataAccess {
                 console.error("Create index fail.", err);
             });
         });
-    }
-    /**
-     * Get all rooms and then return all info of { _id, members } to array of roomModel;.
-     */
-    getAllRooms(callback) {
-        dbClient.FindDocuments(MDb.DbController.roomColl, function (res) {
-            callback(res);
-        }, {});
     }
     createPrivateGroup(groupName, memberIds, callback) {
         var self = this;

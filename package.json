@@ -19,7 +19,6 @@
     "jsonwebtoken": "^7.1.9",
     "mongodb": "^2.2.22",
     "pomelo": "^2.2.5",
-    "redis": "^2.6.5",
     "request": "^2.79.0"
   },
   "devDependencies": {
@@ -30,7 +29,6 @@
     "@types/mongodb": "^2.1.37",
     "@types/node": "^6.0.53",
     "@types/promise": "^7.1.30",
-    "@types/redis": "^0.12.34",
     "@types/request": "^0.0.31",
     "tslint": "^4.4.2"
   },

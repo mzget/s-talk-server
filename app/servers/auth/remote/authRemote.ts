@@ -34,12 +34,8 @@ const remote = AuthenRemote.prototype;
  * for load room members from database to cache in memmory before.
  */
 const initServer = function (): void {
-    chatRoomManager.getAllRooms(function (rooms) {
-        //<!-- To reduce database retrive data. We store rooms Map data to server memory.
-        console.log("init AuthenServer for get all rooms data to server memory.");
-
-        accountService.setRoomsMap(rooms, () => { });
-    });
+    //<!-- To reduce database retrive data. We store rooms Map data to server memory.
+    console.log("init AuthenServer.");
 };
 
 /**
