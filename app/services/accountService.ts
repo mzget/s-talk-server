@@ -6,7 +6,7 @@ const dispatcher = require('../util/dispatcher');
 
 import redis = require('redis');
 import { Config } from "../../config/config";
-import RedisClient, { redisStatus, RedisStatus, ROOM_KEY, ROOM_MAP_KEY } from "./RedisClient";
+import RedisClient, { ROOM_KEY, ROOM_MAP_KEY } from "./RedisClient";
 
 interface IUsersMap {
     [uid: string]: User.UserTransaction;
@@ -81,7 +81,7 @@ export class AccountService {
     }
 
     async getRoom(roomId: string) {
-        if (redisStatus == RedisStatus.ready) {
+        if (RedisClient.connected) {
             let roomMap = await RedisClient.hgetAsync(ROOM_MAP_KEY, roomId);
             if (roomMap) {
                 let room = JSON.parse(roomMap) as Room.Room;

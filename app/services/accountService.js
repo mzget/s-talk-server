@@ -122,7 +122,7 @@ class AccountService {
     }
     getRoom(roomId) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (RedisClient_1.redisStatus == RedisClient_1.RedisStatus.ready) {
+            if (RedisClient_1.default.connected) {
                 let roomMap = yield RedisClient_1.default.hgetAsync(RedisClient_1.ROOM_MAP_KEY, roomId);
                 if (roomMap) {
                     let room = JSON.parse(roomMap);
