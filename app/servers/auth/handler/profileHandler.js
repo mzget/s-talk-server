@@ -3,6 +3,7 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Mdb = require("../../../db/dbClient");
 var Code_1 = require("../../../../shared/Code");
 var UserManager_1 = require("../../../controller/UserManager");

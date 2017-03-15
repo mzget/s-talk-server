@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var UserManager_1 = require("../../../controller/UserManager");
 var UserService = require("../../../dal/userDataAccess");
@@ -154,6 +155,7 @@ function pushMessage(app, session, room, message, clientUUID, target) {
             });
         }
         else {
+            //the target is specific user
         }
     });
 }
@@ -561,6 +563,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                         userManager.checkUnsubscribeRoom(item, roomType_1, room._id, function (err, results) {
                             //<!-- if result is contain in unsubscribe list. we ignore this member.
                             if (!err && results !== null) {
+                                // console.log("checkUnsubscribeRoom");
                             }
                             else {
                                 var objId = new ObjectID(item);

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var UserManager_1 = require("../../../controller/UserManager");
 var Code_1 = require("../../../../shared/Code");
 var ObjectID = require('mongodb').ObjectID;

@@ -1,9 +1,9 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var RoomAccessData = (function () {
     function RoomAccessData() {
     }
     return RoomAccessData;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = RoomAccessData;
 ;

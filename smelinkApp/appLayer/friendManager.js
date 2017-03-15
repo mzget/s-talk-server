@@ -2,6 +2,7 @@
  *  friend Manager.
  */
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Mdb = require("../../app/db/dbClient");
 var mongodb = require("mongodb");
 var MongoClient = mongodb.MongoClient;
@@ -53,5 +54,4 @@ var FriendManager = (function () {
     };
     return FriendManager;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = FriendManager;

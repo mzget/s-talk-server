@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var https = require("https");
 var http = require("http");
 var config_1 = require("../../config/config");

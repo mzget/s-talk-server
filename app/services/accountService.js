@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Code_1 = require("../../shared/Code");
 var dispatcher = require('../util/dispatcher');
 var AccountService = (function () {

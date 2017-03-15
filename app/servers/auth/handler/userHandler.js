@@ -3,6 +3,7 @@
 * for edit user profile info.
 ***********************************************/
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Mdb = require("../../../db/dbClient");
 var Code_1 = require("../../../../shared/Code");
 var friendManager_1 = require("../../../../smelinkApp/appLayer/friendManager");

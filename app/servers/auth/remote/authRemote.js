@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb = require("mongodb");
 var Code_1 = require("../../../../shared/Code");
 var tokenService_1 = require("../../../services/tokenService");

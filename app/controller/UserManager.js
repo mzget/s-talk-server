@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Room = require("../model/Room");
 var RoomAccessData_1 = require("../model/RoomAccessData");
 var Mdb = require("../db/dbClient");

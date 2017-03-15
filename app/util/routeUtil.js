@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var dispatcher_1 = require("./dispatcher");
 /**
  * routeUtil
@@ -13,5 +14,4 @@ var chatRoute = function (session, msg, app, cb) {
     var res = dispatcher_1.default(rid, chatServers);
     cb(null, res.id);
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = chatRoute;

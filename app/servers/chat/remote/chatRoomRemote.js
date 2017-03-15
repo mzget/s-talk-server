@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var mongodb = require("mongodb");
 var ObjectID = mongodb.ObjectID;

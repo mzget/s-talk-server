@@ -9,7 +9,6 @@ const config = {
   fileDB: "",
   port: 80,
   timeout: 10000,
-  webserver: "http://git.animation-genius.com",
 
   pushServer: "smelink.animation-genius.com",
   ParseApplicationId: "newSMELink",
@@ -27,13 +26,12 @@ const masterConfig = {
   api: {
     authen: `${masterApi}/api/authenticate/verify`
   },
-  chatDB: "mongodb://chats:chats1234@smelink.animation-genius.com:27017/chats",
+  chatDB: "mongodb://smelink:arrapwd#2017@203.148.255.26:27017/Chat",
   fileDB: "",
   port: 80,
   timeout: 10000,
-  webserver: "http://git.animation-genius.com",
 
-  pushServer: "smelink.animation-genius.com",
+  pushServer: "203.148.250.152",
   ParseApplicationId: "newSMELink",
   ParseRESTAPIKey: "link1234",
   ParseMasterKey: "link1234",
