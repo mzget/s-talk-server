@@ -387,9 +387,9 @@ handler.enterRoom = function (msg, session, next) {
         return;
     }, config_1.Config.timeout);
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
-        console.log("getRoomMap", err, res);
         let room = res;
         if (!!room) {
+            console.log("getRoomMap", room.name);
             self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
                 console.log("checkedCanAccessRoom: ", res);
                 if (err || res === false) {
@@ -412,6 +412,10 @@ handler.enterRoom = function (msg, session, next) {
                     });
                 }
             });
+        }
+        else {
+            clearTimeout(timeOut_id);
+            next(null, { code: Code_1.default.FAIL, message: err.toString() });
         }
     });
 };
