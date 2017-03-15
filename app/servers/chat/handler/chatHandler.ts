@@ -60,44 +60,50 @@ handler.send = function (msg, session, next) {
     }, Config.timeout);
 
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
-        console.log("room info: ", room);
+        let thisRoom = room as MRoom.Room;
+        if (!!thisRoom) {
+            console.log("getRoomMap: ", thisRoom.name);
 
-        let thisRoom: MRoom.Room = room;
-        if (!thisRoom.members) {
-            let errMsg = "Room no have a members.";
-            next(null, { code: Code.FAIL, message: errMsg });
-            clearTimeout(timeout_id);
-            return;
-        }
-        else {
-            delete msg.__route__;
-            let _msg = { ...msg } as Message;
-            _msg.createTime = new Date();
+            if (!thisRoom.members) {
+                let errMsg = "Room no have a members.";
+                next(null, { code: Code.FAIL, message: errMsg });
+                clearTimeout(timeout_id);
+                return;
+            }
+            else {
+                delete msg.__route__;
+                let _msg = { ...msg } as Message;
+                _msg.createTime = new Date();
 
-            ChatRoomManager.AddChatRecord(_msg).then(docs => {
-                if (docs.length > 0) {
-                    let resultMsg = docs[0] as Message;
-                    //<!-- send callback to user who send chat msg.
-                    let params = {
-                        messageId: resultMsg._id,
-                        type: resultMsg.type,
-                        createTime: resultMsg.createTime,
-                        uuid: clientUUID,
-                        resultMsg
-                    };
-                    next(null, { code: Code.OK, data: params });
-                    clearTimeout(timeout_id);
+                ChatRoomManager.AddChatRecord(_msg).then(docs => {
+                    if (docs.length > 0) {
+                        let resultMsg = docs[0] as Message;
+                        //<!-- send callback to user who send chat msg.
+                        let params = {
+                            messageId: resultMsg._id,
+                            type: resultMsg.type,
+                            createTime: resultMsg.createTime,
+                            uuid: clientUUID,
+                            resultMsg
+                        };
+                        next(null, { code: Code.OK, data: params });
+                        clearTimeout(timeout_id);
 
-                    pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
-                }
-                else {
+                        pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
+                    }
+                    else {
+                        next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                        clearTimeout(timeout_id);
+                    }
+                }).catch(err => {
                     next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
                     clearTimeout(timeout_id);
-                }
-            }).catch(err => {
-                next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
-                clearTimeout(timeout_id);
-            });
+                });
+            }
+        }
+        else {
+            clearTimeout(timeout_id);
+            next(null, { code: Code.FAIL, message: err.toString() });
         }
     });
 };
