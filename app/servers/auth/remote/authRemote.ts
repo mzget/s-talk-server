@@ -129,20 +129,16 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
     cb();
 };
 
-remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
+remote.checkedCanAccessRoom = function (room: Room, userId: string, callback: (err: Error, res: boolean) => void) {
     let result: boolean = false;
-    accountService.getRoom(roomId).then(room => {
-        console.log("room from cache: ", room.name);
-        result = room.members.some(value => {
-            if (value._id === userId) {
-                return true;
-            }
-        });
-        callback(null, result);
-    }).catch(err => {
-        console.warn("getRoom fail", err);
-        callback(null, result);
+
+    result = room.members.some(value => {
+        if (value._id === userId) {
+            return true;
+        }
     });
+
+    callback(null, result);
 };
 
 

@@ -112,20 +112,14 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
     });
     cb();
 };
-remote.checkedCanAccessRoom = function (roomId, userId, callback) {
+remote.checkedCanAccessRoom = function (room, userId, callback) {
     let result = false;
-    accountService.getRoom(roomId).then(room => {
-        console.log("room from cache: ", room.name);
-        result = room.members.some(value => {
-            if (value._id === userId) {
-                return true;
-            }
-        });
-        callback(null, result);
-    }).catch(err => {
-        console.warn("getRoom fail", err);
-        callback(null, result);
+    result = room.members.some(value => {
+        if (value._id === userId) {
+            return true;
+        }
     });
+    callback(null, result);
 };
 remote.tokenService = function (bearerToken, cb) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {

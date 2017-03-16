@@ -390,7 +390,7 @@ handler.enterRoom = function (msg, session, next) {
         let room = res;
         if (!!room) {
             console.log("getRoomMap", room.name);
-            self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
+            self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
                 console.log("checkedCanAccessRoom: ", res);
                 if (err || res === false) {
                     clearTimeout(timeOut_id);
