@@ -10,24 +10,22 @@
     "deploy": "pm2 start app.js --name chitchat-node"
   },
   "dependencies": {
-    "async": "^2.1.4",
-    "bluebird": "^3.4.7",
+    "async": "^2.1.5",
     "crc": "0.2.0",
     "form-data": "0.2.0",
     "joi": "^10.2.0",
     "joi-objectid": "^2.0.0",
-    "jsonwebtoken": "^7.1.9",
-    "mongodb": "^2.2.22",
+    "jsonwebtoken": "^7.3.0",
+    "mongodb": "^2.2.25",
     "pomelo": "^2.2.5",
     "request": "^2.79.0"
   },
   "devDependencies": {
-    "@types/async": "^2.0.37",
-    "@types/bluebird": "^3.0.37",
+    "@types/async": "^2.0.39",
     "@types/joi": "^9.0.32",
     "@types/jsonwebtoken": "^7.1.33",
-    "@types/mongodb": "^2.1.37",
-    "@types/node": "^6.0.53",
+    "@types/mongodb": "^2.1.41",
+    "@types/node": "^7.0.8",
     "@types/promise": "^7.1.30",
     "@types/request": "^0.0.31",
     "tslint": "^4.4.2"
