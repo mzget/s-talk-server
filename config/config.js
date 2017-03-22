@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-let devApi = "localhost";
+let devApi = "smelink.animation-genius.com";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
     api: {
