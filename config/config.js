@@ -6,11 +6,11 @@ const devConfig = {
     api: {
         host: `${devApi}`,
         port: 9000,
-        apikey: "chitchat1234",
+        apikey: "smelink-chat1234",
         authen: `/api/authenticate/verify`,
         chatroom: `/api/chatroom`
     },
-    chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
+    chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
     fileDB: "",
     timeout: 10000,
     pushServer: "smelink.animation-genius.com",
