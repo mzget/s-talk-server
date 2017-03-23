@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var devApi = "http://smelink.animation-genius.com:3002";
-var masterApi = "http://203.148.250.152:3002";
+var masterApi = "http://matchlink.asia:3002";
 var config = {
     api: {
         authen: devApi + "/api/authenticate/verify"
@@ -29,9 +29,9 @@ var masterConfig = {
     fileDB: "",
     port: 80,
     timeout: 10000,
-    pushServer: "203.148.250.152",
-    ParseApplicationId: "newSMELink",
-    ParseRESTAPIKey: "link1234",
+    pushServer: "matchlink.asia",
+    ParseApplicationId: "matchlink",
+    ParseRESTAPIKey: "",
     ParseMasterKey: "link1234",
     pushPort: 4040,
     pushPath: "/parse/push",

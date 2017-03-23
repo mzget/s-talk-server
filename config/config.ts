@@ -1,5 +1,5 @@
 ﻿let devApi = "http://smelink.animation-genius.com:3002";
-let masterApi = "http://203.148.250.152:3002";
+let masterApi = "http://matchlink.asia:3002";
 
 const config = {
   api: {
@@ -31,12 +31,13 @@ const masterConfig = {
   port: 80,
   timeout: 10000,
 
-  pushServer: "203.148.250.152",
-  ParseApplicationId: "newSMELink",
-  ParseRESTAPIKey: "link1234",
+  pushServer: "matchlink.asia",
+  ParseApplicationId: "matchlink",
+  ParseRESTAPIKey: "",
   ParseMasterKey: "link1234",
   pushPort: 4040,
   pushPath: "/parse/push",
+
   session: {
     expire: "1 days",
     secret: "ahoostudio_session_secret"
