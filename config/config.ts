@@ -4,7 +4,7 @@ let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
   api: {
     host: `${devApi}`,
-    port: 9000,
+    port: 3003,
     apikey: "smelink-chat1234",
     authen: `/api/authenticate/verify`,
     chatroom: `/api/chatroom`
@@ -13,9 +13,9 @@ const devConfig = {
   fileDB: "",
   timeout: 10000,
 
-  pushServer: "smelink.animation-genius.com",
-  ParseApplicationId: "newSMELink",
-  ParseRESTAPIKey: "link1234",
+  pushServer: "matchlink.asia",
+  ParseApplicationId: "matchlink",
+  ParseRESTAPIKey: "",
   ParseMasterKey: "link1234",
   pushPort: 4040,
   pushPath: "/parse/push",
@@ -33,11 +33,10 @@ const masterConfig = {
   fileDB: "",
   port: 80,
   timeout: 10000,
-  webserver: "http://git.animation-genius.com",
 
-  pushServer: "smelink.animation-genius.com",
-  ParseApplicationId: "newSMELink",
-  ParseRESTAPIKey: "link1234",
+  pushServer: "matchlink.asia",
+  ParseApplicationId: "matchlink",
+  ParseRESTAPIKey: "",
   ParseMasterKey: "link1234",
   pushPort: 4040,
   pushPath: "/parse/push",
