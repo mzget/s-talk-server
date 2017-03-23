@@ -3,9 +3,10 @@ let masterApi = "http://matchlink.asia:3002";
 
 const config = {
   api: {
-    authen: `${devApi}/api/authenticate/verify`
+    authen: `${devApi}/api/authenticate/verify`,
+    user: `${devApi}/users/query`
   },
-  chatDB: "mongodb://git.animation-genius.com:27017/smelink-chat",
+  chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
   fileDB: "",
   port: 80,
   timeout: 10000,
@@ -24,7 +25,8 @@ const config = {
 
 const masterConfig = {
   api: {
-    authen: `${masterApi}/api/authenticate/verify`
+    authen: `${masterApi}/api/authenticate/verify`,
+    user: `${masterApi}/users/query`
   },
   chatDB: "mongodb://smelink:arrapwd#2017@203.148.255.26:27017/Chat",
   fileDB: "",
@@ -45,10 +47,10 @@ const masterConfig = {
 }
 
 function getConfig() {
-  // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
-  // console.log(process.env.NODE_ENV, conf.chatDB);
+  let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
+  console.log("NODE_ENV", process.env.NODE_ENV, conf.chatDB);
 
-  return masterConfig;
+  return conf;
 }
 
 export const Config = getConfig();

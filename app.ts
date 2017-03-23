@@ -3,11 +3,11 @@ import routeUtil from './app/util/routeUtil';
 import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-import webConfig = require('./config/config');
+import { Config } from './config/config';
 import mongodb = require('mongodb');
 
 process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
@@ -62,9 +62,9 @@ app.configure('production|development', 'chat', function () {
 //net.Start();
 //});
 
-mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
+mongodb.MongoClient.connect(Config.chatDB).then(db => {
     db.stats(function (err, stat) {
-        console.log("api status ready.", stat);
+        console.log("api status ready.", stat.db);
         db.close();
     });
 }).catch(err => {

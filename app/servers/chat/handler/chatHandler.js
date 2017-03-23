@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var Mcontroller = require("../../../controller/ChatRoomManager");
 var UserManager_1 = require("../../../controller/UserManager");
-var UserService = require("../../../dal/userDataAccess");
 var MRoom = require("../../../model/Room");
 var MMessage = require("../../../model/Message");
 var Code_1 = require("../../../../shared/Code");
 var MPushService = require("../../../services/ParsePushService");
+var accountService_1 = require("../../../services/accountService");
 var mongodb = require("mongodb");
 var async = require("async");
 var Joi = require("joi");
@@ -566,8 +566,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                                 // console.log("checkUnsubscribeRoom");
                             }
                             else {
-                                var objId = new ObjectID(item);
-                                targetMemberWhoSubscribeRoom.push(objId);
+                                targetMemberWhoSubscribeRoom.push(item);
                             }
                             callback();
                         });
@@ -582,8 +581,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                 }
                 else {
                     offlineMembers.forEach(function (offline) {
-                        var objId = new ObjectID(offline);
-                        targetMemberWhoSubscribeRoom.push(objId);
+                        targetMemberWhoSubscribeRoom.push(offline);
                     });
                     cb(null, {});
                 }
@@ -594,36 +592,37 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
             else {
                 var promise = new Promise(function (resolve, reject) {
                     //<!-- Query all deviceTokens for each members.
-                    UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
-                        if (!!res) {
-                            var memberTokens = res; // array of deviceTokens for each member.
-                            async.mapSeries(memberTokens, function iterator(item, cb) {
-                                if (!!item.deviceTokens) {
-                                    var deviceTokens = item.deviceTokens;
-                                    async.mapSeries(deviceTokens, function (token, resultCb) {
-                                        targetDevices.push(token);
-                                        resultCb(null, {});
-                                    }, function done(err, results) {
-                                        if (err) {
-                                            cb(err, null);
-                                        }
-                                        else {
-                                            cb(null, null);
-                                        }
-                                    });
-                                }
-                                else {
-                                    cb(null, null);
-                                }
-                            }, function done(err, results) {
-                                if (err) {
-                                    reject(err);
-                                }
-                                else {
-                                    resolve(results);
-                                }
-                            });
-                        }
+                    accountService_1.getUsersInfo(targetMemberWhoSubscribeRoom, { deviceTokens: 1, email: 1 })
+                        .then(function (values) {
+                        var memberTokens = values; // array of deviceTokens for each member.
+                        async.mapSeries(memberTokens, function iterator(item, cb) {
+                            if (!!item.deviceTokens) {
+                                var deviceTokens = item.deviceTokens;
+                                async.mapSeries(deviceTokens, function (token, resultCb) {
+                                    targetDevices.push(token);
+                                    resultCb(null, {});
+                                }, function done(err, results) {
+                                    if (err) {
+                                        cb(err, null);
+                                    }
+                                    else {
+                                        cb(null, null);
+                                    }
+                                });
+                            }
+                            else {
+                                cb(null, null);
+                            }
+                        }, function done(err, results) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(results);
+                            }
+                        });
+                    }).catch(function (err) {
+                        reject(err);
                     });
                 }).then(function onfulfill(value) {
                     console.warn("Push", targetDevices, alertMessage);
@@ -648,7 +647,7 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
         new Promise(function (resolve, reject) {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 console.warn("getUserTransaction", err, userTrans);
-                if (!!err || !userTrans) {
+                if (!!err || !userTrans || !userTrans.username) {
                     console.warn(err);
                     reject(err);
                 }
@@ -667,43 +666,43 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
     }
     function call() {
         async.map(offlineMembers, function iterator(item, result) {
-            result(null, new ObjectID(item));
+            result(null, item);
         }, function done(err, results) {
             targetMemberWhoSubscribeRoom = results.slice();
             var promise = new Promise(function (resolve, reject) {
                 //<!-- Query all deviceTokens for each members.
-                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, function (err, res) {
-                    console.warn("DeviceToken", err, res);
-                    //DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
-                    if (!!res) {
-                        var memberTokens = res; // array of deviceTokens for each member.
-                        async.mapSeries(memberTokens, function iterator(item, cb) {
-                            if (!!item.deviceTokens) {
-                                var deviceTokens = item.deviceTokens;
-                                async.mapSeries(deviceTokens, function (token, resultCb) {
-                                    resultCb(null, token);
-                                }, function done(err, results) {
-                                    if (!!err) {
-                                        cb(err, null);
-                                    }
-                                    else {
-                                        targetDevices = results.slice();
-                                        cb(null, null);
-                                    }
-                                });
-                            }
-                            else {
-                                cb(null, null);
-                            }
-                        }, function done(err, results) {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                resolve(results);
-                            }
-                        });
-                    }
+                accountService_1.getUsersInfo(targetMemberWhoSubscribeRoom, { deviceTokens: 1, email: 1 })
+                    .then(function (values) {
+                    var memberTokens = values; // array of deviceTokens for each member.
+                    async.mapSeries(memberTokens, function iterator(item, cb) {
+                        if (!!item.deviceTokens) {
+                            var deviceTokens = item.deviceTokens;
+                            async.mapSeries(deviceTokens, function (token, resultCb) {
+                                resultCb(null, token);
+                            }, function done(err, results) {
+                                if (!!err) {
+                                    cb(err, null);
+                                }
+                                else {
+                                    targetDevices = results.slice();
+                                    cb(null, null);
+                                }
+                            });
+                        }
+                        else {
+                            cb(null, null);
+                        }
+                    }, function done(err, results) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            resolve(results);
+                        }
+                    });
+                })
+                    .catch(function (err) {
+                    reject(err);
                 });
             }).then(function onfulfill(value) {
                 console.warn("Push", targetDevices, alertMessage);

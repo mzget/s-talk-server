@@ -5,10 +5,10 @@ var routeUtil_1 = require("./app/util/routeUtil");
 var accountService_1 = require("./app/services/accountService");
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-var webConfig = require("./config/config");
+var config_1 = require("./config/config");
 var mongodb = require("mongodb");
 process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
@@ -52,9 +52,9 @@ app.configure('production|development', 'chat', function () {
 //var net = new netserver.NetServer();
 //net.Start();
 //});
-mongodb.MongoClient.connect(webConfig.Config.chatDB).then(function (db) {
+mongodb.MongoClient.connect(config_1.Config.chatDB).then(function (db) {
     db.stats(function (err, stat) {
-        console.log("api status ready.", stat);
+        console.log("api status ready.", stat.db);
         db.close();
     });
 }).catch(function (err) {
