@@ -1,5 +1,5 @@
 ﻿import mongodb = require('mongodb');
-var Db = mongodb.Db,
+const Db = mongodb.Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     ReplSetServers = require('mongodb').ReplSetServers,

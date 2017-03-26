@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
@@ -26,9 +25,9 @@ remote.add = function (user, sid, rid, flag, cb) {
         route: 'onAdd',
         user: user
     };
-    channel.pushMessage(param);
     if (!!channel) {
         channel.add(uid, sid);
+        channel.pushMessage(param);
     }
     if (!!cb)
         cb();
@@ -77,7 +76,7 @@ remote.kick = function (user, sid, rid, cb) {
         console.log("uid %s leave channel ", uid);
         var param = {
             route: 'onLeave',
-            user: username
+            user: user
         };
         channel.pushMessage(param);
         channel.leave(uid, sid);

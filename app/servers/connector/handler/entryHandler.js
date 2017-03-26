@@ -1,12 +1,10 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const CompanyController = require("../../../controller/CompanyManager");
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const Code_1 = require("../../../../shared/Code");
 const User = require("../../../model/User");
 const userDAL = require("../../../dal/userDataAccess");
 const tokenService_1 = require("../../../services/tokenService");
-const request = require("request");
 const Joi = require("joi");
 Joi.objectId = require('joi-objectid')(Joi);
 const config_1 = require("../../../../config/config");
@@ -31,58 +29,13 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     let self = this;
     let schema = {
-        token: Joi.string().allow(null),
-        user: Joi.object().optional()
+        user: Joi.object().not(null)
     };
     const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    if (msg.token) {
-        let token = msg.token;
-        let options = {
-            url: config_1.Config.api.authen,
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                token: token
-            })
-        };
-        let callback = (error, response, body) => {
-            if (error) {
-                next(error, null);
-            }
-            else if (!error && response.statusCode === 200) {
-                let data = JSON.parse(body);
-                let decoded = data.decoded;
-                console.log("AuthenBody", decoded);
-                session.__sessionService__.kick(decoded._id, "New login...");
-                self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
-                    // 	//@ Signing success.
-                    session.bind(decoded._id);
-                    session.on('closed', onUserLeave.bind(null, self.app));
-                    let param = {
-                        route: Code_1.default.sharedEvents.onUserLogin,
-                        data: { _id: decoded._id }
-                    };
-                    channelService.broadcast("connector", param.route, param.data);
-                    addOnlineUser(self.app, session, decoded);
-                    next(null, { code: Code_1.default.OK, data: body });
-                    if (!user) {
-                    }
-                    else {
-                        console.warn("Duplicate user by onlineUsers collections.");
-                        // next(null, { code: Code.DuplicatedLogin, data: body });
-                        // session.__sessionService__.kick();
-                    }
-                });
-            }
-        };
-        request.post(options, callback);
-    }
-    else if (msg.user) {
+    if (msg.user) {
         if (!msg.user._id && !!msg.user.username) {
             return next(null, { code: Code_1.default.FAIL, message: "missing user info" });
         }
@@ -98,7 +51,7 @@ handler.login = function (msg, session, next) {
                     session.on('closed', onUserLeave.bind(null, self.app));
                     let param = {
                         route: Code_1.default.sharedEvents.onUserLogin,
-                        data: { _id: msg.user._id }
+                        data: msg.user
                     };
                     channelService.broadcast("connector", param.route, param.data);
                     addOnlineUser(self.app, session, msg.user);
@@ -142,83 +95,19 @@ handler.kickMe = function (msg, session, next) {
     userDAL.prototype.removeAllRegistrationId(msg.uid);
     next(null, { message: "kicked! " + msg.uid });
 };
-/**
-* require user, password, and token.
-* reture user data obj.
-* This Function Call Onec When login Success.
-*/
-handler.getMe = function (msg, session, next) {
-    let self = this;
-    let token = msg.token;
-    if (!token) {
-        let errMsg = 'invalid entry request: empty token';
-        next(new Error(errMsg), { code: Code_1.default.FAIL, message: errMsg });
-        return;
-    }
-    let timeOut = setTimeout(function () {
-        next(null, { code: Code_1.default.FAIL, message: "getMe timeout..." });
-    }, config_1.Config.timeout);
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        console.log("token verify", err, res);
-        if (err) {
-            next(err, res);
-            clearTimeout(timeOut);
-        }
-        else {
-            let user = res.decoded;
-            self.app.rpc.auth.authRemote.me(session, user, function (result) {
-                next(null, result);
-                clearTimeout(timeOut);
-            });
-        }
-    });
-};
-function addOnlineUser(app, session, tokenDecoded) {
-    console.log("addOnlineUser", tokenDecoded);
+function addOnlineUser(app, session, user) {
+    console.log("addOnlineUser", user);
     let onlineUser = new User.OnlineUser();
     let userTransaction = new User.UserTransaction();
-    if (!tokenDecoded.username) {
-        app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result) {
-            console.log("joining onlineUser", JSON.stringify(result));
-            if (result.code === Code_1.default.OK) {
-                let datas = JSON.parse(JSON.stringify(result.result));
-                let my = datas[0];
-                onlineUser.uid = my._id;
-                onlineUser.username = my.firstname;
-                onlineUser.serverId = session.frontendId;
-                onlineUser.registrationIds = my.deviceTokens || [];
-                userTransaction.uid = my._id;
-                userTransaction.username = my.firstname;
-            }
-            else {
-                onlineUser.uid = tokenDecoded._id;
-                onlineUser.username = tokenDecoded.email;
-                onlineUser.serverId = session.frontendId;
-                onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
-                userTransaction.uid = tokenDecoded._id;
-                userTransaction.username = tokenDecoded.email;
-            }
-            //!-- check uid in onlineUsers list.
-            //var usersDict = userManager.onlineUsers;
-            //for (var i in usersDict) {
-            //    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-            //}
-            console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
-            app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
-            app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
-        });
-    }
-    else {
-        onlineUser.uid = tokenDecoded._id;
-        onlineUser.username = tokenDecoded.username;
-        onlineUser.serverId = session.frontendId;
-        onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
-        userTransaction.uid = tokenDecoded._id;
-        userTransaction.username = tokenDecoded.email;
-        console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
-        app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
-        app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
-    }
+    onlineUser.uid = user._id;
+    onlineUser.username = user.username;
+    onlineUser.serverId = session.frontendId;
+    onlineUser.registrationIds = user.deviceTokens || [];
+    userTransaction.uid = user._id;
+    userTransaction.username = user.username;
+    console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
+    app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+    app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
 }
 handler.getCompanyInfo = function (msg, session, next) {
     var self = this;
@@ -443,26 +332,8 @@ handler.leaveRoom = function (msg, session, next) {
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    tokenService.ensureAuthorized(token, (err, result) => {
-        if (err) {
-            return next(null, { code: Code_1.default.FAIL, message: err });
-        }
-        // {
-        // 	success: true,
-        // 		decoded: 
-        // 	{
-        // 		_id: '5854e010c28e49f12d05a398',
-        // 			user_id: '123456',
-        // 				username: 'mzget',
-        // 					role: 'admin',
-        // 						iat: 1482987323
-        // 	}
-        // }
-        let onlineUser = new User.OnlineUser();
-        onlineUser.username = result.decoded.username;
-        onlineUser.uid = uid;
-        onlineUser.serverId = sid;
-        self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+    self.app.rpc.auth.authRemote.getUserTransaction(session, uid, (err, userTransaction) => {
+        self.app.rpc.chat.chatRemote.kick(session, userTransaction, sid, rid, function (err, res) {
             session.set('rid', null);
             session.push('rid', function (err) {
                 if (err) {
@@ -488,11 +359,10 @@ const onUserLeave = function (app, session) {
     if (!session || !session.uid) {
         return;
     }
-    let onlineUser = new User.OnlineUser();
-    onlineUser.username = "";
-    onlineUser.uid = session.uid;
-    app.rpc.chat.chatRemote.kick(session, onlineUser, app.get('serverId'), session.get('rid'), null);
-    logOut(app, session, null);
+    app.rpc.auth.authRemote.getUserTransaction(session, session.uid, (err, userTransaction) => {
+        app.rpc.chat.chatRemote.kick(session, userTransaction, app.get('serverId'), session.get('rid'), null);
+        logOut(app, session, null);
+    });
 };
 /**
 * Requesting video call to target user.

@@ -11,7 +11,17 @@ process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
 
-import webConfig = require('./config/config');
+import { Config } from './config/config';
+import { InitDatabaseConnection, getAppDb } from "./app/DbClient";
+InitDatabaseConnection().then(db => {
+    db.stats().then(stat => {
+        console.log("api status ready.", stat.db);
+    }).catch(err => {
+        console.warn("Cannot get db state!", err);
+    });
+}).catch(err => {
+    console.warn("Cannot connect database", err);
+});
 
 /**
  * Init app for client.
@@ -62,15 +72,6 @@ app.configure('production|development', 'chat', function () {
 //var net = new netserver.NetServer();
 //net.Start();
 //});
-
-mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
-    db.stats(function (err, stat) {
-        console.log("api status ready.", stat);
-        db.close();
-    });
-}).catch(err => {
-    console.warn("Cannot connect database", err);
-});
 
 // start app
 app.start();

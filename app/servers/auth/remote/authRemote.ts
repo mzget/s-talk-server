@@ -154,40 +154,6 @@ remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) =>
     });
 };
 
-/**
- * route for /me data.
- * require => username, password, bearerToken
- */
-remote.me = function (msg, cb) {
-    let query = { _id: new mongodb.ObjectID(msg._id) };
-    let projection = {};
-    new UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
-        if (err || res === null) {
-            let errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
-            return;
-        }
-
-        cb({ code: Code.OK, data: res[0] });
-    });
-};
-
-remote.myProfile = function (userId: string, cb: ({ code: number, result: string }) => void) {
-    let query = { _id: new mongodb.ObjectID(userId) };
-    let projection = { roomAccess: 0 };
-    UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
-        if (res === null || res.length === 0) {
-            let errMsg = "Get my user data is invalid.";
-            console.warn(errMsg);
-            cb({ code: Code.FAIL, result: errMsg });
-            return;
-        }
-
-        cb({ code: Code.OK, result: res });
-    });
-};
-
 remote.auth = function (email, password, callback) {
     let query = { email: email };
     let projection = { email: 1, password: 1 };

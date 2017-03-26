@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var MessageType;
 (function (MessageType) {
     MessageType[MessageType["Text"] = 0] = "Text";

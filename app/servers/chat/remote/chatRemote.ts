@@ -31,10 +31,10 @@ remote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
         route: 'onAdd',
         user: user
     };
-    channel.pushMessage(param);
 
     if (!!channel) {
         channel.add(uid, sid);
+        channel.pushMessage(param);
     }
 
     if (!!cb) cb();
@@ -74,7 +74,7 @@ remote.getUsers = function (name, flag) {
 * @param {String} sid server id
 * @param {String} name channel name
 */
-remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
+remote.kick = function (user: User.UserTransaction, sid, rid, cb: Function) {
     cb();
     if (!rid) { return; }
 
@@ -88,7 +88,7 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
 
         var param = {
             route: 'onLeave',
-            user: username
+            user: user
         };
         channel.pushMessage(param);
         channel.leave(uid, sid);

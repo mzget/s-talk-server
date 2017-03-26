@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const jwt = require("jsonwebtoken");
 const config_1 = require("../../config/config");
 class TokenService {
@@ -10,7 +9,7 @@ class TokenService {
         this.expire = config_1.Config.session.expire;
     }
     signToken(signObj, callback) {
-        jwt.sign(signObj, this.secret, {}, callback);
+        jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
     }
     /**
      * reture token decoded.
@@ -36,4 +35,5 @@ class TokenService {
         }
     }
 }
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = TokenService;

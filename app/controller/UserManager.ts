@@ -376,27 +376,6 @@ export class UserDataAccessService {
         });
     }
 
-    public getUserProfile(query: any, projection: any, callback: (err, res: Array<any>) => void) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
-            // Get the documents collection
-            let collection = db.collection(Mdb.DbController.userColl);
-            // Find some documents
-            collection.find(query).project(projection).limit(1).toArray((err, results) => {
-                if (err) {
-                    callback(err, null);
-                }
-                else {
-                    callback(null, results);
-                }
-
-                db.close();
-            });
-        }).catch(err => {
-            console.error("Cannot connect database", err);
-            callback(err, null);
-        });
-    }
-
     public getRole(creator: string, callback: (err, res) => void) {
         MongoClient.connect(Mdb.DbController.chatDB, (err, db) => {
             if (err) {

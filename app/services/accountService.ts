@@ -42,7 +42,7 @@ export class AccountService {
         cb(null, user);
     }
     public addOnlineUser(user: User.OnlineUser, callback: Function) {
-        console.log("chatService.addOnlineUser");
+        console.log("accountService.addOnlineUser");
 
         if (!this.onlineUsers)
             this.onlineUsers = {};

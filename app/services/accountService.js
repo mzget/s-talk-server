@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
 const config_1 = require("../../config/config");
@@ -92,7 +91,7 @@ class AccountService {
         cb(null, user);
     }
     addOnlineUser(user, callback) {
-        console.log("chatService.addOnlineUser");
+        console.log("accountService.addOnlineUser");
         if (!this.onlineUsers)
             this.onlineUsers = {};
         if (!this.onlineUsers[user.uid]) {

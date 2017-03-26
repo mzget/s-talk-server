@@ -1,6 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const mongodb = require("mongodb");
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
 const UserManager_1 = require("../../../controller/UserManager");
@@ -130,36 +128,6 @@ remote.tokenService = function (bearerToken, cb) {
         else {
             cb(null, { code: Code_1.default.OK, decoded: res.decoded });
         }
-    });
-};
-/**
- * route for /me data.
- * require => username, password, bearerToken
- */
-remote.me = function (msg, cb) {
-    let query = { _id: new mongodb.ObjectID(msg._id) };
-    let projection = {};
-    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, function result(err, res) {
-        if (err || res === null) {
-            let errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
-            cb({ code: Code_1.default.FAIL, message: errMsg });
-            return;
-        }
-        cb({ code: Code_1.default.OK, data: res[0] });
-    });
-};
-remote.myProfile = function (userId, cb) {
-    let query = { _id: new mongodb.ObjectID(userId) };
-    let projection = { roomAccess: 0 };
-    UserManager_1.UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
-        if (res === null || res.length === 0) {
-            let errMsg = "Get my user data is invalid.";
-            console.warn(errMsg);
-            cb({ code: Code_1.default.FAIL, result: errMsg });
-            return;
-        }
-        cb({ code: Code_1.default.OK, result: res });
     });
 };
 remote.auth = function (email, password, callback) {

@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const Room = require("../model/Room");
 const RoomAccessData_1 = require("../model/RoomAccessData");
 const Mdb = require("../db/dbClient");
@@ -323,25 +322,6 @@ class UserDataAccessService {
             });
         }).catch(err => {
             console.error("Cannot connect database", err);
-        });
-    }
-    getUserProfile(query, projection, callback) {
-        MongoClient.connect(Mdb.DbController.chatDB).then(db => {
-            // Get the documents collection
-            let collection = db.collection(Mdb.DbController.userColl);
-            // Find some documents
-            collection.find(query).project(projection).limit(1).toArray((err, results) => {
-                if (err) {
-                    callback(err, null);
-                }
-                else {
-                    callback(null, results);
-                }
-                db.close();
-            });
-        }).catch(err => {
-            console.error("Cannot connect database", err);
-            callback(err, null);
         });
     }
     getRole(creator, callback) {

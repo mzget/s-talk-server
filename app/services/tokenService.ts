@@ -12,7 +12,7 @@ export default class TokenService {
 	}
 
 	public signToken(signObj, callback: (err, encode) => void) {
-		jwt.sign(signObj, this.secret, {}, callback);
+		jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
 	}
 
 	/**

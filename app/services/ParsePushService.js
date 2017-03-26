@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const https = require("https");
 const http = require("http");
 const config_1 = require("../../config/config");

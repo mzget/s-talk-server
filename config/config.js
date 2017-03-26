@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 let devApi = "localhost";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
