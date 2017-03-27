@@ -11,7 +11,6 @@ const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
 const request = require("request");
 const config_1 = require("../../config/config");
-const keepAliveAgent = new http.Agent({ keepAlive: true });
 class AccountService {
     constructor(app) {
         this.uidMap = {};

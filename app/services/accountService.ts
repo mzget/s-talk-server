@@ -6,7 +6,6 @@ const dispatcher = require('../util/dispatcher');
 import request = require('request');
 
 import { Config } from "../../config/config";
-const keepAliveAgent = new http.Agent({ keepAlive: true });
 
 interface IUsersMap {
     [uid: string]: User.UserTransaction;
