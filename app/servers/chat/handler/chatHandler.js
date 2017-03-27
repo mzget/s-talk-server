@@ -1,10 +1,17 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 const UserManager_1 = require("../../../controller/UserManager");
-const UserService = require("../../../dal/userDataAccess");
 const MRoom = require("../../../model/Room");
 const Code_1 = require("../../../../shared/Code");
 const MPushService = require("../../../services/ParsePushService");
+const accountService_1 = require("../../../services/accountService");
 const mongodb = require("mongodb");
 const async = require("async");
 const Joi = require("joi");
@@ -61,7 +68,7 @@ handler.send = function (msg, session, next) {
             }
             else {
                 delete msg.__route__;
-                let _msg = Object.assign({}, msg);
+                let _msg = __assign({}, msg);
                 _msg.createTime = new Date();
                 ChatRoomManager.AddChatRecord(_msg).then(docs => {
                     if (docs.length > 0) {
@@ -151,7 +158,6 @@ function pushMessage(app, session, room, message, clientUUID, target) {
             });
         }
         else {
-            //the target is specific user
         }
     });
 }
@@ -478,11 +484,9 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                         userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
                             //<!-- if result is contain in unsubscribe list. we ignore this member.
                             if (!err && results !== null) {
-                                // console.log("checkUnsubscribeRoom");
                             }
                             else {
-                                var objId = new ObjectID(item);
-                                targetMemberWhoSubscribeRoom.push(objId);
+                                targetMemberWhoSubscribeRoom.push(item);
                             }
                             callback();
                         });
@@ -497,8 +501,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                 }
                 else {
                     offlineMembers.forEach(offline => {
-                        var objId = new ObjectID(offline);
-                        targetMemberWhoSubscribeRoom.push(objId);
+                        targetMemberWhoSubscribeRoom.push(offline);
                     });
                     cb(null, {});
                 }
@@ -509,36 +512,37 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
             else {
                 let promise = new Promise(function (resolve, reject) {
                     //<!-- Query all deviceTokens for each members.
-                    UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-                        if (!!res) {
-                            let memberTokens = res; // array of deviceTokens for each member.
-                            async.mapSeries(memberTokens, function iterator(item, cb) {
-                                if (!!item.deviceTokens) {
-                                    let deviceTokens = item.deviceTokens;
-                                    async.mapSeries(deviceTokens, (token, resultCb) => {
-                                        targetDevices.push(token);
-                                        resultCb(null, {});
-                                    }, function done(err, results) {
-                                        if (err) {
-                                            cb(err, null);
-                                        }
-                                        else {
-                                            cb(null, null);
-                                        }
-                                    });
-                                }
-                                else {
-                                    cb(null, null);
-                                }
-                            }, function done(err, results) {
-                                if (err) {
-                                    reject(err);
-                                }
-                                else {
-                                    resolve(results);
-                                }
-                            });
-                        }
+                    accountService_1.getUsersInfo(targetMemberWhoSubscribeRoom, { deviceTokens: 1, email: 1 })
+                        .then((values) => {
+                        let memberTokens = values; // array of deviceTokens for each member.
+                        async.mapSeries(memberTokens, function iterator(item, cb) {
+                            if (!!item.deviceTokens) {
+                                let deviceTokens = item.deviceTokens;
+                                async.mapSeries(deviceTokens, (token, resultCb) => {
+                                    targetDevices.push(token);
+                                    resultCb(null, {});
+                                }, function done(err, results) {
+                                    if (err) {
+                                        cb(err, null);
+                                    }
+                                    else {
+                                        cb(null, null);
+                                    }
+                                });
+                            }
+                            else {
+                                cb(null, null);
+                            }
+                        }, function done(err, results) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(results);
+                            }
+                        });
+                    }).catch(err => {
+                        reject(err);
                     });
                 }).then(function onfulfill(value) {
                     console.warn("Push", targetDevices, alertMessage);
@@ -563,7 +567,7 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
         new Promise((resolve, reject) => {
             app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
                 console.warn("getUserTransaction", err, userTrans);
-                if (!!err || !userTrans) {
+                if (!!err || !userTrans || !userTrans.username) {
                     console.warn(err);
                     reject(err);
                 }
@@ -582,43 +586,43 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
     }
     function call() {
         async.map(offlineMembers, function iterator(item, result) {
-            result(null, new ObjectID(item));
+            result(null, item);
         }, function done(err, results) {
             targetMemberWhoSubscribeRoom = results.slice();
             let promise = new Promise(function (resolve, reject) {
                 //<!-- Query all deviceTokens for each members.
-                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-                    console.warn("DeviceToken", err, res);
-                    //DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
-                    if (!!res) {
-                        let memberTokens = res; // array of deviceTokens for each member.
-                        async.mapSeries(memberTokens, function iterator(item, cb) {
-                            if (!!item.deviceTokens) {
-                                let deviceTokens = item.deviceTokens;
-                                async.mapSeries(deviceTokens, (token, resultCb) => {
-                                    resultCb(null, token);
-                                }, function done(err, results) {
-                                    if (!!err) {
-                                        cb(err, null);
-                                    }
-                                    else {
-                                        targetDevices = results.slice();
-                                        cb(null, null);
-                                    }
-                                });
-                            }
-                            else {
-                                cb(null, null);
-                            }
-                        }, function done(err, results) {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                resolve(results);
-                            }
-                        });
-                    }
+                accountService_1.getUsersInfo(targetMemberWhoSubscribeRoom, { deviceTokens: 1, email: 1 })
+                    .then((values) => {
+                    let memberTokens = values; // array of deviceTokens for each member.
+                    async.mapSeries(memberTokens, function iterator(item, cb) {
+                        if (!!item.deviceTokens) {
+                            let deviceTokens = item.deviceTokens;
+                            async.mapSeries(deviceTokens, (token, resultCb) => {
+                                resultCb(null, token);
+                            }, function done(err, results) {
+                                if (!!err) {
+                                    cb(err, null);
+                                }
+                                else {
+                                    targetDevices = results.slice();
+                                    cb(null, null);
+                                }
+                            });
+                        }
+                        else {
+                            cb(null, null);
+                        }
+                    }, function done(err, results) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            resolve(results);
+                        }
+                    });
+                })
+                    .catch(err => {
+                    reject(err);
                 });
             }).then(function onfulfill(value) {
                 console.warn("Push", targetDevices, alertMessage);

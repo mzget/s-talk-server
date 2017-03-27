@@ -65,7 +65,7 @@ app.configure('production|development', 'chat', function () {
 
 mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
     db.stats(function (err, stat) {
-        console.log("api status ready.", stat);
+        console.log("api status ready.", stat.db);
         db.close();
     });
 }).catch(err => {

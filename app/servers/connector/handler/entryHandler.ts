@@ -158,7 +158,7 @@ const logOut = function (app, session, next) {
 	//!-- log user out.
 	app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
 
-	if (next !== null)
+	if (!!next)
 		next();
 };
 

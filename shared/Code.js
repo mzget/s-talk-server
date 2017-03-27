@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 class Code {
     constructor() {
         this.ENTRY = {
@@ -53,4 +52,5 @@ Code.sharedEvents = {
 Code.friendEvents = {
     addFriendEvent: "addFriendEvent"
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Code;

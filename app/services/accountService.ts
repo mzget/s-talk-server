@@ -3,6 +3,7 @@ import User = require('../model/User');
 import Room = require('../model/Room');
 
 const dispatcher = require('../util/dispatcher');
+import request = require('request');
 
 import { Config } from "../../config/config";
 import * as http from "http";
@@ -112,12 +113,13 @@ export class AccountService {
     }
 
     constructor(app: any) {
+        console.log("accountService constructor");
+
         this.app = app;
         this.uidMap = {};
         this.nameMap = {};
         this.channelMap = {};
     }
-
 
     /**
      * Add player into the channel
@@ -283,4 +285,75 @@ export class AccountService {
         }
         return null;
     };
+}
+
+
+export const getUserInfo = async (userId: string, query: any) => {
+    return new Promise((resolve, rejected) => {
+        let options = {
+            url: `${Config.api.user}/?id=${userId}&query=${JSON.stringify(query)}`,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        };
+
+        function callback(error, response, body) {
+            console.log("getUserInfo status", response.statusCode);
+
+            if (error) {
+                console.error("getUserInfo: ", error);
+                rejected(error);
+            }
+            else if (!error && response.statusCode == 200) {
+                let data = JSON.parse(body);
+                console.log("getUserInfo", data);
+
+                resolve(data);
+            }
+            else {
+                console.dir("getUserInfo: ", response.statusMessage);
+                rejected(response);
+            }
+        }
+
+        request.get(options, callback);
+    });
+}
+
+export const getUsersInfo = async (userIds: Array<string>, query: any) => {
+    return new Promise((resolve, rejected) => {
+        let options = {
+            url: `${Config.api.user}`,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_ids: userIds,
+                query: query
+            })
+        };
+
+        function callback(error, response, body) {
+            console.log("getUserInfo status", response.statusCode);
+
+            if (error) {
+                console.error("getUserInfo: ", error);
+                rejected(error);
+            }
+            else if (!error && response.statusCode == 200) {
+                let data = JSON.parse(body);
+                console.log("getUserInfo", data);
+
+                resolve(data.result);
+            }
+            else {
+                console.dir("getUserInfo: ", response.statusMessage);
+                rejected(response);
+            }
+        }
+
+        request.post(options, callback);
+    });
 }

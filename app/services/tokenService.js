@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const jwt = require("jsonwebtoken");
 const config_1 = require("../../config/config");
 class TokenService {
@@ -36,4 +35,5 @@ class TokenService {
         }
     }
 }
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = TokenService;

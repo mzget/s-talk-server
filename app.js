@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const pomelo = require('pomelo');
 const routeUtil_1 = require("./app/util/routeUtil");
 //var HttpDebug = require('./app/util/httpServer');
@@ -54,7 +53,7 @@ app.configure('production|development', 'chat', function () {
 //});
 mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
     db.stats(function (err, stat) {
-        console.log("api status ready.", stat);
+        console.log("api status ready.", stat.db);
         db.close();
     });
 }).catch(err => {
