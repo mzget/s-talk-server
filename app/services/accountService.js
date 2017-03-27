@@ -11,7 +11,6 @@ const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
 const request = require("request");
 const config_1 = require("../../config/config");
-const http = require("http");
 const keepAliveAgent = new http.Agent({ keepAlive: true });
 class AccountService {
     constructor(app) {
@@ -114,40 +113,35 @@ class AccountService {
     }
     getRoom(roomId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const options = (query) => ({
-                hostname: config_1.Config.api.host,
-                port: config_1.Config.api.port,
-                path: `${config_1.Config.api.chatroom}?room_id=${query}`,
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': `${config_1.Config.api.apikey}`
-                },
-                agent: keepAliveAgent
-            });
-            let p = yield new Promise((resolve, reject) => {
-                let req = http.request(options(roomId), (res) => {
-                    console.log(`res: ${res.statusCode} : ${res.statusMessage}`);
-                    res.setEncoding('utf8');
-                    res.on('data', (chunk) => {
-                        console.log(`BODY: ${chunk}`);
-                        let data = JSON.parse(chunk);
+            let p = yield new Promise((resolve, rejected) => {
+                let options = {
+                    url: `${config_1.Config.api.chatroom}?room_id=${roomId}`,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "cache-control": "no-cache",
+                        'x-api-key': `${config_1.Config.api.apikey}`
+                    }
+                };
+                function callback(error, response, body) {
+                    if (error) {
+                        console.log(`problem with request: ${error}`);
+                        rejected(error);
+                    }
+                    else if (!error && response.statusCode == 200) {
+                        let data = JSON.parse(body);
                         if (data.result && data.result.length > 0) {
                             resolve(data.result[0]);
                         }
                         else {
-                            reject(data);
+                            rejected(data);
                         }
-                    });
-                    res.on('end', () => {
-                        console.log('No more data in response.');
-                    });
-                });
-                req.on('error', (e) => {
-                    console.log(`problem with request: ${e.message}`);
-                    reject(e.message);
-                });
-                req.end();
+                    }
+                    else {
+                        console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
+                        rejected(response);
+                    }
+                }
+                request.get(options, callback);
             });
             return p;
         });
