@@ -249,8 +249,8 @@ exports.getUserInfo = (userId, query) => __awaiter(this, void 0, void 0, functio
         let options = {
             url: `${config_1.Config.api.user}/?id=${userId}&query=${JSON.stringify(query)}`,
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                "cache-control": "no-cache",
             }
         };
         function callback(error, response, body) {
@@ -276,8 +276,8 @@ exports.getUsersInfo = (userIds, query) => __awaiter(this, void 0, void 0, funct
         let options = {
             url: `${config_1.Config.api.user}`,
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+                "cache-control": "no-cache",
+                "content-type": "application/json",
             },
             body: JSON.stringify({
                 user_ids: userIds,

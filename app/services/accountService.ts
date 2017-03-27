@@ -293,8 +293,8 @@ export const getUserInfo = async (userId: string, query: any) => {
         let options = {
             url: `${Config.api.user}/?id=${userId}&query=${JSON.stringify(query)}`,
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                "cache-control": "no-cache",
             }
         };
 
@@ -324,8 +324,8 @@ export const getUsersInfo = async (userIds: Array<string>, query: any) => {
         let options = {
             url: `${Config.api.user}`,
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+                "cache-control": "no-cache",
+                "content-type": "application/json",
             },
             body: JSON.stringify({
                 user_ids: userIds,

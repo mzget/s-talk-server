@@ -1,4 +1,4 @@
-﻿let devApi = "smelink.animation-genius.com";
+﻿let devApi = "http://smelink.animation-genius.com";
 let masterApi = "http://matchlink.asia";
 
 const devConfig = {
