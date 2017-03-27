@@ -254,7 +254,6 @@ exports.getUserInfo = (userId, query) => __awaiter(this, void 0, void 0, functio
             }
         };
         function callback(error, response, body) {
-            console.log("getUserInfo status", response.statusCode);
             if (error) {
                 console.error("getUserInfo: ", error);
                 rejected(error);
@@ -265,7 +264,7 @@ exports.getUserInfo = (userId, query) => __awaiter(this, void 0, void 0, functio
                 resolve(data);
             }
             else {
-                console.dir("getUserInfo: ", response.statusMessage);
+                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }
@@ -286,7 +285,6 @@ exports.getUsersInfo = (userIds, query) => __awaiter(this, void 0, void 0, funct
             })
         };
         function callback(error, response, body) {
-            console.log("getUserInfo status", response.statusCode);
             if (error) {
                 console.error("getUserInfo: ", error);
                 rejected(error);
@@ -297,7 +295,7 @@ exports.getUsersInfo = (userIds, query) => __awaiter(this, void 0, void 0, funct
                 resolve(data.result);
             }
             else {
-                console.dir("getUserInfo: ", response.statusMessage);
+                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }

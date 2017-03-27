@@ -299,8 +299,6 @@ export const getUserInfo = async (userId: string, query: any) => {
         };
 
         function callback(error, response, body) {
-            console.log("getUserInfo status", response.statusCode);
-
             if (error) {
                 console.error("getUserInfo: ", error);
                 rejected(error);
@@ -312,7 +310,7 @@ export const getUserInfo = async (userId: string, query: any) => {
                 resolve(data);
             }
             else {
-                console.dir("getUserInfo: ", response.statusMessage);
+                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }
@@ -336,8 +334,6 @@ export const getUsersInfo = async (userIds: Array<string>, query: any) => {
         };
 
         function callback(error, response, body) {
-            console.log("getUserInfo status", response.statusCode);
-
             if (error) {
                 console.error("getUserInfo: ", error);
                 rejected(error);
@@ -349,7 +345,7 @@ export const getUsersInfo = async (userIds: Array<string>, query: any) => {
                 resolve(data.result);
             }
             else {
-                console.dir("getUserInfo: ", response.statusMessage);
+                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }
