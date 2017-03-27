@@ -3,12 +3,10 @@ let masterApi = "http://matchlink.asia";
 
 const devConfig = {
   api: {
-    host: `${devApi}`,
-    port: 3003,
     apikey: "smelink-chat1234",
-    authen: `/api/authenticate/verify`,
-    chatroom: `/api/chatroom`,
-    user: `${devApi}:3002/users/query`
+    authen: `${devApi}:3002/api/authenticate/verify`,
+    user: `${devApi}:3002/users/query`,
+    chatroom: `${devApi}:3003/api/chatroom`
   },
   chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
   fileDB: "",
@@ -28,12 +26,10 @@ const devConfig = {
 
 const masterConfig = {
   api: {
-    host: `${masterApi}`,
-    port: 3003,
     apikey: "smelink-chat1234",
-    authen: `/api/authenticate/verify`,
-    chatroom: `/api/chatroom`,
-    user: `${masterApi}:3002/users/query`
+    authen: `${masterApi}:3002/api/authenticate/verify`,
+    user: `${masterApi}:3002/users/query`,
+    chatroom: `${masterApi}:3003/api/chatroom`
   },
   chatDB: "mongodb://smelink:arrapwd#2017@203.148.255.26:27017/Chat",
   fileDB: "",
