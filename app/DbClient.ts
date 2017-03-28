@@ -4,7 +4,6 @@ import { Config } from "../config/config";
 
 let appDB = null as mongodb.Db;
 export const getAppDb = () => {
-    console.log(appDB.stats());
     return appDB;
 };
 export const InitDatabaseConnection = async () => {

@@ -10,7 +10,6 @@ const devConfig = {
     chatroom: `/api/chatroom`
   },
   chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
-  fileDB: "",
   timeout: 10000,
 
   pushServer: "smelink.animation-genius.com",
@@ -30,7 +29,6 @@ const masterConfig = {
     authen: `${masterApi}/api/authenticate/verify`
   },
   chatDB: "mongodb://chats:chats1234@smelink.animation-genius.com:27017/chats",
-  fileDB: "",
   timeout: 10000,
 
   pushServer: "smelink.animation-genius.com",

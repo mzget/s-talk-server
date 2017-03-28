@@ -12,7 +12,6 @@ const MongoClient = mongodb.MongoClient;
 const config_1 = require("../config/config");
 let appDB = null;
 exports.getAppDb = () => {
-    console.log(appDB.stats());
     return appDB;
 };
 exports.InitDatabaseConnection = () => __awaiter(this, void 0, void 0, function* () {

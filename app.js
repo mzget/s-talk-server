@@ -47,15 +47,11 @@ app.configure('production|development', function () {
 });
 // Configure for auth server
 app.configure('production|development', 'auth', function () {
+    console.log("start auth server");
     app.set('accountService', new accountService_1.AccountService(app));
 });
 app.configure('production|development', 'chat', function () {
+    console.log("start chat server");
 });
-//app.configure('production|development', 'master', function () {
-//var http = new HttpDebug();
-//http.start();
-//var net = new netserver.NetServer();
-//net.Start();
-//});
 // start app
 app.start();
