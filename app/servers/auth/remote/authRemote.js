@@ -1,7 +1,6 @@
 "use strict";
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
-const UserManager_1 = require("../../../controller/UserManager");
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const tokenService = new tokenService_1.default();
@@ -74,18 +73,6 @@ remote.tokenService = function (bearerToken, cb) {
         }
         else {
             cb(null, { code: Code_1.default.OK, decoded: res.decoded });
-        }
-    });
-};
-remote.auth = function (email, password, callback) {
-    let query = { email: email };
-    let projection = { email: 1, password: 1 };
-    new UserManager_1.UserDataAccessService().getUserProfile(query, projection, (err, res) => {
-        if (!err && res.length > 0) {
-            onAuthentication(password, res[0], callback);
-        }
-        else {
-            callback(userNotFound, null);
         }
     });
 };

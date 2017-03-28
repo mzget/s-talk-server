@@ -72,6 +72,7 @@ remote.addUserTransaction = function (userTransac: User.UserTransaction, cb) {
 
     cb();
 };
+
 remote.getUserTransaction = function (uid: string, cb: Function) {
     if (!!accountService.userTransaction) {
         cb(null, accountService.userTransaction[uid]);
@@ -89,19 +90,6 @@ remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) =>
         }
         else {
             cb(null, { code: Code.OK, decoded: res.decoded });
-        }
-    });
-};
-
-remote.auth = function (email, password, callback) {
-    let query = { email: email };
-    let projection = { email: 1, password: 1 };
-    new UserDataAccessService().getUserProfile(query, projection, (err, res) => {
-        if (!err && res.length > 0) {
-            onAuthentication(password, res[0], callback);
-        }
-        else {
-            callback(userNotFound, null);
         }
     });
 };
