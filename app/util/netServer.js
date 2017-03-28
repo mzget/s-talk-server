@@ -3,16 +3,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var net = require('net');
 var fs = require('fs');
 var Db = require('mongodb').Db, MongoClient = require('mongodb').MongoClient, Server = require('mongodb').Server, ReplSetServers = require('mongodb').ReplSetServers, ObjectID = require('mongodb').ObjectID, Binary = require('mongodb').Binary, GridStore = require('mongodb').GridStore, Grid = require('mongodb').Grid, Code = require('mongodb').Code, BSON = require('mongodb').BSON, assert = require('assert');
-var NetServer = (function () {
-    function NetServer() {
-    }
-    NetServer.prototype.Start = function () {
+class NetServer {
+    constructor() { }
+    Start() {
         console.log("NetServer start.");
         http.listen(3000, function () {
             console.log('listening on *:3000');
         });
-    };
-    NetServer.prototype.Demo = function () {
+    }
+    Demo() {
         var server = net.createServer(function (socket) {
             console.log("connected: ", socket);
             var buffer = null;
@@ -44,7 +43,6 @@ var NetServer = (function () {
             //};
         });
         server.listen(port, '127.0.0.1');
-    };
-    return NetServer;
-}());
+    }
+}
 exports.NetServer = NetServer;

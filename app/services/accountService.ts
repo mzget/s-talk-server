@@ -7,11 +7,8 @@ import request = require('request');
 
 import { Config } from "../../config/config";
 
-interface IRoomsMap {
-    [rid: string]: Room.Room;
-}
 interface IUsersMap {
-    [uid: string]: User.UserTransaction
+    [uid: string]: User.UserTransaction;
 }
 
 export class AccountService {
@@ -70,49 +67,42 @@ export class AccountService {
         return this._userTransaction;
     }
 
-    /**
-     * roomMembers the dict for keep roomId pair with array of uid who is a member of room.
-     */
-    private roomsMap: IRoomsMap;
-    public get RoomsMap(): IRoomsMap {
-        return this.roomsMap;
-    }
-    setRoomsMap(data: Array<any>, callback) {
-        console.log("ChatService.setRoomMembers");
+    async getRoom(roomId: string) {
+        let p = await new Promise((resolve: (room: Room.Room) => void, rejected) => {
+            let options = {
+                url: `${Config.api.chatroom}?room_id=${roomId}`,
+                headers: {
+                    'Content-Type': 'application/json',
+                    "cache-control": "no-cache",
+                    'x-api-key': `${Config.api.apikey}`
+                }
+            };
 
-        if (!this.roomsMap)
-            this.roomsMap = {};
+            function callback(error, response, body) {
+                if (error) {
+                    console.log(`problem with request: ${error}`);
+                    rejected(error);
+                }
+                else if (!error && response.statusCode == 200) {
 
-        data.forEach(element => {
-            var room: Room.Room = JSON.parse(JSON.stringify(element));
-            if (!this.roomsMap[element.id]) {
-                this.roomsMap[element._id] = room;
+                    let data = JSON.parse(body);
+                    if (data.result && data.result.length > 0) {
+                        resolve(data.result[0]);
+                    }
+                    else {
+                        rejected(data);
+                    }
+                }
+                else {
+                    console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
+                    rejected(response);
+                }
             }
+
+            request.get(options, callback);
         });
 
-        callback();
-    }
-    getRoom(roomId: string, callback: (err: any, res: Room.Room) => void) {
-        if (!this.roomsMap[roomId]) {
-            callback("Have no a roomId in roomMembers dict.", null);
-            return;
-        }
-
-        let room = this.roomsMap[roomId];
-        callback(null, room);
-    }
-
-    /**
-    * Require Room object. Must be { Room._id, Room.members }
-    */
-    addRoom(data) {
-        var room: Room.Room = JSON.parse(JSON.stringify(data));
-        if (!this.roomsMap[room._id]) {
-            this.roomsMap[room._id] = room;
-        }
-        else {
-            this.roomsMap[room._id] = room;
-        }
+        return p;
     }
 
     constructor(app: any) {
@@ -123,7 +113,6 @@ export class AccountService {
         this.nameMap = {};
         this.channelMap = {};
     }
-
 
     /**
      * Add player into the channel
@@ -297,14 +286,12 @@ export const getUserInfo = async (userId: string, query: any) => {
         let options = {
             url: `${Config.api.user}/?id=${userId}&query=${JSON.stringify(query)}`,
             headers: {
-                'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                "cache-control": "no-cache",
             }
         };
 
         function callback(error, response, body) {
-            console.log("getUserInfo status", response.statusCode);
-
             if (error) {
                 console.error("getUserInfo: ", error);
                 rejected(error);
@@ -316,7 +303,7 @@ export const getUserInfo = async (userId: string, query: any) => {
                 resolve(data);
             }
             else {
-                console.dir("getUserInfo: ", response.statusMessage);
+                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }
@@ -330,8 +317,8 @@ export const getUsersInfo = async (userIds: Array<string>, query: any) => {
         let options = {
             url: `${Config.api.user}`,
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+                "cache-control": "no-cache",
+                "content-type": "application/json",
             },
             body: JSON.stringify({
                 user_ids: userIds,
@@ -340,8 +327,6 @@ export const getUsersInfo = async (userIds: Array<string>, query: any) => {
         };
 
         function callback(error, response, body) {
-            console.log("getUserInfo status", response.statusCode);
-
             if (error) {
                 console.error("getUserInfo: ", error);
                 rejected(error);
@@ -353,7 +338,7 @@ export const getUsersInfo = async (userIds: Array<string>, query: any) => {
                 resolve(data.result);
             }
             else {
-                console.dir("getUserInfo: ", response.statusMessage);
+                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }

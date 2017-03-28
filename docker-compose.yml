@@ -1,0 +1,13 @@
+
+version: '2'
+
+services:
+  bol-smelink-chat:
+    image: bol-smelink-chat:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3010:3010

@@ -5,13 +5,11 @@ import User = require('../../../model/User');
 import userDAL = require('../../../dal/userDataAccess');
 import Room = require('../../../model/Room');
 import TokenService from '../../../services/tokenService';
-import { UserManager } from '../../../controller/UserManager';
-import async = require('async');
-import mongodb = require('mongodb');
 import request = require('request');
+import Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
-const ObjectID = mongodb.ObjectID;
 const tokenService: TokenService = new TokenService();
 const companyManager = CompanyController.CompanyManager.getInstance();
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
@@ -41,56 +39,101 @@ const handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
 	let self = this;
-	let token = msg.token;
-
-	let options = {
-		url: Config.api.authen,
-		headers: {
-			'Accept': 'application/json',
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({
-			token: token
-		})
+	let schema = {
+		token: Joi.string().allow(null),
+		user: Joi.object().optional()
 	};
+	const result = Joi.validate(msg._object, schema);
 
-	function callback(error, response, body) {
-		if (error) {
-			next(error, null);
-		}
-		else if (!error && response.statusCode == 200) {
-			let data = JSON.parse(body);
-			let decoded: DecodedToken = data.decoded;
-			console.log("AuthenBody", decoded);
-
-			session.__sessionService__.kick(decoded._id, "New login...");
-			self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
-				// 	//@ Signing success.
-				session.bind(decoded._id);
-				session.on('closed', onUserLeave.bind(null, self.app));
-
-				let param = {
-					route: Code.sharedEvents.onUserLogin,
-					data: { _id: decoded._id }
-				};
-
-				channelService.broadcast("connector", param.route, param.data);
-
-				addOnlineUser(self.app, session, decoded);
-				next(null, { code: Code.OK, data: body });
-				if (!user) {
-				}
-				else {
-					console.warn("Duplicate user by onlineUsers collections.");
-					// next(null, { code: Code.DuplicatedLogin, data: body });
-					// session.__sessionService__.kick();
-				}
-			});
-		}
+	if (result.error) {
+		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	request.post(options, callback);
-}
+	if (msg.token) {
+		let token = msg.token;
+		let options = {
+			url: Config.api.authen,
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				token: token
+			})
+		};
+
+		let callback = (error, response, body) => {
+			if (error) {
+				next(error, null);
+			}
+			else if (!error && response.statusCode === 200) {
+				let data = JSON.parse(body);
+				let decoded: DecodedToken = data.decoded;
+				console.log("AuthenBody", decoded);
+
+				session.__sessionService__.kick(decoded._id, "New login...");
+				self.app.rpc.auth.authRemote.getOnlineUser(session, decoded._id, function (err, user) {
+					// 	//@ Signing success.
+					session.bind(decoded._id);
+					session.on('closed', onUserLeave.bind(null, self.app));
+
+					let param = {
+						route: Code.sharedEvents.onUserLogin,
+						data: { _id: decoded._id }
+					};
+
+					channelService.broadcast("connector", param.route, param.data);
+
+					addOnlineUser(self.app, session, decoded);
+					next(null, { code: Code.OK, data: body });
+					if (!user) {
+					}
+					else {
+						console.warn("Duplicate user by onlineUsers collections.");
+						// next(null, { code: Code.DuplicatedLogin, data: body });
+						// session.__sessionService__.kick();
+					}
+				});
+			}
+		};
+
+		request.post(options, callback);
+	}
+	else if (msg.user) {
+		if (!msg.user._id && !!msg.user.username) {
+			return next(null, { code: Code.FAIL, message: "missing user info" });
+		}
+
+		tokenService.signToken(msg.user, (err, encode) => {
+			if (err) {
+				return next(null, { code: Code.FAIL, message: err });
+			}
+			else {
+				session.__sessionService__.kick(msg.user._id, "New login...");
+				self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+					// 	//@ Signing success.
+					session.bind(msg.user._id);
+					session.on('closed', onUserLeave.bind(null, self.app));
+
+					let param = {
+						route: Code.sharedEvents.onUserLogin,
+						data: { _id: msg.user._id }
+					};
+
+					channelService.broadcast("connector", param.route, param.data);
+
+					addOnlineUser(self.app, session, msg.user);
+					next(null, { code: Code.OK, data: { success: true, token: encode } });
+					if (!user) {
+					}
+					else {
+						console.warn("Duplicate user by onlineUsers collections.");
+					}
+				});
+			}
+		});
+	}
+};
 
 handler.logout = function (msg, session, next) {
 	console.log("logout", msg);
@@ -104,7 +147,7 @@ handler.logout = function (msg, session, next) {
 	}
 	logOut(self.app, session, null);
 	next();
-}
+};
 
 const logOut = function (app, session, next) {
 	app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
@@ -115,10 +158,9 @@ const logOut = function (app, session, next) {
 	//!-- log user out.
 	app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
 
-	if (!!next) {
+	if (!!next)
 		next();
-	}
-}
+};
 
 handler.kickMe = function (msg, session, next) {
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
@@ -128,7 +170,7 @@ handler.kickMe = function (msg, session, next) {
 	userDAL.prototype.removeAllRegistrationId(msg.uid);
 
 	next(null, { message: "kicked! " + msg.uid });
-}
+};
 
 /**
 * require user, password, and token.
@@ -162,94 +204,64 @@ handler.getMe = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 function addOnlineUser(app, session, tokenDecoded: DecodedToken) {
-	app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result: { code: number, result: any }) {
-		console.log("joining onlineUser", JSON.stringify(result));
+	console.log("addOnlineUser", tokenDecoded);
 
-		let onlineUser = new User.OnlineUser();
-		let userTransaction = new User.UserTransaction();
-		if (result.code == Code.OK) {
-			let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.result));
-			let my = datas[0];
+	let onlineUser = new User.OnlineUser();
+	let userTransaction = new User.UserTransaction();
 
-			onlineUser.uid = my._id;
-			onlineUser.username = my.firstname;
-			onlineUser.serverId = session.frontendId;
-			onlineUser.registrationIds = my.deviceTokens || [];
+	if (!tokenDecoded.username) {
+		app.rpc.auth.authRemote.myProfile(session, tokenDecoded._id, function (result: { code: number, result: any }) {
+			console.log("joining onlineUser", JSON.stringify(result));
+			if (result.code === Code.OK) {
+				let datas: Array<User.StalkAccount> = JSON.parse(JSON.stringify(result.result));
+				let my = datas[0];
 
-			userTransaction.uid = my._id;
-			userTransaction.username = my.firstname;
-		}
-		else {
-			onlineUser.uid = tokenDecoded._id;
-			onlineUser.username = tokenDecoded.email;
-			onlineUser.serverId = session.frontendId;
-			onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+				onlineUser.uid = my._id;
+				onlineUser.username = my.firstname;
+				onlineUser.serverId = session.frontendId;
+				onlineUser.registrationIds = my.deviceTokens || [];
 
-			userTransaction.uid = tokenDecoded._id;
-			userTransaction.username = tokenDecoded.email;
-		}
+				userTransaction.uid = my._id;
+				userTransaction.username = my.firstname;
+			}
+			else {
+				onlineUser.uid = tokenDecoded._id;
+				onlineUser.username = tokenDecoded.email;
+				onlineUser.serverId = session.frontendId;
+				onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
 
-		//!-- check uid in onlineUsers list.
-		//var usersDict = userManager.onlineUsers;
-		//for (var i in usersDict) {
-		//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
-		//}
+				userTransaction.uid = tokenDecoded._id;
+				userTransaction.username = tokenDecoded.email;
+			}
+
+			//!-- check uid in onlineUsers list.
+			//var usersDict = userManager.onlineUsers;
+			//for (var i in usersDict) {
+			//    console.log("userinfo who is online: %s * %s : serverId: %s", usersDict[i].username, usersDict[i].uid, usersDict[i].serverId);
+			//}
+			console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
+
+			app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+			app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+		});
+	}
+	else {
+		onlineUser.uid = tokenDecoded._id;
+		onlineUser.username = tokenDecoded.username;
+		onlineUser.serverId = session.frontendId;
+		onlineUser.registrationIds = tokenDecoded.deviceTokens || [];
+
+		userTransaction.uid = tokenDecoded._id;
+		userTransaction.username = tokenDecoded.email;
+
 		console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
 
 		app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
 		app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
-	});
-}
-
-/**
-* getLastAccessRooms.
-* Require uid.
-* Return : null.
-*/
-handler.getLastAccessRooms = function (msg, session, next) {
-	let self = this;
-	let uid = session.uid;
-	if (!uid) {
-		let errMsg = "Require userId is empty or null.";
-		next(null, { code: Code.FAIL, message: errMsg });
-		console.warn(errMsg);
-		return;
 	}
-
-	async.series([function (cb1: (err, user: User.OnlineUser) => void) {
-		self.app.rpc.auth.authRemote.getOnlineUser(session, uid, (err, user) => {
-			if (err || user === null) {
-				cb1(err, null);
-			}
-			else {
-				cb1(null, user);
-			}
-		});
-	}], (err, results) => {
-		UserManager.getInstance().getRoomAccessForUser(uid, function (err, res: Array<any>) {
-			if (err || res.length > 0) {
-				let onAccessRooms = {
-					route: Code.sharedEvents.onAccessRooms,
-					data: res
-				};
-				let user: User.OnlineUser = results[0];
-				if (user) {
-					let uidsGroup = new Array();
-					let group = {
-						uid: user.uid,
-						sid: user.serverId
-					};
-					uidsGroup.push(group);
-					channelService.pushMessageByUids(onAccessRooms.route, onAccessRooms.data, uidsGroup);
-				}
-			}
-		});
-	});
-
-	next(null, { code: Code.OK });
 }
 
 handler.getCompanyInfo = function (msg, session, next) {
@@ -295,7 +307,7 @@ handler.getCompanyInfo = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 handler.getCompanyMember = function (msg, session, next) {
 	var self = this;
@@ -334,7 +346,7 @@ handler.getCompanyMember = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
+};
 
 handler.getCompanyChatRoom = function (msg, session, next) {
 	var self = this;
@@ -375,7 +387,7 @@ handler.getCompanyChatRoom = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
+};
 
 handler.getProjectBaseGroups = function (msg, session, next) {
 	var self = this;
@@ -415,55 +427,7 @@ handler.getProjectBaseGroups = function (msg, session, next) {
 
 		next(null, { code: Code.OK });
 	});
-}
-
-/***
- * request user_id for query your member authority groups.
- */
-handler.getMyPrivateGroupChat = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	var uid = session.uid;
-	if (!uid) {
-		console.warn("uid cannot empty or null.!");
-		next(null, { code: Code.FAIL, message: "session uid is missing.." });
-		return;
-	}
-
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, { code: Code.FAIL, message: err });
-			return;
-		}
-		else {
-			chatRoomManager.getPrivateGroupChat(uid, function (err, res) {
-				var result;
-				if (err) {
-					console.error("Fail to getMyPrivateGroupChat: ", err);
-					result = null;
-				}
-				else {
-					console.info("getMyPrivateGroupChat: ", res.length);
-
-					result = JSON.parse(JSON.stringify(res));
-				}
-
-				var params = {
-					route: Code.sharedEvents.onGetPrivateGroups,
-					data: result
-				};
-
-				var target = new Array();
-				target.push({ uid: session.uid, sid: self.app.get('serverId') });
-
-				channelService.pushMessageByUids(params.route, params.data, target);
-			});
-		}
-
-		next(null, { code: Code.OK });
-	});
-}
+};
 
 /**
  * New client entry chat server.
@@ -496,41 +460,49 @@ handler.enterRoom = function (msg, session, next) {
 		return;
 	}, Config.timeout);
 
-	chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (result) {
-		self.app.rpc.auth.authRemote.updateRoomMembers(session, result, null);
 
-		self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-			console.log("checkedCanAccessRoom: ", res);
+	self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
+		let room = res;
+		if (!!room) {
+			console.log("getRoomMap", room.name);
 
-			if (err || res === false) {
-				clearTimeout(timeOut_id);
-				next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-			}
-			else {
-				session.set('rid', rid);
-				session.push('rid', function (err) {
-					if (err) {
-						console.error('set rid for session service failed! error is : %j', err.stack);
-					}
-				});
+			self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
+				console.log("checkedCanAccessRoom: ", res);
 
-				let onlineUser = new User.OnlineUser();
-				onlineUser.username = uname;
-				onlineUser.uid = uid;
-
-				addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+				if (err || res === false) {
 					clearTimeout(timeOut_id);
-					next(null, { code: Code.OK, data: result });
-				});
-			}
-		});
+					next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+				}
+				else {
+					session.set('rid', rid);
+					session.push('rid', function (err) {
+						if (err) {
+							console.error('set rid for session service failed! error is : %j', err.stack);
+						}
+					});
+
+					let onlineUser = new User.OnlineUser();
+					onlineUser.username = uname;
+					onlineUser.uid = uid;
+
+					addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+						clearTimeout(timeOut_id);
+						next(null, { code: Code.OK, data: room });
+					});
+				}
+			});
+		}
+		else {
+			clearTimeout(timeOut_id);
+			next(null, { code: Code.FAIL, message: JSON.stringify(err) });
+		}
 	});
 };
 
 const addChatUser = function (app, session, user: User.OnlineUser, sid, rid, next) {
 	//put user into channel
 	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
-}
+};
 
 /**
  * leaveRoom.
@@ -545,32 +517,54 @@ handler.leaveRoom = function (msg, session, next) {
 	let uid = session.uid;
 	let sid = self.app.get('serverId');
 
-	if (!rid || !msg.username) {
-		next(null, { code: Code.FAIL, message: "rid or username is null." });
-		return;
+	let schema = {
+		token: Joi.string().required(),
+		rid: Joi.string().required()
+	};
+	const result = Joi.validate(msg._object, schema);
+
+	if (result.error) {
+		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	let onlineUser = new User.OnlineUser();
-	onlineUser.username = msg.username;
-	onlineUser.uid = uid;
-	onlineUser.serverId = sid;
+	tokenService.ensureAuthorized(token, (err, result) => {
+		if (err) {
+			return next(null, { code: Code.FAIL, message: err });
+		}
+		// {
+		// 	success: true,
+		// 		decoded: 
+		// 	{
+		// 		_id: '5854e010c28e49f12d05a398',
+		// 			user_id: '123456',
+		// 				username: 'mzget',
+		// 					role: 'admin',
+		// 						iat: 1482987323
+		// 	}
+		// }
 
-	self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
-		session.set('rid', null);
-		session.push('rid', function (err) {
+		let onlineUser = new User.OnlineUser();
+		onlineUser.username = result.decoded.username;
+		onlineUser.uid = uid;
+		onlineUser.serverId = sid;
+
+		self.app.rpc.chat.chatRemote.kick(session, onlineUser, sid, rid, function (err, res) {
+			session.set('rid', null);
+			session.push('rid', function (err) {
+				if (err) {
+					console.error('set rid for session service failed! error is : %j', err.stack);
+				}
+			});
+
 			if (err) {
-				console.error('set rid for session service failed! error is : %j', err.stack);
+				next(null, { code: Code.FAIL, message: "leaveRoom with error." });
+			}
+			else {
+				next(null, { code: Code.OK });
 			}
 		});
-
-		if (err) {
-			next(null, { code: Code.FAIL, message: "leaveRoom with error." });
-		}
-		else {
-			next(null, { code: Code.OK });
-		}
 	});
-}
+};
 
 /**
  * User log out handler
@@ -641,7 +635,7 @@ handler.videoCallRequest = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 /**
 * Requesting for voice call to target user.
@@ -693,7 +687,7 @@ handler.voiceCallRequest = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 /**
 * Call this function when want to send hangupCall signaling to other.
@@ -742,7 +736,7 @@ handler.hangupCall = function (msg, session, next) {
 			});
 		}
 	});
-}
+};
 
 /**
 * Call theLineIsBusy function when WebRTC call status is not idle.
@@ -780,7 +774,7 @@ handler.theLineIsBusy = function (msg, session, next) {
 	});
 
 	next(null, { code: Code.OK });
-}
+};
 
 /**
  * For update roomsPairMembers collection.
@@ -790,4 +784,4 @@ const updateRoomsMap = function (app, session, roomsData: Array<Room.Room>) {
 	let rooms: Array<Room.Room> = JSON.parse(JSON.stringify(roomsData));
 
 	app.rpc.auth.authRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
-}
+};

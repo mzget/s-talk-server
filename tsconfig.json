@@ -1,13 +1,14 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015",
     "module": "commonjs",
     "typeRoots": [
       "node_modules/@types"
     ]
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "node_modules/@types"
   ]
 }

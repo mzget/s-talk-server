@@ -1,9 +1,5 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var BOLAccount = (function () {
-    function BOLAccount() {
-    }
-    return BOLAccount;
-}());
+class BOLAccount {
+}
 exports.BOLAccount = BOLAccount;
 ;

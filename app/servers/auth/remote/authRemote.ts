@@ -1,7 +1,7 @@
 ﻿import mongodb = require("mongodb");
 import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
-import { UserManager, UserDataAccessService } from '../../../controller/UserManager';
+import { UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import { Room } from "../../../model/Room";
 import { AccountService } from '../../../services/accountService';
@@ -11,12 +11,11 @@ const tokenService: TokenService = new TokenService();
 let accountService: AccountService;
 let channelService;
 
-const failedPassword = "Authentication failed.";
 const userNotFound = "Authentication failed. User not found.";
 
 module.exports = function (app) {
     return new AuthenRemote(app);
-}
+};
 
 const AuthenRemote = function (app) {
     this.app = app;
@@ -26,7 +25,7 @@ const AuthenRemote = function (app) {
         accountService = app.get('accountService');
         initServer();
     }
-}
+};
 
 const remote = AuthenRemote.prototype;
 
@@ -35,13 +34,9 @@ const remote = AuthenRemote.prototype;
  * for load room members from database to cache in memmory before.
  */
 const initServer = function (): void {
-    chatRoomManager.getAllRooms(function (rooms) {
-        //<!-- To reduce database retrive data. We store rooms Map data to server memory.
-        console.log("init AuthenServer for get all rooms data to server memory.");
-
-        accountService.setRoomsMap(rooms, () => { });
-    });
-}
+    //<!-- To reduce database retrive data. We store rooms Map data to server memory.
+    console.log("init AuthenServer.");
+};
 
 /**
  * UpdateOnlineUsers.
@@ -51,19 +46,19 @@ const initServer = function (): void {
  */
 remote.addOnlineUser = function (user, cb) {
     accountService.addOnlineUser(user, cb);
-}
+};
 remote.removeOnlineUser = function (userId, cb) {
     accountService.removeOnlineUser(userId);
-    if (!!cb) {
+
+    if (!!cb)
         cb();
-    }
-}
+};
 remote.getOnlineUser = function (userId: string, callback: (err, user: User.OnlineUser) => void) {
     accountService.getOnlineUser(userId, callback);
-}
+};
 remote.getOnlineUsers = function (callback: (err, user: User.IOnlineUser) => void) {
     callback(null, accountService.OnlineUsers);
-}
+};
 
 remote.addUserTransaction = function (userTransac: User.UserTransaction, cb) {
     if (accountService.userTransaction !== null) {
@@ -76,7 +71,7 @@ remote.addUserTransaction = function (userTransac: User.UserTransaction, cb) {
     }
 
     cb();
-}
+};
 remote.getUserTransaction = function (uid: string, cb: Function) {
     if (!!accountService.userTransaction) {
         cb(null, accountService.userTransaction[uid]);
@@ -84,39 +79,44 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
     else {
         cb(new Error("No have userTransaction"), null);
     }
-}
-
+};
 
 remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
-    accountService.getRoom(rid, callback);
-}
+    accountService.getRoom(rid).then(room => {
+        callback(null, room);
+    }).catch(err => {
+        callback(err, null);
+    });
+};
 remote.addRoom = function (room: Room) {
     accountService.addRoom(room);
-}
-remote.updateRoomMembers = function (data, cb) {
+};
+remote.updateRoomMembers = function (data: Room, cb) {
     accountService.addRoom(data);
 
-    if (!!cb) {
-        cb();
-    }
-}
+    setTimeout(function () {
+        if (!!cb) {
+            cb();
+        }
+    }, 100);
+};
 /**
 * UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
 */
 remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Function) {
     rooms.forEach(room => {
-        if (!accountService.RoomsMap[room._id]) {
+        if (!accountService.getRoom[room._id]) {
             accountService.addRoom(room);
 
             //<!-- Notice all member of new room to know they have a new room.   
             let param = {
                 route: Code.sharedEvents.onNewGroupCreated,
                 data: room
-            }
+            };
 
             let pushGroup = new Array();
             room.members.forEach(member => {
-                accountService.getOnlineUser(member.id, (err, user) => {
+                accountService.getOnlineUser(member._id, (err, user) => {
                     if (!err) {
                         var item = { uid: user.uid, sid: user.serverId };
                         pushGroup.push(item);
@@ -129,39 +129,32 @@ remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Func
     });
 
     cb();
-}
+};
 
-remote.checkedCanAccessRoom = function (roomId: string, userId: string, callback: (err: Error, res: boolean) => void) {
-    accountService.getRoom(roomId, (err, room) => {
-        let result: boolean = false;
+remote.checkedCanAccessRoom = function (room: Room, userId: string, callback: (err: Error, res: boolean) => void) {
+    let result: boolean = false;
 
-        if (err || !room) {
-            callback(null, result);
-        }
-        else {
-            result = room.members.some(value => {
-                if (value.id === userId) {
-                    return true;
-                }
-            });
-
-            callback(null, result);
+    result = room.members.some(value => {
+        if (value._id === userId) {
+            return true;
         }
     });
-}
+
+    callback(null, result);
+};
 
 
 remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) => void) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {
-            console.info("ensureAuthorized error: ", err);
+            console.warn("ensureAuthorized error: ", err);
             cb(err, { code: Code.FAIL, message: err });
         }
         else {
             cb(null, { code: Code.OK, decoded: res.decoded });
         }
     });
-}
+};
 
 /**
  * route for /me data.
@@ -180,13 +173,13 @@ remote.me = function (msg, cb) {
 
         cb({ code: Code.OK, data: res[0] });
     });
-}
+};
 
 remote.myProfile = function (userId: string, cb: ({ code: number, result: string }) => void) {
     let query = { _id: new mongodb.ObjectID(userId) };
     let projection = { roomAccess: 0 };
     UserDataAccessService.prototype.getUserProfile(query, projection, (err, res) => {
-        if (res === null || res.length == 0) {
+        if (res === null || res.length === 0) {
             let errMsg = "Get my user data is invalid.";
             console.warn(errMsg);
             cb({ code: Code.FAIL, result: errMsg });
@@ -195,7 +188,7 @@ remote.myProfile = function (userId: string, cb: ({ code: number, result: string
 
         cb({ code: Code.OK, result: res });
     });
-}
+};
 
 remote.auth = function (email, password, callback) {
     let query = { email: email };
@@ -208,7 +201,7 @@ remote.auth = function (email, password, callback) {
             callback(userNotFound, null);
         }
     });
-}
+};
 
 const onAuthentication = function (_password, userInfo, callback) {
     console.log("onAuthentication: ", userInfo);

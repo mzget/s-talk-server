@@ -1,42 +1,40 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var Mcontroller = require("../../../controller/ChatRoomManager");
-var UserManager_1 = require("../../../controller/UserManager");
-var Code_1 = require("../../../../shared/Code");
-var tokenService_1 = require("../../../services/tokenService");
-var mongodb = require("mongodb");
-var crypto = require("crypto");
-var Room = require("../../../model/Room");
-var UserRole_1 = require("../../../model/UserRole");
-var async = require("async");
-var Joi = require("joi");
+const Mcontroller = require("../../../controller/ChatRoomManager");
+const UserManager_1 = require("../../../controller/UserManager");
+const Code_1 = require("../../../../shared/Code");
+const tokenService_1 = require("../../../services/tokenService");
+const mongodb = require("mongodb");
+const crypto = require("crypto");
+const Room = require("../../../model/Room");
+const UserRole_1 = require("../../../model/UserRole");
+const async = require("async");
+const Joi = require("joi");
 Joi.objectId = require('joi-objectid')(Joi);
-var config_1 = require("../../../../config/config");
-var ObjectID = mongodb.ObjectID;
-var chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = UserManager_1.UserManager.getInstance();
-var tokenService = new tokenService_1.default();
+const ObjectID = mongodb.ObjectID;
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+const userManager = UserManager_1.UserManager.getInstance();
+const tokenService = new tokenService_1.default();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRoomHandler.");
     return new ChatRoomHandler(app);
 };
-var ChatRoomHandler = function (app) {
+const ChatRoomHandler = function (app) {
     this.app = app;
     channelService = app.get('channelService');
 };
-var handler = ChatRoomHandler.prototype;
+const handler = ChatRoomHandler.prototype;
 handler.requestCreateProjectBase = function (msg, session, next) {
-    var self = this;
-    var groupName = msg.groupName;
-    var members = JSON.parse(msg.members);
+    let self = this;
+    let groupName = msg.groupName;
+    let members = JSON.parse(msg.members);
     if (!groupName || !members) {
         var errMessage = "cannot create group may be you missing some variable.";
         console.error(errMessage);
         next(null, { code: Code_1.default.FAIL, message: errMessage });
         return;
     }
-    var creator = session.uid;
+    let creator = session.uid;
     if (!creator) {
         var message = "creator id is invalid.";
         console.error(message);
@@ -54,31 +52,31 @@ handler.requestCreateProjectBase = function (msg, session, next) {
             if (res.role !== UserRole_1.default.personnel) {
                 chatRoomManager.createProjectBaseGroup(groupName, members, function (err, result) {
                     console.info("createProjectBaseGroup response: ", result);
-                    var room = JSON.parse(JSON.stringify(result[0]));
+                    let room = JSON.parse(JSON.stringify(result[0]));
                     next(null, { code: Code_1.default.OK, data: room });
                     //<!-- Update list of roomsMember mapping.
                     self.app.rpc.auth.authRemote.addRoom(session, room);
-                    var memberIds = new Array();
-                    room.members.forEach(function (value) {
-                        memberIds.push(value.id);
+                    let memberIds = new Array();
+                    room.members.forEach(value => {
+                        memberIds.push(value._id);
                     });
                     //<!-- Add rid to each user members.
-                    userManager.AddRoomIdToRoomAccessField(room._id, memberIds, new Date(), function (err, res) {
+                    userManager.AddRoomIdToRoomAccessField(room._id, memberIds, new Date(), (err, res) => {
                         //<!-- Now get roomAccess data for user who is online and then push data to them.
-                        memberIds.forEach(function (id) {
-                            self.app.rpc.auth.authRemote.getOnlineUser(session, id, function (err, user) {
+                        memberIds.forEach(id => {
+                            self.app.rpc.auth.authRemote.getOnlineUser(session, id, (err, user) => {
                                 if (!err && user !== null) {
-                                    userManager.getRoomAccessForUser(user.uid, function (err, results) {
+                                    userManager.getRoomAccessForUser(user.uid, (err, results) => {
                                         if (!err && results.length > 0) {
                                             //<!-- Now push roomAccess data to user.
-                                            var param_1 = {
+                                            let param = {
                                                 route: Code_1.default.sharedEvents.onAddRoomAccess,
                                                 data: results
                                             };
-                                            var pushTarget = new Array();
-                                            var target = { uid: user.uid, sid: user.serverId };
+                                            let pushTarget = new Array();
+                                            let target = { uid: user.uid, sid: user.serverId };
                                             pushTarget.push(target);
-                                            channelService.pushMessageByUids(param_1.route, param_1.data, pushTarget);
+                                            channelService.pushMessageByUids(param.route, param.data, pushTarget);
                                         }
                                     });
                                 }
@@ -86,15 +84,15 @@ handler.requestCreateProjectBase = function (msg, session, next) {
                         });
                     });
                     //<!-- Notice all member of new room to know they have a new room.   
-                    var param = {
+                    let param = {
                         route: Code_1.default.sharedEvents.onCreateGroupSuccess,
                         data: room
                     };
-                    var pushGroup = new Array();
-                    members.forEach(function (member) {
-                        self.app.rpc.auth.authRemote.getOnlineUser(session, member.id, function (err, user) {
+                    let pushGroup = new Array();
+                    members.forEach(member => {
+                        self.app.rpc.auth.authRemote.getOnlineUser(session, member._id, (err, user) => {
                             if (!err) {
-                                var item = { uid: user.uid, sid: user.serverId };
+                                let item = { uid: user.uid, sid: user.serverId };
                                 pushGroup.push(item);
                             }
                         });
@@ -109,10 +107,10 @@ handler.requestCreateProjectBase = function (msg, session, next) {
     });
 };
 handler.editMemberInfoInProjectBase = function (msg, session, next) {
-    var self = this;
-    var roomId = msg.roomId;
-    var roomType = msg.roomType;
-    var member = JSON.parse(msg.member);
+    let self = this;
+    let roomId = msg.roomId;
+    let roomType = msg.roomType;
+    let member = JSON.parse(msg.member);
     if (!roomId || !member || !roomType) {
         var message = "Some require parameters is missing or invalid.";
         console.error(message);
@@ -129,7 +127,7 @@ handler.editMemberInfoInProjectBase = function (msg, session, next) {
     chatRoomManager.editMemberInfoInProjectBase(roomId, member, function (err, res) {
         if (!err && res !== null) {
             console.log("editMemberInfoInProjectBase, result is : ", res.result);
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (roomInfo) {
+            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, (roomInfo) => {
                 var room = JSON.parse(JSON.stringify(roomInfo));
                 pushMemberInfoToAllMembersOfRoom(self.app, session, room, member);
                 //<!-- Unnecesary to update roomMembers Map.
@@ -143,57 +141,6 @@ handler.editMemberInfoInProjectBase = function (msg, session, next) {
     });
     next(null, { code: Code_1.default.OK });
 };
-/** user create new group chat.
-    * @param : msg request
-    * groupName:string,
-    * memberIds:string[]
-    * type: isPrivate <bool>
-    * *******************************
-    * @Return: group_id.
-    */
-handler.userCreateGroupChat = function (msg, session, next) {
-    var self = this;
-    var groupName = msg.groupName;
-    var memberIds = JSON.parse(msg.memberIds);
-    if (!groupName || !memberIds) {
-        var errMessage = "cannot create group may be you missing some variable.";
-        console.error(errMessage);
-        next(null, { code: Code_1.default.FAIL, message: errMessage });
-        return;
-    }
-    chatRoomManager.createPrivateGroup(groupName, memberIds, function (err, result) {
-        if (result !== null) {
-            console.info("CreateGroupChatRoom response: ", result);
-            var room = JSON.parse(JSON.stringify(result[0]));
-            next(null, { code: Code_1.default.OK, data: room });
-            //<!-- Update list of roomsMember mapping.
-            self.app.rpc.auth.authRemote.addRoom(session, room);
-            pushNewRoomAccessToNewMembers(self.app, session, room._id, room.members);
-            var memberIds_1 = new Array();
-            room.members.forEach(function (value) {
-                memberIds_1.push(value.id);
-            });
-            //<!-- Notice all member of new room to know they have a new room.   
-            var param = {
-                route: Code_1.default.sharedEvents.onCreateGroupSuccess,
-                data: room
-            };
-            var pushGroup_1 = new Array();
-            memberIds_1.forEach(function (element) {
-                self.app.rpc.auth.authRemote.getOnlineUser(session, element, function (err, user) {
-                    if (!err) {
-                        var item = { uid: user.uid, sid: user.serverId };
-                        pushGroup_1.push(item);
-                    }
-                });
-            });
-            channelService.pushMessageByUids(param.route, param.data, pushGroup_1);
-        }
-        else {
-            next(null, { code: Code_1.default.FAIL, message: "CreateGroupChatRoom has a problem...T_T" });
-        }
-    });
-};
 /**
 * require
 - group_id for relation of imagePath,
@@ -201,21 +148,21 @@ handler.userCreateGroupChat = function (msg, session, next) {
 * return success respone.
 */
 handler.updateGroupImage = function (msg, session, next) {
-    var self = this;
-    var rid = msg.groupId;
-    var newUrl = msg.path;
+    let self = this;
+    let rid = msg.groupId;
+    let newUrl = msg.path;
     if (!rid || !newUrl) {
         next(null, { code: Code_1.default.FAIL, message: "groupId or pathUrl is empty or invalid." });
         return;
     }
-    var objId = new ObjectID(rid);
+    let objId = new ObjectID(rid);
     if (!objId) {
         next(null, { code: Code_1.default.FAIL, message: "groupId is invalid." });
         return;
     }
     chatRoomManager.updateGroupImage(rid, newUrl, function (err, res) {
         if (!err) {
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (res) {
+            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, (res) => {
                 if (res !== null) {
                     pushRoomImageToAllMember(self.app, session, res);
                 }
@@ -229,11 +176,11 @@ handler.updateGroupImage = function (msg, session, next) {
 * provide edit member for private group only.
 */
 handler.editGroupMembers = function (msg, session, next) {
-    var self = this;
-    var editType = msg.editType;
-    var roomId = msg.roomId;
-    var roomType = msg.roomType;
-    var members = JSON.parse(msg.members);
+    let self = this;
+    let editType = msg.editType;
+    let roomId = msg.roomId;
+    let roomType = msg.roomType;
+    let members = JSON.parse(msg.members);
     if (!editType || !roomId || !members || members.length == 0 || !roomType) {
         var message = "Some require parameters is missing or invalid.";
         console.error(message);
@@ -247,13 +194,13 @@ handler.editGroupMembers = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: message });
         return;
     }
-    var editedMembers = new Array();
-    members.forEach(function (element) {
+    let editedMembers = new Array();
+    members.forEach(element => {
         var member = new Room.Member();
-        member.id = element;
+        member._id = element;
         editedMembers.push(member);
     });
-    chatRoomManager.editGroupMembers(editType, roomId, editedMembers, function (err, res) {
+    chatRoomManager.editGroupMembers(editType, roomId, editedMembers, (err, res) => {
         if (err) {
             console.error(err);
         }
@@ -265,7 +212,7 @@ handler.editGroupMembers = function (msg, session, next) {
                     if (editType === "add") {
                         pushNewRoomAccessToNewMembers(self.app, session, res._id, editedMembers);
                     }
-                    var roomObj = { _id: res._id, members: res.members };
+                    let roomObj = { _id: res._id, members: res.members };
                     self.app.rpc.auth.authRemote.addRoom(session, roomObj);
                 }
             });
@@ -274,26 +221,26 @@ handler.editGroupMembers = function (msg, session, next) {
     next(null, { code: Code_1.default.OK });
 };
 function pushNewRoomAccessToNewMembers(app, session, rid, targetMembers) {
-    var memberIds = new Array();
+    let memberIds = new Array();
     async.map(targetMembers, function iterator(item, cb) {
-        memberIds.push(item.id);
+        memberIds.push(item._id);
         cb(null, null);
     }, function done(err, results) {
         //<!-- Add rid to roomAccess data for each member. And then push new roomAccess info to all members.
         userManager.AddRoomIdToRoomAccessField(rid, memberIds, new Date(), function (err, res) {
             //<!-- Now get roomAccess data for user who is online and then push data to them.
-            memberIds.forEach(function (id) {
-                app.rpc.auth.getOnlineUser(session, id, function (err, user) {
+            memberIds.forEach(id => {
+                app.rpc.auth.getOnlineUser(session, id, (err, user) => {
                     if (!err && user !== null) {
-                        userManager.getRoomAccessForUser(user.uid, function (err, results) {
+                        userManager.getRoomAccessForUser(user.uid, (err, results) => {
                             if (!err && results.length > 0) {
                                 //<!-- Now push roomAccess data to user.
-                                var param = {
+                                let param = {
                                     route: Code_1.default.sharedEvents.onAddRoomAccess,
                                     data: results
                                 };
-                                var pushTarget = new Array();
-                                var target = { uid: user.uid, sid: user.serverId };
+                                let pushTarget = new Array();
+                                let target = { uid: user.uid, sid: user.serverId };
                                 pushTarget.push(target);
                                 channelService.pushMessageByUids(param.route, param.data, pushTarget);
                             }
@@ -309,10 +256,10 @@ function pushNewRoomAccessToNewMembers(app, session, rid, targetMembers) {
 * provide edit name for private group only.
 */
 handler.editGroupName = function (msg, session, next) {
-    var self = this;
-    var newGroupName = msg.newGroupName;
-    var roomId = msg.roomId;
-    var roomType = msg.roomType;
+    let self = this;
+    let newGroupName = msg.newGroupName;
+    let roomId = msg.roomId;
+    let roomType = msg.roomType;
     if (!roomId || !roomType || !newGroupName) {
         var errMessage = "Some require params is invalid.";
         console.error(errMessage);
@@ -326,9 +273,9 @@ handler.editGroupName = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: message });
         return;
     }
-    chatRoomManager.editGroupName(roomId, newGroupName, function (err, res) {
+    chatRoomManager.editGroupName(roomId, newGroupName, (err, res) => {
         console.log("editGroupName response. ", res.result);
-        chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (res) {
+        chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, (res) => {
             if (res !== null) {
                 pushRoomNameToAllMember(self.app, session, res);
             }
@@ -336,196 +283,125 @@ handler.editGroupName = function (msg, session, next) {
     });
     next(null, { code: Code_1.default.OK });
 };
-/**
- * require: roomId, lastAccessTimeOfRoom
- * **********************************************
- *@return : unread message count of room.
- *@return : last message of room.
- */
-handler.getUnreadRoomMessage = function (msg, session, next) {
-    var self = this;
-    var roomId = msg.roomId;
-    var lastAccessTime = msg.lastAccessTime;
-    var token = msg.token;
-    var uid = session.uid;
-    if (!roomId || !lastAccessTime || !uid) {
-        var msgs = "roomId, lastAccessTime or uid is empty or invalid.";
-        next(null, { code: Code_1.default.FAIL, message: msgs });
-        return;
-    }
-    var _timeOut = setTimeout(function () {
-        next(null, { code: Code_1.default.RequestTimeout, message: "getUnreadRoomMessage request timeout." });
-        return;
-    }, config_1.Config.timeout);
-    self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, roomId, uid, function (err, res) {
-        if (err || res === false) {
-            clearTimeout(_timeOut);
-            next(null, { code: Code_1.default.FAIL, message: "cannot access your request room." });
-        }
-        else {
-            chatRoomManager.getUnreadMsgCountAndLastMsgContentInRoom(roomId, lastAccessTime, function (err, res) {
-                if (err) {
-                    clearTimeout(_timeOut);
-                    next(null, { code: Code_1.default.FAIL, message: err });
-                }
-                else {
-                    clearTimeout(_timeOut);
-                    next(null, { code: Code_1.default.OK, data: res });
-                }
-            });
-        }
-    });
-};
-/**
-* Require msg.roomId,
-* Return, room model.
-*/
-handler.getRoomInfo = function (msg, session, next) {
-    var self = this;
-    var rid = msg.roomId;
-    var uid = session.uid;
-    if (!rid || !uid) {
-        next(null, { code: Code_1.default.FAIL, message: "cannot get roominfo of empty rid." });
-        return;
-    }
-    self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, rid, uid, function (err, res) {
-        console.log("checkedCanAccessRoom: ", res);
-        if (err || res === false) {
-            next(null, { code: Code_1.default.FAIL, message: "cannot access your request room." });
-        }
-        else {
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, function (res) {
-                if (!!res) {
-                    next(null, { code: Code_1.default.OK, data: res });
-                }
-                else {
-                    next(null, { code: Code_1.default.FAIL, message: "Your request roomInfo is no longer." });
-                }
-            });
-        }
-    });
-};
 /* Require owner memberId and roommate id.
 * For get or create one-to-one chat room.
 */
 handler.getRoomById = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    var owner = msg.ownerId;
-    var roommate = msg.roommateId;
-    var schema = {
+    let self = this;
+    let token = msg.token;
+    let owner = msg.ownerId;
+    let roommate = msg.roommateId;
+    let schema = {
         token: Joi.string(),
         ownerId: Joi.objectId(),
         roommateId: Joi.objectId()
     };
-    var result = Joi.validate(msg._object, schema);
+    const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    var id = '';
+    let id = '';
     if (owner < roommate) {
         id = owner.concat(roommate);
     }
     else {
         id = roommate.concat(owner);
     }
-    var md = crypto.createHash('md5');
+    let md = crypto.createHash('md5');
     md.update(id);
-    var hexCode = md.digest('hex');
+    let hexCode = md.digest('hex');
     console.log("hexcode: ", hexCode);
-    var roomId = hexCode.slice(0, 24);
-    chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (result) {
+    let roomId = hexCode.slice(0, 24);
+    chatRoomManager.GetChatRoomInfo(roomId).then(function (result) {
         console.info("GetChatRoom", result);
-        if (result !== null) {
-            var obj = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code_1.default.OK, data: obj });
-        }
-        else {
-            chatRoomManager.createPrivateChatRoom({ _id: new ObjectID(roomId), members: [owner, roommate] }, function (err, result) {
-                console.info("Create Private Chat Room: ", result);
-                if (result !== null) {
-                    var obj = JSON.parse(JSON.stringify(result));
-                    next(null, { code: Code_1.default.OK, data: obj });
-                    var roomId = result._id;
-                    //  var roomObj = JSON.parse(JSON.stringify(result));
-                    var members = new Array();
-                    for (var i in result.members) {
-                        members.push(result.members[i]);
-                    }
-                    var roomMemberData = { _id: roomId, members: members };
-                    self.app.rpc.auth.authRemote.updateRoomMembers(session, roomMemberData, null);
-                    //<!-- Push updated lastAccessRoom fields to all members.
-                    async.each(members, function (member, cb) {
-                        //<!-- Add rid to user members lastAccessField.
-                        userManager.AddRoomIdToRoomAccessFieldForUser(roomId, member.id, new Date(), function (err, res) {
-                            if (err) {
-                                cb(err);
-                            }
-                            else {
-                                self.app.rpc.auth.authRemote.getOnlineUser(session, member.id, function (err, user) {
-                                    if (err) {
-                                        console.warn(err);
-                                    }
-                                    else {
-                                        //<!-- Dont use getRoomAccessOfRoomId it not work when insert and then find db.
-                                        userManager.getRoomAccessForUser(member.id, function (err, results) {
-                                            if (!err && results.length > 0) {
-                                                var targetId = { uid: user.uid, sid: user.serverId };
-                                                var pushGroup = new Array();
-                                                pushGroup.push(targetId);
-                                                var param = {
-                                                    route: Code_1.default.sharedEvents.onAddRoomAccess,
-                                                    data: results
-                                                };
-                                                channelService.pushMessageByUids(param.route, param.data, pushGroup);
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }, function (errCb) {
-                        console.error("AddRoomIdToRoomAccessFieldForUser_fail", errCb);
-                    });
+        var obj = JSON.parse(JSON.stringify(result));
+        next(null, { code: Code_1.default.OK, data: obj });
+    }).catch(err => {
+        console.warn("GetChatRoom", err);
+        chatRoomManager.createPrivateChatRoom({ _id: new ObjectID(roomId), members: [owner, roommate] }, function (err, result) {
+            console.info("Create Private Chat Room: ", result);
+            if (result !== null) {
+                var obj = JSON.parse(JSON.stringify(result));
+                next(null, { code: Code_1.default.OK, data: obj });
+                var roomId = result._id;
+                //  var roomObj = JSON.parse(JSON.stringify(result));
+                var members = new Array();
+                for (var i in result.members) {
+                    members.push(result.members[i]);
                 }
-                else {
-                    next(null, {
-                        code: Code_1.default.FAIL,
-                        message: "have no a room."
+                var roomMemberData = { _id: roomId, members: members };
+                self.app.rpc.auth.authRemote.updateRoomMembers(session, roomMemberData, null);
+                //<!-- Push updated lastAccessRoom fields to all members.
+                async.each(members, function (member, cb) {
+                    //<!-- Add rid to user members lastAccessField.
+                    userManager.AddRoomIdToRoomAccessFieldForUser(roomId, member._id, new Date(), (err, res) => {
+                        if (err) {
+                            cb(err);
+                        }
+                        else {
+                            self.app.rpc.auth.authRemote.getOnlineUser(session, member._id, (err, user) => {
+                                if (err) {
+                                    console.warn(err);
+                                }
+                                else {
+                                    //<!-- Dont use getRoomAccessOfRoomId it not work when insert and then find db.
+                                    userManager.getRoomAccessForUser(member._id, (err, results) => {
+                                        if (!err && results.length > 0) {
+                                            let targetId = { uid: user.uid, sid: user.serverId };
+                                            let pushGroup = new Array();
+                                            pushGroup.push(targetId);
+                                            let param = {
+                                                route: Code_1.default.sharedEvents.onAddRoomAccess,
+                                                data: results
+                                            };
+                                            channelService.pushMessageByUids(param.route, param.data, pushGroup);
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     });
-                }
-            });
-        }
+                }, function (errCb) {
+                    console.error("AddRoomIdToRoomAccessFieldForUser_fail", errCb);
+                });
+            }
+            else {
+                next(null, {
+                    code: Code_1.default.FAIL,
+                    message: "have no a room."
+                });
+            }
+        });
     });
 };
-var pushRoomInfoToAllMember = function (app, session, roomInfo, editType, editedMembers) {
+const pushRoomInfoToAllMember = function (app, session, roomInfo, editType, editedMembers) {
     console.log("pushRoomInfoToAllMember: ", roomInfo);
-    var roomMembers = JSON.parse(JSON.stringify(roomInfo.members));
+    let roomMembers = JSON.parse(JSON.stringify(roomInfo.members));
     if (editType === "remove") {
-        editedMembers.forEach(function (element) {
+        editedMembers.forEach(element => {
             roomMembers.push(element);
         });
     }
-    var params = {
+    let params = {
         route: Code_1.default.sharedEvents.onEditGroupMembers,
         data: roomInfo
     };
-    var pushTargets = new Array();
+    let pushTargets = new Array();
     async.series([function (cb) {
-            roomMembers.forEach(function (element) {
-                app.rpc.auth.getOnlineUser(session, element.id, function (err, user) {
+            roomMembers.forEach(element => {
+                app.rpc.auth.getOnlineUser(session, element._id, (err, user) => {
                     if (!err) {
-                        var target = { uid: user.uid, sid: user.serverId };
+                        let target = { uid: user.uid, sid: user.serverId };
                         pushTargets.push(target);
                     }
                 });
             });
             cb(null, cb);
-        }], function (callback) {
+        }], (callback) => {
         channelService.pushMessageByUids(params.route, params.data, pushTargets);
     });
 };
-var pushRoomNameToAllMember = function (app, session, roomInfo) {
+const pushRoomNameToAllMember = function (app, session, roomInfo) {
     console.log("pushRoomNameToAllMember: ", roomInfo);
     var roomMembers = JSON.parse(JSON.stringify(roomInfo.members));
     var params = {
@@ -534,8 +410,8 @@ var pushRoomNameToAllMember = function (app, session, roomInfo) {
     };
     var pushTargets = new Array();
     async.series([function (cb) {
-            roomMembers.forEach(function (element) {
-                app.rpc.auth.getOnlineUser(session, element.id, function (err, user) {
+            roomMembers.forEach(element => {
+                app.rpc.auth.getOnlineUser(session, element._id, (err, user) => {
                     if (!err) {
                         var target = { uid: user.uid, sid: user.serverId };
                         pushTargets.push(target);
@@ -543,29 +419,29 @@ var pushRoomNameToAllMember = function (app, session, roomInfo) {
                 });
             });
             cb(null, cb);
-        }], function (callback) {
+        }], (callback) => {
         channelService.pushMessageByUids(params.route, params.data, pushTargets);
     });
 };
-var pushRoomImageToAllMember = function (app, session, roomInfo) {
+const pushRoomImageToAllMember = function (app, session, roomInfo) {
     console.log("pushRoomImageToAllMember: ", roomInfo);
-    var roomMembers = JSON.parse(JSON.stringify(roomInfo.members));
-    var params = {
+    let roomMembers = JSON.parse(JSON.stringify(roomInfo.members));
+    let params = {
         route: Code_1.default.sharedEvents.onEditGroupImage,
         data: { _id: roomInfo._id, image: roomInfo.image }
     };
-    var pushTargets = new Array();
+    let pushTargets = new Array();
     async.series([function (cb) {
-            roomMembers.forEach(function (element) {
-                app.rpc.auth.getOnlineUser(session, element.id, function (err, user) {
+            roomMembers.forEach(element => {
+                app.rpc.auth.getOnlineUser(session, element._id, (err, user) => {
                     if (!err) {
-                        var target = { uid: user.uid, sid: user.serverId };
+                        let target = { uid: user.uid, sid: user.serverId };
                         pushTargets.push(target);
                     }
                 });
             });
             cb(null, cb);
-        }], function (callback) {
+        }], (callback) => {
         channelService.pushMessageByUids(params.route, params.data, pushTargets);
     });
 };
@@ -579,8 +455,8 @@ function pushMemberInfoToAllMembersOfRoom(app, session, roomInfo, editedMember) 
     };
     var pushTargets = new Array();
     async.series([function (cb) {
-            roomInfo.members.forEach(function (member) {
-                app.rpc.auth.getOnlineUser(session, member.id, function (err, user) {
+            roomInfo.members.forEach(member => {
+                app.rpc.auth.getOnlineUser(session, member._id, (err, user) => {
                     if (!err && user !== null) {
                         var item = { uid: user.uid, sid: user.serverId };
                         pushTargets.push(item);
@@ -588,7 +464,7 @@ function pushMemberInfoToAllMembersOfRoom(app, session, roomInfo, editedMember) 
                 });
             });
             cb(null, cb);
-        }], function (callback) {
+        }], (callback) => {
         channelService.pushMessageByUids(params.route, params.data, pushTargets);
     });
 }

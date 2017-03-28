@@ -1,8 +1,7 @@
-﻿import Mcontroller = require('../../../controller/ChatRoomManager');
-import { UserManager } from "../../../controller/UserManager";
+﻿import { UserManager } from "../../../controller/UserManager";
 import User = require('../../../model/User');
 import MRoom = require('../../../model/Room');
-import MMessage = require('../../../model/Message');
+import { Message } from '../../../model/Message';
 import Code from '../../../../shared/Code';
 import MPushService = require('../../../services/ParsePushService');
 import { AccountService, getUsersInfo } from '../../../services/accountService';
@@ -11,8 +10,10 @@ import async = require('async');
 import Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
+import * as ChatRoomManager from "../../../controller/ChatRoomManager";
+const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
+
 import { Config } from '../../../../config/config';
-const chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();
 const ObjectID = mongodb.ObjectID;
@@ -21,13 +22,13 @@ var channelService;
 
 module.exports = function (app) {
     return new Handler(app);
-}
+};
 
 const Handler = function (app) {
     console.info("ChatHandler construc...");
     this.app = app;
     channelService = this.app.get('channelService');
-}
+};
 
 const handler = Handler.prototype;
 
@@ -50,76 +51,72 @@ handler.send = function (msg, session, next) {
     let target = msg.target;
 
     if (!rid) {
-        let errMsg = "rid is invalid please chaeck.";
-        next(null, { code: Code.FAIL, message: errMsg, body: msg });
-        return;
+        let errMsg = "rid is invalid please check.";
+        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
     }
-    // let schema = {
-    //     token: Joi.string(),
-    //     ownerId: Joi.objectId(),
-    //     roommateId: Joi.objectId()
-    // };
-    // const result = Joi.validate(msg._object, schema);
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
     }, Config.timeout);
 
-    //<!-- Get online members of room.
-    let thisRoom: MRoom.Room = null;
-
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
-        console.log("get members from room: %s name: %s members: %s", rid, room.name, room.members.length);
+        let thisRoom = room as MRoom.Room;
+        if (!!thisRoom) {
+            console.log("getRoomMap: ", thisRoom.name);
 
-        thisRoom = room;
-        if (!thisRoom.members) {
-            let errMsg = "Room no have a members.";
-            next(null, { code: Code.FAIL, message: errMsg });
-            clearTimeout(timeout_id);
-            return;
-        }
-        else {
-            let _msg = new MMessage.Message();
-            _msg.rid = msg.rid,
-                _msg.type = msg.type,
-                _msg.body = msg.content,
-                _msg.sender = msg.sender,
-                _msg.createTime = new Date(),
-                _msg.meta = msg.meta;
+            if (!thisRoom.members) {
+                let errMsg = "Room no have a members.";
+                next(null, { code: Code.FAIL, message: errMsg });
+                clearTimeout(timeout_id);
+                return;
+            }
+            else {
+                delete msg.__route__;
+                let _msg = { ...msg } as Message;
+                _msg.createTime = new Date();
 
-            chatRoomManager.AddChatRecord(_msg, function (err, docs) {
-                if (!err && docs !== null) {
-                    let resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
-                    //<!-- send callback to user who send chat msg.
-                    let params = {
-                        messageId: resultMsg._id,
-                        type: resultMsg.type,
-                        createTime: resultMsg.createTime,
-                        uuid: clientUUID
-                    };
-                    next(null, { code: Code.OK, data: params });
-                    clearTimeout(timeout_id);
+                ChatRoomManager.AddChatRecord(_msg).then(docs => {
+                    if (docs.length > 0) {
+                        let resultMsg = docs[0] as Message;
+                        //<!-- send callback to user who send chat msg.
+                        let params = {
+                            messageId: resultMsg._id,
+                            type: resultMsg.type,
+                            createTime: resultMsg.createTime,
+                            uuid: clientUUID,
+                            resultMsg
+                        };
+                        next(null, { code: Code.OK, data: params });
+                        clearTimeout(timeout_id);
 
-                    pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
-                }
-                else {
+                        pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
+                    }
+                    else {
+                        next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                        clearTimeout(timeout_id);
+                    }
+                }).catch(err => {
                     next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
                     clearTimeout(timeout_id);
-                }
-            });
+                });
+            }
+        }
+        else {
+            clearTimeout(timeout_id);
+            next(null, { code: Code.FAIL, message: err.toString() });
         }
     });
 };
 
-function pushMessage(app, session, room: MRoom.Room, message: MMessage.Message, clientUUID: string, target: string) {
+function pushMessage(app, session, room: MRoom.Room, message: Message, clientUUID: string, target: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 
     //@ Try to push message to other ...
     async.map(room.members, (item, resultCallback) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item.id, function (err2, user) {
+        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
             if (err2 || user === null) {
-                offlineMembers.push(item.id);
+                offlineMembers.push(item._id);
             }
             else {
                 onlineMembers.push(user);
@@ -185,10 +182,10 @@ handler.getSyncDateTime = function (msg, session, next) {
     var param = {
         code: Code.OK,
         data: date
-    }
+    };
 
     next(null, param);
-}
+};
 
 /**
 * UpLoadContentFinish ,
@@ -230,71 +227,7 @@ handler.uploadImageFinished = function (msg, session, next) {
 
         next(null, { code: Code.OK, data: res });
     });
-}
-
-/**
-* get log messageid form chat room. 
-* @param {room_id} msg message from client
-* @param {lastAccessTime} msg.lastAccessTime of room specific.
- * @param {Object} session
- * @param  {Function} next next stemp callback that return records of message_id.
-*/
-handler.getChatHistory = function (msg, session, next) {
-    let self = this;
-    let rid = msg.rid;
-    let lastMessageTime = msg.lastAccessTime;
-
-    if (!rid) {
-        next(null, { code: Code.FAIL, message: "room_id field is in valid." });
-        return;
-    }
-
-    if (!lastMessageTime) {
-        next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
-        return;
-    }
-
-    let _timeOut = setTimeout(() => {
-        next(null, { code: Code.RequestTimeout, message: "getChatHistory request timeout." });
-        return;
-    }, Config.timeout);
-
-    let utc = new Date(lastMessageTime);
-    chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
-        console.log("getChatHistory: ", result.length);
-        if (result !== null) {
-            clearTimeout(_timeOut);
-
-            let chatrecords = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code.OK, data: chatrecords });
-
-            //<!-- When get chat history complete. System will update roomAccess data for user.
-            self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), (err, res) => {
-                self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, function (err, user) {
-                    if (user) {
-                        userManager.getRoomAccessOfRoom(user.uid, rid, function (err, res) {
-                            if (!err && res.length > 0) {
-                                let targetId = { uid: user.uid, sid: user.serverId };
-                                let group = new Array();
-                                group.push(targetId);
-
-                                let param = {
-                                    route: Code.sharedEvents.onUpdatedLastAccessTime,
-                                    data: res[0]
-                                };
-
-                                channelService.pushMessageByUids(param.route, param.data, group);
-                            }
-                        });
-                    }
-                });
-            });
-        } else {
-            clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL, message: "have no a chatrecord for this room." });
-        }
-    });
-}
+};
 
 /**
 * Get older message for chat room.
@@ -326,36 +259,7 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
             next(null, { code: Code.FAIL });
         }
     });
-}
-
-handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => void) {
-    let self = this;
-    let rid = msg.rid;
-    let topEdgeMessageTime = msg.topEdgeMessageTime;
-
-    if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
-        return;
-    }
-
-    let _timeOut = setTimeout(() => {
-        next(null, { code: Code.RequestTimeout, message: "checkOlderMessagesCount request timeout." });
-        return;
-    }, Config.timeout);
-
-    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
-        console.info('getOlderMessageChunk:', res.length);
-
-        if (!!res) {
-            clearTimeout(_timeOut);
-            next(null, { code: Code.OK, data: res.length });
-        }
-        else {
-            clearTimeout(_timeOut);
-            next(null, { code: Code.FAIL });
-        }
-    });
-}
+};
 
 /* 
 * Get last limit query messages of specific user and room then return messages info. 
@@ -401,7 +305,7 @@ handler.getMessagesReaders = function (msg, session, next) {
     });
 
     next(null, { code: Code.OK });
-}
+};
 
 /**
 * get log message content by message_id. 
@@ -426,7 +330,7 @@ handler.getMessageContent = function (msg, session, next) {
             next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
         }
     });
-}
+};
 
 /*
 * Update who read message by specific message_id.
@@ -486,7 +390,7 @@ handler.updateWhoReadMessage = function (msg, session, next) {
     }
 
     next(null, { code: Code.OK });
-}
+};
 
 /*
 * Update who read message by specific message_id.
@@ -531,7 +435,7 @@ handler.updateWhoReadMessages = function (msg, session, next) {
     }
 
     next(null, { code: Code.OK });
-}
+};
 
 //<!-- Push who read message to sender.
 function getWhoReadMessages(messages: Array<string>, channel) {
@@ -608,19 +512,18 @@ function callPushNotification(app: any, session: any, room: MRoom.Room, sender: 
 
         async.waterfall([t => {
             //<!-- checking roomType
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, (result) => {
-                if (!result) {
-                    var errMsg = "checkedRoomType fail.";
-                    console.error(errMsg);
-                    t(new Error(errMsg), null);
-                }
-                else if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+            chatRoomManager.GetChatRoomInfo(room._id, { type: 1 }).then(result => {
+                if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
                     t(null, {});
                 }
                 else {
                     t(null, result.type);
                 }
-            })
+            }).catch(err => {
+                let errMsg = "checkedRoomType fail.";
+                console.error(errMsg);
+                t(new Error(errMsg), null);
+            });
         }, (arg1, cb) => {
             if (arg1 === null) {
                 cb(null, null);

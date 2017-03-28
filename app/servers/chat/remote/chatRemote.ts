@@ -1,9 +1,4 @@
-﻿import { UserManager } from '../../../controller/UserManager';
-import User = require('../../../model/User');
-import Code from '../../../../shared/Code';
-import Room = require('../../../model/Room');
-const ObjectID = require('mongodb').ObjectID;
-const userManager = UserManager.getInstance();
+﻿import User = require('../../../model/User');
 var channelService;
 
 module.exports = function (app) {
@@ -14,7 +9,7 @@ module.exports = function (app) {
 const ChatRemote = function (app) {
     this.app = app;
     channelService = app.get('channelService');
-}
+};
 
 const remote = ChatRemote.prototype;
 
@@ -80,33 +75,8 @@ remote.getUsers = function (name, flag) {
 * @param {String} name channel name
 */
 remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
-    let self = this;
     cb();
-    if (!rid) {
-        return;
-    }
-
-    userManager.updateLastAccessTimeOfRoom(user.uid, rid, new Date(), function (err, accessInfo) {
-        let printR = (accessInfo) ? accessInfo.result : null;
-        console.log("chatRemote.kick : updateLastAccessRoom rid is %s: ", rid, printR);
-
-        userManager.getRoomAccessOfRoom(uid, rid, function (err, res) {
-            console.log("chatRemote.kick : getLastAccessOfRoom of %s", rid, res);
-            if (err || !res) return;
-
-            let targetId = { uid: user.uid, sid: user.serverId };
-            let group = new Array();
-            group.push(targetId);
-
-            let param = {
-                route: Code.sharedEvents.onUpdatedLastAccessTime,
-                data: res[0]
-            };
-
-            channelService.pushMessageByUids(param.route, param.data, group);
-        });
-    });
-
+    if (!rid) { return; }
 
     let channel = channelService.getChannel(rid, false);
     //<!-- when user leave channel.
@@ -124,12 +94,3 @@ remote.kick = function (user: User.OnlineUser, sid, rid, cb: Function) {
         channel.leave(uid, sid);
     }
 };
-
-remote.updateRoomAccess = function (uid: string, rid: string, date: Date, cb: (err, res) => void) {
-    userManager.updateLastAccessTimeOfRoom(uid, rid, date, function (err, accessInfo) {
-        console.log("updateLastAccessRoom rid is %s: ", rid, accessInfo.result);
-
-        if (!!cb)
-            cb(err, accessInfo);
-    });
-}

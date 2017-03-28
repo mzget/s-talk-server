@@ -1,16 +1,17 @@
 ﻿const pomelo = require('pomelo');
 import routeUtil from './app/util/routeUtil';
-import { AccountService } from './app/services/accountService';
 //var HttpDebug = require('./app/util/httpServer');
 //var netserver = require('./app/util/netServer');
-import { Config } from './config/config';
 import mongodb = require('mongodb');
+import { AccountService } from './app/services/accountService';
 
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
+
+import webConfig = require('./config/config');
 
 /**
  * Init app for client.
@@ -62,7 +63,7 @@ app.configure('production|development', 'chat', function () {
 //net.Start();
 //});
 
-mongodb.MongoClient.connect(Config.chatDB).then(db => {
+mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
     db.stats(function (err, stat) {
         console.log("api status ready.", stat.db);
         db.close();
