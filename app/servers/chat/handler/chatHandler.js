@@ -7,9 +7,7 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
     }
     return t;
 };
-const UserManager_1 = require("../../../controller/UserManager");
 const UserService = require("../../../dal/userDataAccess");
-const Room_1 = require("../../../model/Room");
 const Code_1 = require("../../../../shared/Code");
 const MPushService = require("../../../services/ParsePushService");
 const chatroomService = require("../../../services/chatroomService");
@@ -20,7 +18,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 const ChatRoomManager = require("../../../controller/ChatRoomManager");
 const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
 const config_1 = require("../../../../config/config");
-const userManager = UserManager_1.UserManager.getInstance();
 const pushService = new MPushService.ParsePushService();
 const ObjectID = mongodb.ObjectID;
 var channelService;
@@ -417,140 +414,6 @@ function getWhoReadMessages(messages, channel) {
     }, function done(err) {
         console.log("getWhoReadMessages. done");
     });
-}
-function callPushNotification(app, session, room, sender, offlineMembers) {
-    //<!-- Push message to off line users via parse.
-    /**<!-- Before push message via parse.
-    * Todo
-    * 1. Know room name by get roomType and get name.
-    * 2. Know user who send message.
-    * 3. Know message type.
-    * 4. Know installationsId of receiver users.
-    */
-    let pushTitle = room.name;
-    let alertMessage = "";
-    if (!pushTitle) {
-        new Promise((resolve, reject) => {
-            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
-                pushTitle = userTrans.username;
-                resolve(pushTitle);
-            });
-        }).then(value => {
-            alertMessage = value + " has a new message.";
-            call();
-        });
-    }
-    else {
-        alertMessage = pushTitle + " has a new message.";
-        call();
-    }
-    function call() {
-        console.warn("alertMessage is ", alertMessage, offlineMembers);
-        let targetDevices = new Array();
-        let targetMemberWhoSubscribeRoom = new Array();
-        //<-- To push only user who subscribe this room. This process need a some logic.
-        /**
-         * - check the offline user who subscribe this room or not.
-         * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
-         * - if one of list has contain room_id dont push message for them.
-         *  */
-        async.waterfall([t => {
-                //<!-- checking roomType
-                chatRoomManager.GetChatRoomInfo(room._id, { type: 1 }).then(result => {
-                    if (result.type === Room_1.RoomType.organizationGroup || result.type === Room_1.RoomType.projectBaseGroup) {
-                        t(null, {});
-                    }
-                    else {
-                        t(null, result.type);
-                    }
-                }).catch(err => {
-                    let errMsg = "checkedRoomType fail.";
-                    console.error(errMsg);
-                    t(new Error(errMsg), null);
-                });
-            }, (arg1, cb) => {
-                if (arg1 === null) {
-                    cb(null, null);
-                }
-                else if (arg1 === Room_1.RoomType.privateGroup || arg1 === Room_1.RoomType.privateChat) {
-                    /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
-                    //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
-                    let roomType = JSON.parse(JSON.stringify(arg1));
-                    async.eachSeries(offlineMembers, function iterrator(item, callback) {
-                        //                console.warn("offline member _id: ", item);
-                        userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
-                            //<!-- if result is contain in unsubscribe list. we ignore this member.
-                            if (!err && results !== null) {
-                            }
-                            else {
-                                var objId = new ObjectID(item);
-                                targetMemberWhoSubscribeRoom.push(objId);
-                            }
-                            callback();
-                        });
-                    }, function callback(err) {
-                        if (err) {
-                            cb(err, null);
-                        }
-                        else {
-                            cb(null, {});
-                        }
-                    });
-                }
-                else {
-                    offlineMembers.forEach(offline => {
-                        var objId = new ObjectID(offline);
-                        targetMemberWhoSubscribeRoom.push(objId);
-                    });
-                    cb(null, {});
-                }
-            }], (err, result) => {
-            if (err || result === null) {
-                console.error(err);
-            }
-            else {
-                let promise = new Promise(function (resolve, reject) {
-                    //<!-- Query all deviceTokens for each members.
-                    UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-                        if (!!res) {
-                            let memberTokens = res; // array of deviceTokens for each member.
-                            async.mapSeries(memberTokens, function iterator(item, cb) {
-                                if (!!item.deviceTokens) {
-                                    let deviceTokens = item.deviceTokens;
-                                    async.mapSeries(deviceTokens, (token, resultCb) => {
-                                        targetDevices.push(token);
-                                        resultCb(null, {});
-                                    }, function done(err, results) {
-                                        if (err) {
-                                            cb(err, null);
-                                        }
-                                        else {
-                                            cb(null, null);
-                                        }
-                                    });
-                                }
-                                else {
-                                    cb(null, null);
-                                }
-                            }, function done(err, results) {
-                                if (err) {
-                                    reject(err);
-                                }
-                                else {
-                                    resolve(results);
-                                }
-                            });
-                        }
-                    });
-                }).then(function onfulfill(value) {
-                    console.warn("Push", targetDevices, alertMessage);
-                    pushService.sendPushToTargetDevices(targetDevices, alertMessage);
-                }).catch(function onRejected(err) {
-                    console.error("push to target deviceTokens fail.", err);
-                });
-            }
-        });
-    }
 }
 function simplePushNotification(app, session, offlineMembers, room, sender) {
     let pushTitle = room.name;
