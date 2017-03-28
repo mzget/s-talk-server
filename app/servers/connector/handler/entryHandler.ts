@@ -1,18 +1,16 @@
-﻿import CompanyController = require("../../../controller/CompanyManager");
-import Mcontroller = require("../../../controller/ChatRoomManager");
-import Code from '../../../../shared/Code';
+﻿import Code from '../../../../shared/Code';
 import User = require('../../../model/User');
 import userDAL = require('../../../dal/userDataAccess');
-import Room = require('../../../model/Room');
+import { Room, RoomStatus, RoomType } from '../../../model/Room';
 import TokenService from '../../../services/tokenService';
+import * as chatroomService from '../../../services/chatroomService';
+
 import request = require('request');
 import Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const tokenService: TokenService = new TokenService();
-const companyManager = CompanyController.CompanyManager.getInstance();
-const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var channelService;
 
 type DecodedToken = {
@@ -142,172 +140,6 @@ function addOnlineUser(app, session, user: DecodedToken) {
 	app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
 	app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
 }
-
-handler.getCompanyInfo = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-
-	let timeout = setTimeout(() => {
-		next(null, { code: Code.FAIL, message: "getCompanyInfo timeout..." });
-	}, Config.timeout);
-
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, res);
-			clearTimeout(timeout);
-		}
-		else {
-			companyManager.GetCompany(function (result) {
-				let response = null;
-				if (result !== null) {
-					var obj = JSON.parse(JSON.stringify(result));
-					response = { code: Code.OK, data: obj };
-				}
-				else {
-					response = { code: Code.FAIL, message: "Have no a company infomation." };
-				}
-
-				clearTimeout(timeout);
-
-				next(null, response);
-
-				let onGetCompanyInfo = {
-					route: Code.sharedEvents.onGetCompanyInfo,
-					data: response
-				};
-				let uidsGroup = [];
-				let group = {
-					uid: session.uid,
-					sid: self.app.get('serverId')
-				};
-				uidsGroup.push(group);
-				channelService.pushMessageByUids(onGetCompanyInfo.route, onGetCompanyInfo.data, uidsGroup);
-			});
-		}
-	});
-};
-
-handler.getCompanyMember = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, { code: Code.FAIL, message: err });
-			return;
-		}
-		else {
-			companyManager.GetCompanyMembers({ _id: 1, displayname: 1, status: 1, image: 1 }, function (err, res) {
-				var result;
-				if (res !== null) {
-					console.log("GetCompanyMembers: ", res.length);
-
-					result = JSON.parse(JSON.stringify(res));
-				}
-				else {
-					console.error("Fail to getCompanyMembers: ", err);
-
-					result = null;
-				}
-
-				var params = {
-					route: Code.sharedEvents.onGetCompanyMembers,
-					data: result
-				};
-
-				var target = new Array();
-				target.push({ uid: session.uid, sid: self.app.get('serverId') });
-
-				channelService.pushMessageByUids(params.route, params.data, target);
-			});
-		}
-
-		next(null, { code: Code.OK });
-	});
-};
-
-handler.getCompanyChatRoom = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	var uid = session.uid;
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, { code: Code.FAIL, message: err });
-			return;
-		}
-		else {
-			companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
-				var result;
-				if (res !== null) {
-					console.log("GetCompanyChatRooms: ", res.length);
-
-					result = JSON.parse(JSON.stringify(res));
-
-					updateRoomsMap(self.app, session, result);
-				}
-				else {
-					console.log("Fail to getCompanyChatRooms");
-					result = null;
-				}
-
-				var params = {
-					route: Code.sharedEvents.onGetOrganizeGroups,
-					data: result
-				};
-
-				var target = new Array();
-				target.push({ uid: session.uid, sid: self.app.get('serverId') });
-
-				channelService.pushMessageByUids(params.route, params.data, target);
-			});
-		}
-
-		next(null, { code: Code.OK });
-	});
-};
-
-handler.getProjectBaseGroups = function (msg, session, next) {
-	var self = this;
-	var token = msg.token;
-	var uid = session.uid;
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-		if (err) {
-			console.log(err);
-			next(err, { code: Code.FAIL, message: err });
-			return;
-		}
-		else {
-			chatRoomManager.getProjectBaseGroups(uid, function (err, res) {
-				var result;
-				if (err || res === null) {
-					console.error("Fail to getProjectBaseGroups : ", err);
-					result = null;
-				}
-				else {
-					console.info("getProjectBaseGroups : ", res.length);
-					result = JSON.parse(JSON.stringify(res));
-
-					updateRoomsMap(self.app, session, result);
-				}
-
-				var params = {
-					route: Code.sharedEvents.onGetProjectBaseGroups,
-					data: result
-				};
-
-				var target = new Array();
-				target.push({ uid: session.uid, sid: self.app.get('serverId') });
-
-				channelService.pushMessageByUids(params.route, params.data, target);
-			});
-		}
-
-		next(null, { code: Code.OK });
-	});
-};
-
 /**
  * New client entry chat server.
  *
@@ -339,42 +171,37 @@ handler.enterRoom = function (msg, session, next) {
 		return;
 	}, Config.timeout);
 
+	chatroomService.getRoom(rid).then((room: Room) => {
+		console.log("getRoom", room._id, room.name);
 
-	self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
-		let room = res;
-		if (!!room) {
-			console.log("getRoomMap", room.name);
+		chatroomService.checkedCanAccessRoom(room, uid, function (err, res) {
+			console.log("checkedCanAccessRoom: ", res);
 
-			self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
-				console.log("checkedCanAccessRoom: ", res);
+			if (err || res === false) {
+				clearTimeout(timeOut_id);
+				next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+			}
+			else {
+				session.set('rid', rid);
+				session.push('rid', function (err) {
+					if (err) {
+						console.error('set rid for session service failed! error is : %j', err.stack);
+					}
+				});
 
-				if (err || res === false) {
+				let onlineUser = new User.OnlineUser();
+				onlineUser.username = uname;
+				onlineUser.uid = uid;
+
+				addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
 					clearTimeout(timeOut_id);
-					next(null, { code: Code.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-				}
-				else {
-					session.set('rid', rid);
-					session.push('rid', function (err) {
-						if (err) {
-							console.error('set rid for session service failed! error is : %j', err.stack);
-						}
-					});
-
-					let onlineUser = new User.OnlineUser();
-					onlineUser.username = uname;
-					onlineUser.uid = uid;
-
-					addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
-						clearTimeout(timeOut_id);
-						next(null, { code: Code.OK, data: room });
-					});
-				}
-			});
-		}
-		else {
-			clearTimeout(timeOut_id);
-			next(null, { code: Code.FAIL, message: JSON.stringify(err) });
-		}
+					next(null, { code: Code.OK, data: room });
+				});
+			}
+		});
+	}).catch(err => {
+		clearTimeout(timeOut_id);
+		next(null, { code: Code.FAIL, message: JSON.stringify(err) });
 	});
 };
 
@@ -633,14 +460,4 @@ handler.theLineIsBusy = function (msg, session, next) {
 	});
 
 	next(null, { code: Code.OK });
-};
-
-/**
- * For update roomsPairMembers collection.
- * When new room has create from web base, or other server. 
- */
-const updateRoomsMap = function (app, session, roomsData: Array<Room.Room>) {
-	let rooms: Array<Room.Room> = JSON.parse(JSON.stringify(roomsData));
-
-	app.rpc.auth.authRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
 };

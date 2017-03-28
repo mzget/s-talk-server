@@ -1,16 +1,13 @@
 "use strict";
-const CompanyController = require("../../../controller/CompanyManager");
-const Mcontroller = require("../../../controller/ChatRoomManager");
 const Code_1 = require("../../../../shared/Code");
 const User = require("../../../model/User");
 const userDAL = require("../../../dal/userDataAccess");
 const tokenService_1 = require("../../../services/tokenService");
+const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
 Joi.objectId = require('joi-objectid')(Joi);
 const config_1 = require("../../../../config/config");
 const tokenService = new tokenService_1.default();
-const companyManager = CompanyController.CompanyManager.getInstance();
-const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate connector handler.");
@@ -109,145 +106,6 @@ function addOnlineUser(app, session, user) {
     app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
     app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
 }
-handler.getCompanyInfo = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    let timeout = setTimeout(() => {
-        next(null, { code: Code_1.default.FAIL, message: "getCompanyInfo timeout..." });
-    }, config_1.Config.timeout);
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, res);
-            clearTimeout(timeout);
-        }
-        else {
-            companyManager.GetCompany(function (result) {
-                let response = null;
-                if (result !== null) {
-                    var obj = JSON.parse(JSON.stringify(result));
-                    response = { code: Code_1.default.OK, data: obj };
-                }
-                else {
-                    response = { code: Code_1.default.FAIL, message: "Have no a company infomation." };
-                }
-                clearTimeout(timeout);
-                next(null, response);
-                let onGetCompanyInfo = {
-                    route: Code_1.default.sharedEvents.onGetCompanyInfo,
-                    data: response
-                };
-                let uidsGroup = [];
-                let group = {
-                    uid: session.uid,
-                    sid: self.app.get('serverId')
-                };
-                uidsGroup.push(group);
-                channelService.pushMessageByUids(onGetCompanyInfo.route, onGetCompanyInfo.data, uidsGroup);
-            });
-        }
-    });
-};
-handler.getCompanyMember = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, { code: Code_1.default.FAIL, message: err });
-            return;
-        }
-        else {
-            companyManager.GetCompanyMembers({ _id: 1, displayname: 1, status: 1, image: 1 }, function (err, res) {
-                var result;
-                if (res !== null) {
-                    console.log("GetCompanyMembers: ", res.length);
-                    result = JSON.parse(JSON.stringify(res));
-                }
-                else {
-                    console.error("Fail to getCompanyMembers: ", err);
-                    result = null;
-                }
-                var params = {
-                    route: Code_1.default.sharedEvents.onGetCompanyMembers,
-                    data: result
-                };
-                var target = new Array();
-                target.push({ uid: session.uid, sid: self.app.get('serverId') });
-                channelService.pushMessageByUids(params.route, params.data, target);
-            });
-        }
-        next(null, { code: Code_1.default.OK });
-    });
-};
-handler.getCompanyChatRoom = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    var uid = session.uid;
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, { code: Code_1.default.FAIL, message: err });
-            return;
-        }
-        else {
-            companyManager.getMyOrganizeChatRooms(uid, function (err, res) {
-                var result;
-                if (res !== null) {
-                    console.log("GetCompanyChatRooms: ", res.length);
-                    result = JSON.parse(JSON.stringify(res));
-                    updateRoomsMap(self.app, session, result);
-                }
-                else {
-                    console.log("Fail to getCompanyChatRooms");
-                    result = null;
-                }
-                var params = {
-                    route: Code_1.default.sharedEvents.onGetOrganizeGroups,
-                    data: result
-                };
-                var target = new Array();
-                target.push({ uid: session.uid, sid: self.app.get('serverId') });
-                channelService.pushMessageByUids(params.route, params.data, target);
-            });
-        }
-        next(null, { code: Code_1.default.OK });
-    });
-};
-handler.getProjectBaseGroups = function (msg, session, next) {
-    var self = this;
-    var token = msg.token;
-    var uid = session.uid;
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
-        if (err) {
-            console.log(err);
-            next(err, { code: Code_1.default.FAIL, message: err });
-            return;
-        }
-        else {
-            chatRoomManager.getProjectBaseGroups(uid, function (err, res) {
-                var result;
-                if (err || res === null) {
-                    console.error("Fail to getProjectBaseGroups : ", err);
-                    result = null;
-                }
-                else {
-                    console.info("getProjectBaseGroups : ", res.length);
-                    result = JSON.parse(JSON.stringify(res));
-                    updateRoomsMap(self.app, session, result);
-                }
-                var params = {
-                    route: Code_1.default.sharedEvents.onGetProjectBaseGroups,
-                    data: result
-                };
-                var target = new Array();
-                target.push({ uid: session.uid, sid: self.app.get('serverId') });
-                channelService.pushMessageByUids(params.route, params.data, target);
-            });
-        }
-        next(null, { code: Code_1.default.OK });
-    });
-};
 /**
  * New client entry chat server.
  *
@@ -275,37 +133,33 @@ handler.enterRoom = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
         return;
     }, config_1.Config.timeout);
-    self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
-        let room = res;
-        if (!!room) {
-            console.log("getRoomMap", room.name);
-            self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
-                console.log("checkedCanAccessRoom: ", res);
-                if (err || res === false) {
+    chatroomService.getRoom(rid).then((room) => {
+        console.log("getRoom", room._id, room.name);
+        chatroomService.checkedCanAccessRoom(room, uid, function (err, res) {
+            console.log("checkedCanAccessRoom: ", res);
+            if (err || res === false) {
+                clearTimeout(timeOut_id);
+                next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+            }
+            else {
+                session.set('rid', rid);
+                session.push('rid', function (err) {
+                    if (err) {
+                        console.error('set rid for session service failed! error is : %j', err.stack);
+                    }
+                });
+                let onlineUser = new User.OnlineUser();
+                onlineUser.username = uname;
+                onlineUser.uid = uid;
+                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
                     clearTimeout(timeOut_id);
-                    next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
-                }
-                else {
-                    session.set('rid', rid);
-                    session.push('rid', function (err) {
-                        if (err) {
-                            console.error('set rid for session service failed! error is : %j', err.stack);
-                        }
-                    });
-                    let onlineUser = new User.OnlineUser();
-                    onlineUser.username = uname;
-                    onlineUser.uid = uid;
-                    addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
-                        clearTimeout(timeOut_id);
-                        next(null, { code: Code_1.default.OK, data: room });
-                    });
-                }
-            });
-        }
-        else {
-            clearTimeout(timeOut_id);
-            next(null, { code: Code_1.default.FAIL, message: JSON.stringify(err) });
-        }
+                    next(null, { code: Code_1.default.OK, data: room });
+                });
+            }
+        });
+    }).catch(err => {
+        clearTimeout(timeOut_id);
+        next(null, { code: Code_1.default.FAIL, message: JSON.stringify(err) });
     });
 };
 const addChatUser = function (app, session, user, sid, rid, next) {
@@ -535,12 +389,4 @@ handler.theLineIsBusy = function (msg, session, next) {
         }
     });
     next(null, { code: Code_1.default.OK });
-};
-/**
- * For update roomsPairMembers collection.
- * When new room has create from web base, or other server.
- */
-const updateRoomsMap = function (app, session, roomsData) {
-    let rooms = JSON.parse(JSON.stringify(roomsData));
-    app.rpc.auth.authRemote.updateRoomsMapWhenNewRoomCreated(session, roomsData, null);
 };

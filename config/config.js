@@ -1,13 +1,13 @@
 "use strict";
-let devApi = "localhost";
+let devApi = "localhost:9000";
+let dev2Api = "http://git.animation-genius.com:9000";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
     api: {
-        host: `${devApi}`,
-        port: 9000,
         apikey: "chitchat1234",
-        authen: `/api/authenticate/verify`,
-        chatroom: `/api/chatroom`
+        host: `${dev2Api}`,
+        authen: `${dev2Api}/api/authenticate/verify`,
+        chatroom: `${dev2Api}/api/chatroom`
     },
     chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
     timeout: 10000,

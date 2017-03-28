@@ -66,59 +66,6 @@ remote.getUserTransaction = function (uid, cb) {
         cb(new Error("No have userTransaction"), null);
     }
 };
-remote.getRoomMap = function (rid, callback) {
-    accountService.getRoom(rid).then(room => {
-        callback(null, room);
-    }).catch(err => {
-        callback(err, null);
-    });
-};
-remote.addRoom = function (room) {
-    accountService.addRoom(room);
-};
-remote.updateRoomMembers = function (data, cb) {
-    accountService.addRoom(data);
-    setTimeout(function () {
-        if (!!cb) {
-            cb();
-        }
-    }, 100);
-};
-/**
-* UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
-*/
-remote.updateRoomsMapWhenNewRoomCreated = function (rooms, cb) {
-    rooms.forEach(room => {
-        if (!accountService.getRoom[room._id]) {
-            accountService.addRoom(room);
-            //<!-- Notice all member of new room to know they have a new room.   
-            let param = {
-                route: Code_1.default.sharedEvents.onNewGroupCreated,
-                data: room
-            };
-            let pushGroup = new Array();
-            room.members.forEach(member => {
-                accountService.getOnlineUser(member._id, (err, user) => {
-                    if (!err) {
-                        var item = { uid: user.uid, sid: user.serverId };
-                        pushGroup.push(item);
-                    }
-                });
-            });
-            channelService.pushMessageByUids(param.route, param.data, pushGroup);
-        }
-    });
-    cb();
-};
-remote.checkedCanAccessRoom = function (room, userId, callback) {
-    let result = false;
-    result = room.members.some(value => {
-        if (value._id === userId) {
-            return true;
-        }
-    });
-    callback(null, result);
-};
 remote.tokenService = function (bearerToken, cb) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {
         if (err) {

@@ -141,85 +141,6 @@ handler.editMemberInfoInProjectBase = function (msg, session, next) {
     });
     next(null, { code: Code_1.default.OK });
 };
-/**
-* require
-- group_id for relation of imagePath,
-- path of image container,
-* return success respone.
-*/
-handler.updateGroupImage = function (msg, session, next) {
-    let self = this;
-    let rid = msg.groupId;
-    let newUrl = msg.path;
-    if (!rid || !newUrl) {
-        next(null, { code: Code_1.default.FAIL, message: "groupId or pathUrl is empty or invalid." });
-        return;
-    }
-    let objId = new ObjectID(rid);
-    if (!objId) {
-        next(null, { code: Code_1.default.FAIL, message: "groupId is invalid." });
-        return;
-    }
-    chatRoomManager.updateGroupImage(rid, newUrl, function (err, res) {
-        if (!err) {
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(rid) }, null, (res) => {
-                if (res !== null) {
-                    pushRoomImageToAllMember(self.app, session, res);
-                }
-            });
-        }
-    });
-    next(null, { code: Code_1.default.OK });
-};
-/**
-* editGroupMembers method.
-* provide edit member for private group only.
-*/
-handler.editGroupMembers = function (msg, session, next) {
-    let self = this;
-    let editType = msg.editType;
-    let roomId = msg.roomId;
-    let roomType = msg.roomType;
-    let members = JSON.parse(msg.members);
-    if (!editType || !roomId || !members || members.length == 0 || !roomType) {
-        var message = "Some require parameters is missing or invalid.";
-        console.error(message);
-        next(null, { code: Code_1.default.FAIL, message: message });
-        return;
-    }
-    //<!-- First checking room type for edit members permission.
-    if (roomType === Room.RoomType[Room.RoomType.organizationGroup] || roomType === Room.RoomType[Room.RoomType.privateChat]) {
-        var message = "Room type is invalid this group cannot edit.";
-        console.error(message);
-        next(null, { code: Code_1.default.FAIL, message: message });
-        return;
-    }
-    let editedMembers = new Array();
-    members.forEach(element => {
-        var member = new Room.Member();
-        member._id = element;
-        editedMembers.push(member);
-    });
-    chatRoomManager.editGroupMembers(editType, roomId, editedMembers, (err, res) => {
-        if (err) {
-            console.error(err);
-        }
-        else {
-            console.log("editGroupMembers : type %s : result is", editType, res.result);
-            chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, function (res) {
-                if (res !== null) {
-                    pushRoomInfoToAllMember(self.app, session, res, editType, editedMembers);
-                    if (editType === "add") {
-                        pushNewRoomAccessToNewMembers(self.app, session, res._id, editedMembers);
-                    }
-                    let roomObj = { _id: res._id, members: res.members };
-                    self.app.rpc.auth.authRemote.addRoom(session, roomObj);
-                }
-            });
-        }
-    });
-    next(null, { code: Code_1.default.OK });
-};
 function pushNewRoomAccessToNewMembers(app, session, rid, targetMembers) {
     let memberIds = new Array();
     async.map(targetMembers, function iterator(item, cb) {
@@ -251,38 +172,6 @@ function pushNewRoomAccessToNewMembers(app, session, rid, targetMembers) {
         });
     });
 }
-/**
-* editGroupName method.
-* provide edit name for private group only.
-*/
-handler.editGroupName = function (msg, session, next) {
-    let self = this;
-    let newGroupName = msg.newGroupName;
-    let roomId = msg.roomId;
-    let roomType = msg.roomType;
-    if (!roomId || !roomType || !newGroupName) {
-        var errMessage = "Some require params is invalid.";
-        console.error(errMessage);
-        next(null, { code: Code_1.default.FAIL, message: errMessage });
-        return;
-    }
-    //<!-- First checkiung room type for edit members permission.
-    if (roomType === Room.RoomType[Room.RoomType.organizationGroup] || roomType === Room.RoomType[Room.RoomType.privateChat]) {
-        var message = "Room type is invalid this cannot edit groups.";
-        console.error(message);
-        next(null, { code: Code_1.default.FAIL, message: message });
-        return;
-    }
-    chatRoomManager.editGroupName(roomId, newGroupName, (err, res) => {
-        console.log("editGroupName response. ", res.result);
-        chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(roomId) }, null, (res) => {
-            if (res !== null) {
-                pushRoomNameToAllMember(self.app, session, res);
-            }
-        });
-    });
-    next(null, { code: Code_1.default.OK });
-};
 /* Require owner memberId and roommate id.
 * For get or create one-to-one chat room.
 */

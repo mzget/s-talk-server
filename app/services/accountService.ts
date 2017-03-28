@@ -5,8 +5,6 @@ import Room = require('../model/Room');
 const dispatcher = require('../util/dispatcher');
 
 import { Config } from "../../config/config";
-import * as http from "http";
-const keepAliveAgent = new http.Agent({ keepAlive: true });
 
 interface IUsersMap {
     [uid: string]: User.UserTransaction;
@@ -66,49 +64,6 @@ export class AccountService {
             this._userTransaction = {};
 
         return this._userTransaction;
-    }
-
-    async getRoom(roomId: string) {
-        const options = (query) => ({
-            hostname: Config.api.host,
-            port: Config.api.port,
-            path: `${Config.api.chatroom}?room_id=${query}`,
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': `${Config.api.apikey}`
-            },
-            agent: keepAliveAgent
-        }) as http.RequestOptions;
-
-        let p = await new Promise((resolve: (room: Room.Room) => void, reject) => {
-            let req = http.request(options(roomId), (res) => {
-                console.log(`res: ${res.statusCode} : ${res.statusMessage}`);
-                res.setEncoding('utf8');
-                res.on('data', (chunk) => {
-                    console.log(`BODY: ${chunk}`);
-                    let data = JSON.parse(chunk) as any;
-                    if (data.result && data.result.length > 0) {
-                        resolve(data.result[0]);
-                    }
-                    else {
-                        reject(data);
-                    }
-                });
-                res.on('end', () => {
-                    console.log('No more data in response.');
-                });
-            });
-
-            req.on('error', (e) => {
-                console.log(`problem with request: ${e.message}`);
-                reject(e.message);
-            });
-
-            req.end();
-        });
-
-        return p;
     }
 
     constructor(app: any) {

@@ -1,17 +1,6 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 const Code_1 = require("../../shared/Code");
 const dispatcher = require('../util/dispatcher');
-const config_1 = require("../../config/config");
-const http = require("http");
-const keepAliveAgent = new http.Agent({ keepAlive: true });
 class AccountService {
     constructor(app) {
         this.uidMap = {};
@@ -109,46 +98,6 @@ class AccountService {
         if (!this._userTransaction)
             this._userTransaction = {};
         return this._userTransaction;
-    }
-    getRoom(roomId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const options = (query) => ({
-                hostname: config_1.Config.api.host,
-                port: config_1.Config.api.port,
-                path: `${config_1.Config.api.chatroom}?room_id=${query}`,
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': `${config_1.Config.api.apikey}`
-                },
-                agent: keepAliveAgent
-            });
-            let p = yield new Promise((resolve, reject) => {
-                let req = http.request(options(roomId), (res) => {
-                    console.log(`res: ${res.statusCode} : ${res.statusMessage}`);
-                    res.setEncoding('utf8');
-                    res.on('data', (chunk) => {
-                        console.log(`BODY: ${chunk}`);
-                        let data = JSON.parse(chunk);
-                        if (data.result && data.result.length > 0) {
-                            resolve(data.result[0]);
-                        }
-                        else {
-                            reject(data);
-                        }
-                    });
-                    res.on('end', () => {
-                        console.log('No more data in response.');
-                    });
-                });
-                req.on('error', (e) => {
-                    console.log(`problem with request: ${e.message}`);
-                    reject(e.message);
-                });
-                req.end();
-            });
-            return p;
-        });
     }
     /**
      * Add player into the channel

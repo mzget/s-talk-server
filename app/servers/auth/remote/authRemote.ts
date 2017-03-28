@@ -1,10 +1,12 @@
 ﻿import mongodb = require("mongodb");
 import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
+
 import { UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
 import { Room } from "../../../model/Room";
 import { AccountService } from '../../../services/accountService';
+import * as chatroomService from '../../../services/chatroomService';
 import Mcontroller = require('../../../controller/ChatRoomManager');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const tokenService: TokenService = new TokenService();
@@ -78,69 +80,6 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
         cb(new Error("No have userTransaction"), null);
     }
 };
-
-remote.getRoomMap = function (rid: string, callback: (err, res) => void) {
-    accountService.getRoom(rid).then(room => {
-        callback(null, room);
-    }).catch(err => {
-        callback(err, null);
-    });
-};
-remote.addRoom = function (room: Room) {
-    accountService.addRoom(room);
-};
-remote.updateRoomMembers = function (data: Room, cb) {
-    accountService.addRoom(data);
-
-    setTimeout(function () {
-        if (!!cb) {
-            cb();
-        }
-    }, 100);
-};
-/**
-* UpdateRoomsMap When New Room Has Create Then Push New Room To All Members.
-*/
-remote.updateRoomsMapWhenNewRoomCreated = function (rooms: Array<Room>, cb: Function) {
-    rooms.forEach(room => {
-        if (!accountService.getRoom[room._id]) {
-            accountService.addRoom(room);
-
-            //<!-- Notice all member of new room to know they have a new room.   
-            let param = {
-                route: Code.sharedEvents.onNewGroupCreated,
-                data: room
-            };
-
-            let pushGroup = new Array();
-            room.members.forEach(member => {
-                accountService.getOnlineUser(member._id, (err, user) => {
-                    if (!err) {
-                        var item = { uid: user.uid, sid: user.serverId };
-                        pushGroup.push(item);
-                    }
-                });
-            });
-
-            channelService.pushMessageByUids(param.route, param.data, pushGroup);
-        }
-    });
-
-    cb();
-};
-
-remote.checkedCanAccessRoom = function (room: Room, userId: string, callback: (err: Error, res: boolean) => void) {
-    let result: boolean = false;
-
-    result = room.members.some(value => {
-        if (value._id === userId) {
-            return true;
-        }
-    });
-
-    callback(null, result);
-};
-
 
 remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) => void) {
     tokenService.ensureAuthorized(bearerToken, function (err, res) {

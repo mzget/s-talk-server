@@ -9,9 +9,10 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
 };
 const UserManager_1 = require("../../../controller/UserManager");
 const UserService = require("../../../dal/userDataAccess");
-const MRoom = require("../../../model/Room");
+const Room_1 = require("../../../model/Room");
 const Code_1 = require("../../../../shared/Code");
 const MPushService = require("../../../services/ParsePushService");
+const chatroomService = require("../../../services/chatroomService");
 const mongodb = require("mongodb");
 const async = require("async");
 const Joi = require("joi");
@@ -56,49 +57,45 @@ handler.send = function (msg, session, next) {
     let timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
     }, config_1.Config.timeout);
-    self.app.rpc.auth.authRemote.getRoomMap(session, rid, function (err, room) {
-        let thisRoom = room;
-        if (!!thisRoom) {
-            console.log("getRoomMap: ", thisRoom.name);
-            if (!thisRoom.members) {
-                let errMsg = "Room no have a members.";
-                next(null, { code: Code_1.default.FAIL, message: errMsg });
-                clearTimeout(timeout_id);
-                return;
-            }
-            else {
-                delete msg.__route__;
-                let _msg = __assign({}, msg);
-                _msg.createTime = new Date();
-                ChatRoomManager.AddChatRecord(_msg).then(docs => {
-                    if (docs.length > 0) {
-                        let resultMsg = docs[0];
-                        //<!-- send callback to user who send chat msg.
-                        let params = {
-                            messageId: resultMsg._id,
-                            type: resultMsg.type,
-                            createTime: resultMsg.createTime,
-                            uuid: clientUUID,
-                            resultMsg
-                        };
-                        next(null, { code: Code_1.default.OK, data: params });
-                        clearTimeout(timeout_id);
-                        pushMessage(self.app, session, thisRoom, resultMsg, clientUUID, target);
-                    }
-                    else {
-                        next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
-                        clearTimeout(timeout_id);
-                    }
-                }).catch(err => {
-                    next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
-                    clearTimeout(timeout_id);
-                });
-            }
+    chatroomService.getRoom(rid).then((room) => {
+        console.log("getRoom: ", room._id, room.name);
+        if (!room.members) {
+            let errMsg = "Room no have a members.";
+            next(null, { code: Code_1.default.FAIL, message: errMsg });
+            clearTimeout(timeout_id);
+            return;
         }
         else {
-            clearTimeout(timeout_id);
-            next(null, { code: Code_1.default.FAIL, message: err.toString() });
+            delete msg.__route__;
+            let _msg = __assign({}, msg);
+            _msg.createTime = new Date();
+            ChatRoomManager.AddChatRecord(_msg).then(docs => {
+                if (docs.length > 0) {
+                    let resultMsg = docs[0];
+                    //<!-- send callback to user who send chat msg.
+                    let params = {
+                        messageId: resultMsg._id,
+                        type: resultMsg.type,
+                        createTime: resultMsg.createTime,
+                        uuid: clientUUID,
+                        resultMsg
+                    };
+                    next(null, { code: Code_1.default.OK, data: params });
+                    clearTimeout(timeout_id);
+                    pushMessage(self.app, session, room, resultMsg, clientUUID, target);
+                }
+                else {
+                    next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                    clearTimeout(timeout_id);
+                }
+            }).catch(err => {
+                next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                clearTimeout(timeout_id);
+            });
         }
+    }).catch(err => {
+        clearTimeout(timeout_id);
+        next(null, { code: Code_1.default.FAIL, message: err.toString() });
     });
 };
 function pushMessage(app, session, room, message, clientUUID, target) {
@@ -460,7 +457,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
         async.waterfall([t => {
                 //<!-- checking roomType
                 chatRoomManager.GetChatRoomInfo(room._id, { type: 1 }).then(result => {
-                    if (result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup) {
+                    if (result.type === Room_1.RoomType.organizationGroup || result.type === Room_1.RoomType.projectBaseGroup) {
                         t(null, {});
                     }
                     else {
@@ -475,7 +472,7 @@ function callPushNotification(app, session, room, sender, offlineMembers) {
                 if (arg1 === null) {
                     cb(null, null);
                 }
-                else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
+                else if (arg1 === Room_1.RoomType.privateGroup || arg1 === Room_1.RoomType.privateChat) {
                     /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
                     //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
                     let roomType = JSON.parse(JSON.stringify(arg1));
