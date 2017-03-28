@@ -6,7 +6,7 @@ const routeUtil_1 = require("./app/util/routeUtil");
 const mongodb = require("mongodb");
 const accountService_1 = require("./app/services/accountService");
 process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });

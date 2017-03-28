@@ -1,16 +1,18 @@
 {
-  "name": "chitchat",
+  "name": "stalk-smelink",
   "main": "app.js",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "private": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "deploy": "pm2 start app.js --name chitchat-node"
+    "dev": "nodemon --debug ./app.js",
+    "deploy": "pm2 start app.js --name stalk-smelink"
   },
   "dependencies": {
-    "async": "^2.1.5",
+    "@types/async": "^2.0.40",
+    "@types/node": "^7.0.12",
+    "async": "^2.2.0",
     "crc": "0.2.0",
     "form-data": "0.2.0",
     "joi": "^10.2.0",
@@ -28,6 +30,7 @@
     "@types/node": "^7.0.8",
     "@types/promise": "^7.1.30",
     "@types/request": "^0.0.31",
+    "nodemon": "^1.11.0",
     "tslint": "^4.4.2"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",

@@ -40,40 +40,34 @@
     ]
   },
   "production": {
+    "gate": [
+      {
+        "id": "gate-server-1",
+        "host": "127.0.0.1",
+        "clientPort": 3015,
+        "frontend": true
+      }
+    ],
+    "auth": [
+      {
+        "id": "auth-server-1",
+        "host": "127.0.0.1",
+        "port": 3016
+      }
+    ],
     "connector": [
       {
         "id": "connector-server-1",
         "host": "127.0.0.1",
         "port": 4050,
-        "clientPort": 3050,
+        "clientPort": 3020,
         "frontend": true
       },
       {
         "id": "connector-server-2",
         "host": "127.0.0.1",
         "port": 4051,
-        "clientPort": 3051,
-        "frontend": true
-      },
-      {
-        "id": "connector-server-3",
-        "host": "127.0.0.1",
-        "port": 4052,
-        "clientPort": 3052,
-        "frontend": true
-      },
-      {
-        "id": "connector-server-4",
-        "host": "127.0.0.1",
-        "port": 4053,
-        "clientPort": 3053,
-        "frontend": true
-      },
-      {
-        "id": "connector-server-5",
-        "host": "127.0.0.1",
-        "port": 4054,
-        "clientPort": 3054,
+        "clientPort": 3021,
         "frontend": true
       }
     ],
@@ -81,69 +75,24 @@
       {
         "id": "chat-server-1",
         "host": "127.0.0.1",
-        "port": 6050
+        "port": 3025
       },
       {
         "id": "chat-server-2",
         "host": "127.0.0.1",
-        "port": 6051
-      },
-      {
-        "id": "chat-server-3",
-        "host": "127.0.0.1",
-        "port": 6052
-      },
-      {
-        "id": "chat-server-4",
-        "host": "127.0.0.1",
-        "port": 6053
-      },
-      {
-        "id": "chat-server-5",
-        "host": "127.0.0.1",
-        "port": 6054
+        "port": 3026
       }
     ],
     "push": [
       {
         "id": "push-server-1",
         "host": "127.0.0.1",
-        "port": 3750
+        "port": 3031
       },
       {
         "id": "push-server-2",
         "host": "127.0.0.1",
-        "port": 3751
-      },
-      {
-        "id": "push-server-3",
-        "host": "127.0.0.1",
-        "port": 3752
-      },
-      {
-        "id": "push-server-4",
-        "host": "127.0.0.1",
-        "port": 3753
-      },
-      {
-        "id": "push-server-5",
-        "host": "127.0.0.1",
-        "port": 3754
-      }
-    ],
-    "auth": [
-      {
-        "id": "auth-server-1",
-        "host": "127.0.0.1",
-        "port": 3655
-      }
-    ],
-    "gate": [
-      {
-        "id": "gate-server-1",
-        "host": "127.0.0.1",
-        "clientPort": 3010,
-        "frontend": true
+        "port": 3032
       }
     ]
   }
