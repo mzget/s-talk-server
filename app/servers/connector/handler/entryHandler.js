@@ -232,7 +232,7 @@ handler.videoCallRequest = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: "some parametor has a problem." });
         return;
     }
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+    tokenService.ensureAuthorized(token, function (err, res) {
         if (err) {
             console.warn(err);
             next(err, res);
@@ -279,7 +279,7 @@ handler.voiceCallRequest = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: "some parametor has a problem." });
         return;
     }
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+    tokenService.ensureAuthorized(token, function (err, res) {
         if (err) {
             console.warn(err);
             next(err, res);
@@ -324,7 +324,7 @@ handler.hangupCall = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: "some parametor has a problem." });
         return;
     }
-    self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+    tokenService.ensureAuthorized(token, function (err, res) {
         if (err) {
             console.warn(err);
             next(err, res);

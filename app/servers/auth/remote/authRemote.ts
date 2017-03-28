@@ -1,6 +1,5 @@
 ﻿import mongodb = require("mongodb");
 import Code from '../../../../shared/Code';
-import TokenService from '../../../services/tokenService';
 
 import { UserDataAccessService } from '../../../controller/UserManager';
 import User = require('../../../model/User');
@@ -9,7 +8,6 @@ import { AccountService } from '../../../services/accountService';
 import * as chatroomService from '../../../services/chatroomService';
 import Mcontroller = require('../../../controller/ChatRoomManager');
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-const tokenService: TokenService = new TokenService();
 let accountService: AccountService;
 let channelService;
 
@@ -79,61 +77,5 @@ remote.getUserTransaction = function (uid: string, cb: Function) {
     }
     else {
         cb(new Error("No have userTransaction"), null);
-    }
-};
-
-remote.tokenService = function (bearerToken: string, cb: (err: any, res: any) => void) {
-    tokenService.ensureAuthorized(bearerToken, function (err, res) {
-        if (err) {
-            console.warn("ensureAuthorized error: ", err);
-            cb(err, { code: Code.FAIL, message: err });
-        }
-        else {
-            cb(null, { code: Code.OK, decoded: res.decoded });
-        }
-    });
-};
-
-const onAuthentication = function (_password, userInfo, callback) {
-    console.log("onAuthentication: ", userInfo);
-
-    if (userInfo !== null) {
-        let obj = JSON.parse(JSON.stringify(userInfo));
-
-        if (obj.password === _password) {
-            accountService.getOnlineUser(obj._id, (error, user) => {
-                if (!user) {
-                    // if user is found and password is right
-                    // create a token
-                    tokenService.signToken(obj, (err, encode) => {
-                        callback({
-                            code: Code.OK,
-                            uid: obj._id,
-                            token: encode
-                        });
-                    });
-                }
-                else {
-                    console.warn("Duplicate user by onlineUsers collections.");
-                    callback({
-                        code: Code.DuplicatedLogin,
-                        message: "duplicate log in.",
-                        uid: obj._id,
-                    });
-                }
-            });
-        }
-        else {
-            callback({
-                code: Code.FAIL,
-                message: "Authentication failed. User not found."
-            });
-        }
-    }
-    else {
-        callback({
-            code: Code.FAIL,
-            message: "Authentication failed. User not found."
-        });
     }
 };

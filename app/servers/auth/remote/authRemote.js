@@ -1,9 +1,6 @@
 "use strict";
-const Code_1 = require("../../../../shared/Code");
-const tokenService_1 = require("../../../services/tokenService");
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-const tokenService = new tokenService_1.default();
 let accountService;
 let channelService;
 const userNotFound = "Authentication failed. User not found.";
@@ -63,57 +60,5 @@ remote.getUserTransaction = function (uid, cb) {
     }
     else {
         cb(new Error("No have userTransaction"), null);
-    }
-};
-remote.tokenService = function (bearerToken, cb) {
-    tokenService.ensureAuthorized(bearerToken, function (err, res) {
-        if (err) {
-            console.warn("ensureAuthorized error: ", err);
-            cb(err, { code: Code_1.default.FAIL, message: err });
-        }
-        else {
-            cb(null, { code: Code_1.default.OK, decoded: res.decoded });
-        }
-    });
-};
-const onAuthentication = function (_password, userInfo, callback) {
-    console.log("onAuthentication: ", userInfo);
-    if (userInfo !== null) {
-        let obj = JSON.parse(JSON.stringify(userInfo));
-        if (obj.password === _password) {
-            accountService.getOnlineUser(obj._id, (error, user) => {
-                if (!user) {
-                    // if user is found and password is right
-                    // create a token
-                    tokenService.signToken(obj, (err, encode) => {
-                        callback({
-                            code: Code_1.default.OK,
-                            uid: obj._id,
-                            token: encode
-                        });
-                    });
-                }
-                else {
-                    console.warn("Duplicate user by onlineUsers collections.");
-                    callback({
-                        code: Code_1.default.DuplicatedLogin,
-                        message: "duplicate log in.",
-                        uid: obj._id,
-                    });
-                }
-            });
-        }
-        else {
-            callback({
-                code: Code_1.default.FAIL,
-                message: "Authentication failed. User not found."
-            });
-        }
-    }
-    else {
-        callback({
-            code: Code_1.default.FAIL,
-            message: "Authentication failed. User not found."
-        });
     }
 };

@@ -2,7 +2,6 @@
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const UserManager_1 = require("../../../controller/UserManager");
 const Code_1 = require("../../../../shared/Code");
-const tokenService_1 = require("../../../services/tokenService");
 const mongodb = require("mongodb");
 const crypto = require("crypto");
 const Room = require("../../../model/Room");
@@ -13,7 +12,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 const ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager_1.UserManager.getInstance();
-const tokenService = new tokenService_1.default();
 var channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRoomHandler.");

@@ -1,9 +1,9 @@
-import Code from'../../../../shared/Code';
+import Code from '../../../../shared/Code';
 import TokenService from '../../../services/tokenService';
 import dispatcher from '../../../util/dispatcher';
-const tokenService: TokenService = new TokenService();
+const tokenService = new TokenService();
 
-module.exports = function(app) {
+module.exports = function (app) {
 	return new Handler(app);
 };
 
@@ -22,9 +22,9 @@ const handler = Handler.prototype;
  * @param {Function} next next stemp callback
  *
  */
-handler.queryEntry = function(msg, session, next) {
+handler.queryEntry = function (msg, session, next) {
 	let uid = msg.uid;
-	if(!uid) {
+	if (!uid) {
 		next(null, {
 			code: Code.FAIL, message: "uid is invalid."
 		});
@@ -32,7 +32,7 @@ handler.queryEntry = function(msg, session, next) {
 	}
 	// get all connectors
 	let connectors = this.app.getServersByType('connector');
-	if(!connectors || connectors.length === 0) {
+	if (!connectors || connectors.length === 0) {
 		next(null, {
 			code: Code.FAIL, message: connectors
 		});
@@ -48,14 +48,14 @@ handler.queryEntry = function(msg, session, next) {
 };
 
 handler.authenGateway = function (msg, session, next) {
-    tokenService.ensureAuthorized(msg.token, function (err, res) {
-        if (err) {
-            console.warn("authenGateway err: ", err);
-            next(null, { code: Code.FAIL, message: err });
-        }
-        else {
-            console.log("authenGateway response: ", res);
-            next(null, { code: Code.OK, data: res });
-        }
-    });
+	tokenService.ensureAuthorized(msg.token, function (err, res) {
+		if (err) {
+			console.warn("authenGateway err: ", err);
+			next(null, { code: Code.FAIL, message: err });
+		}
+		else {
+			console.log("authenGateway response: ", res);
+			next(null, { code: Code.OK, data: res });
+		}
+	});
 };

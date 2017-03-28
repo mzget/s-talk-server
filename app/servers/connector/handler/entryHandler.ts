@@ -10,7 +10,7 @@ import Joi = require('joi');
 Joi.objectId = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
-const tokenService: TokenService = new TokenService();
+const tokenService = new TokenService();
 var channelService;
 
 type DecodedToken = {
@@ -287,7 +287,7 @@ handler.videoCallRequest = function (msg, session, next) {
 		return;
 	}
 
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+	tokenService.ensureAuthorized(token, function (err, res) {
 		if (err) {
 			console.warn(err);
 			next(err, res);
@@ -339,7 +339,7 @@ handler.voiceCallRequest = function (msg, session, next) {
 		return;
 	}
 
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+	tokenService.ensureAuthorized(token, function (err, res) {
 		if (err) {
 			console.warn(err);
 			next(err, res);
@@ -389,7 +389,7 @@ handler.hangupCall = function (msg, session, next) {
 		return;
 	}
 
-	self.app.rpc.auth.authRemote.tokenService(session, token, function (err, res) {
+	tokenService.ensureAuthorized(token, function (err, res) {
 		if (err) {
 			console.warn(err);
 			next(err, res);

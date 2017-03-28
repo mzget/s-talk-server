@@ -1,7 +1,6 @@
 ﻿import Mcontroller = require("../../../controller/ChatRoomManager");
 import { UserManager } from "../../../controller/UserManager";
 import Code from "../../../../shared/Code";
-import TokenService from "../../../services/tokenService";
 import mongodb = require('mongodb');
 import crypto = require('crypto');
 import { AccountService } from '../../../services/accountService';
@@ -16,7 +15,6 @@ import { Config } from '../../../../config/config';
 const ObjectID = mongodb.ObjectID;
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 const userManager = UserManager.getInstance();
-const tokenService: TokenService = new TokenService();
 var channelService;
 
 module.exports = function (app) {
