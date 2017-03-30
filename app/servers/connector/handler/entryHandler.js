@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const CompanyController = require("../../../controller/CompanyManager");
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const Code_1 = require("../../../../shared/Code");
@@ -73,6 +74,8 @@ handler.login = function (msg, session, next) {
                     }
                     else {
                         console.warn("Duplicate user by onlineUsers collections.");
+                        // next(null, { code: Code.DuplicatedLogin, data: body });
+                        // session.__sessionService__.kick();
                     }
                 });
             }
