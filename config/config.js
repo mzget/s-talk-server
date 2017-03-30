@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 let devApi = "http://smelink.animation-genius.com";
 let masterApi = "http://matchlink.asia";
 const devConfig = {

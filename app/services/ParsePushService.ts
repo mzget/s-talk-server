@@ -165,7 +165,8 @@ export class ParsePushService {
                 'X-Parse-Application-Id': Config.ParseApplicationId,
                 'X-Parse-REST-API-Key': Config.ParseRESTAPIKey,
                 'X-Parse-Master-Key': Config.ParseMasterKey,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                "Cache-Control": JSON.stringify(["no-cache", "no-store", "must-revalidate"])
             }
         };
         let request = http.request(options, function (res) {

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const Code_1 = require("../../../../shared/Code");
 const config_1 = require("../../../../config/config");
@@ -68,6 +69,7 @@ function pushMessage(app, session, body) {
                 channelService.pushMessageByUids(onPush.route, onPush.data, uidsGroup);
                 //<!-- Push message to off line users via parse.
                 if (!!offlineMembers && offlineMembers.length > 0) {
+                    // simplePushNotification(app, session, offlineMembers, room, message.sender);
                 }
             });
         });
