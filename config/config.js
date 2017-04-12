@@ -28,7 +28,7 @@ const masterConfig = {
         apikey: "smelink-chat1234",
         authen: `${masterApi}/v2/api/authenticate/verify`,
         user: `${masterApi}/v2/users/query`,
-        chatroom: `${masterApi}/v1/chatapi/api/chatroom`
+        chatroom: `${masterApi}:3003/api/chatroom`
     },
     chatDB: "mongodb://smelink:arrapwd#2017@203.148.255.26:27017/Chat",
     fileDB: "",
