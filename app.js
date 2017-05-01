@@ -1,11 +1,11 @@
 "use strict";
-const pomelo = require('pomelo');
+const pomelo = require("pomelo");
 const routeUtil_1 = require("./app/util/routeUtil");
 const accountService_1 = require("./app/services/accountService");
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'development';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
+process.env.TZ = "UTC";
+process.env.NODE_ENV = "development";
+process.on("uncaughtException", function (err) {
+    console.error(" Caught exception: " + err.stack);
 });
 const DbClient_1 = require("./app/DbClient");
 DbClient_1.InitDatabaseConnection().then(db => {
@@ -21,24 +21,23 @@ DbClient_1.InitDatabaseConnection().then(db => {
  * Init app for client.
  */
 const app = pomelo.createApp();
-app.set('name', 'stalk-node-server');
+app.set("name", "stalk-node-server");
 // app configure
-app.configure('production|development', function () {
+app.configure("production|development", function () {
     // filter configures
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
     // route configures
-    app.route('chat', routeUtil_1.default);
+    app.route("chat", routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    app.set('connectorConfig', {
+    app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
-        // connector : pomelo.connectors.sioconnector,
-        //websocket, polling
-        transports: ['websocket'],
+        // connector: pomelo.connectors.sioconnector,
+        transports: ["websocket"],
         heartbeatTimeout: 60,
         heartbeatInterval: 25
     });
-    //@ require monitor in pomelo@2x
+    // @ require monitor in pomelo@2x
     //   app.set('monitorConfig',
     //     {
     //       monitor : pomelo.monitors.zookeepermonitor,
@@ -46,11 +45,11 @@ app.configure('production|development', function () {
     //     });
 });
 // Configure for auth server
-app.configure('production|development', 'auth', function () {
+app.configure("production|development", "auth", function () {
     console.log("start auth server");
-    app.set('accountService', new accountService_1.AccountService(app));
+    app.set("accountService", new accountService_1.AccountService(app));
 });
-app.configure('production|development', 'chat', function () {
+app.configure("production|development", "chat", function () {
     console.log("start chat server");
 });
 // start app

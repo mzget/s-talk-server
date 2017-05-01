@@ -1,15 +1,15 @@
-﻿const pomelo = require('pomelo');
-import routeUtil from './app/util/routeUtil';
-import mongodb = require('mongodb');
-import { AccountService } from './app/services/accountService';
+﻿const pomelo = require("pomelo");
+import routeUtil from "./app/util/routeUtil";
+import mongodb = require("mongodb");
+import { AccountService } from "./app/services/accountService";
 
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'development';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
+process.env.TZ = "UTC";
+process.env.NODE_ENV = "development";
+process.on("uncaughtException", function (err) {
+    console.error(" Caught exception: " + err.stack);
 });
 
-import { Config } from './config/config';
+import { Config } from "./config/config";
 import { InitDatabaseConnection } from "./app/DbClient";
 InitDatabaseConnection().then(db => {
     db.stats().then(stat => {
@@ -25,29 +25,28 @@ InitDatabaseConnection().then(db => {
  * Init app for client.
  */
 const app = pomelo.createApp();
-app.set('name', 'stalk-node-server');
+app.set("name", "stalk-node-server");
 
 // app configure
-app.configure('production|development', function () {
+app.configure("production|development", function () {
     // filter configures
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
 
     // route configures
-    app.route('chat', routeUtil);
+    app.route("chat", routeUtil);
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
-    app.set('connectorConfig', {
+    app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
-        // connector : pomelo.connectors.sioconnector,
-        //websocket, polling
-        transports: ['websocket'],
+        // connector: pomelo.connectors.sioconnector,
+        transports: ["websocket"],   // websocket, polling
         heartbeatTimeout: 60,
         heartbeatInterval: 25
     });
 
-    //@ require monitor in pomelo@2x
+    // @ require monitor in pomelo@2x
     //   app.set('monitorConfig',
     //     {
     //       monitor : pomelo.monitors.zookeepermonitor,
@@ -56,12 +55,12 @@ app.configure('production|development', function () {
 });
 
 // Configure for auth server
-app.configure('production|development', 'auth', function () {
+app.configure("production|development", "auth", function () {
     console.log("start auth server");
-    app.set('accountService', new AccountService(app));
+    app.set("accountService", new AccountService(app));
 });
 
-app.configure('production|development', 'chat', function () {
+app.configure("production|development", "chat", function () {
     console.log("start chat server");
 });
 

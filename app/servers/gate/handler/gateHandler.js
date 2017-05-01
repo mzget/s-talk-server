@@ -28,7 +28,7 @@ handler.queryEntry = function (msg, session, next) {
         return;
     }
     // get all connectors
-    let connectors = this.app.getServersByType('connector');
+    let connectors = this.app.getServersByType("connector");
     if (!connectors || connectors.length === 0) {
         next(null, {
             code: Code_1.default.FAIL, message: connectors

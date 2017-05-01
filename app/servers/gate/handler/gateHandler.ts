@@ -1,6 +1,6 @@
-import Code from '../../../../shared/Code';
-import TokenService from '../../../services/tokenService';
-import dispatcher from '../../../util/dispatcher';
+import Code from "../../../../shared/Code";
+import TokenService from "../../../services/tokenService";
+import dispatcher from "../../../util/dispatcher";
 const tokenService = new TokenService();
 
 module.exports = function (app) {
@@ -31,7 +31,7 @@ handler.queryEntry = function (msg, session, next) {
 		return;
 	}
 	// get all connectors
-	let connectors = this.app.getServersByType('connector');
+	let connectors = this.app.getServersByType("connector");
 	if (!connectors || connectors.length === 0) {
 		next(null, {
 			code: Code.FAIL, message: connectors
