@@ -9,14 +9,6 @@ const dbClient = MDb.DbController.DbClient.GetInstance();
 const MongoClient = mongodb.MongoClient;
 
 
-export async function AddChatRecord(object: message.Message) {
-    let db = await MongoClient.connect(MDb.DbController.chatDB);
-    let col = db.collection(MDb.DbController.messageColl);
-
-    let result = await col.insertOne(object, { w: 1 });
-    db.close();
-    return result.ops as Array<message.Message>;
-}
 export class ChatRoomManager {
 
     private static _Instance: ChatRoomManager = null;

@@ -7,7 +7,8 @@ const devConfig = {
         apikey: "chitchat1234",
         host: `${dev2Api}`,
         authen: `${dev2Api}/api/authenticate/verify`,
-        chatroom: `${dev2Api}/api/chatroom`
+        chatroom: `${dev2Api}/api/chatroom`,
+        chat: `${dev2Api}/api/stalk/chat`
     },
     chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
     timeout: 10000,

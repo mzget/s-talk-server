@@ -5,6 +5,7 @@ import { Message } from "../../../model/Message";
 import Code from "../../../../shared/Code";
 import MPushService = require("../../../services/ParsePushService");
 import * as chatroomService from "../../../services/chatroomService";
+import * as messageService from "../../../services/messageService";
 
 import mongodb = require("mongodb");
 type ObjectID = mongodb.ObjectID;
@@ -48,8 +49,8 @@ const handler = Handler.prototype;
 handler.send = function (msg, session, next) {
     let self = this;
     let rid = session.get("rid");
-    let clientUUID = msg.uuid;
-    let target = msg.target;
+    let client_uuid = msg.uuid;
+    let msg_target = msg.target;
 
     if (!rid) {
         const errMsg = "rid is invalid please check.";
@@ -71,29 +72,21 @@ handler.send = function (msg, session, next) {
         }
         else {
             delete msg.__route__;
+            delete msg.uuid;
+            delete msg.status;
+
             let _msg = { ...msg } as Message;
-            _msg.createTime = new Date();
 
-            ChatRoomManager.AddChatRecord(_msg).then(docs => {
-                if (docs.length > 0) {
-                    let resultMsg = docs[0] as Message;
-                    // <!-- send callback to user who send chat msg.
-                    let params = {
-                        messageId: resultMsg._id,
-                        type: resultMsg.type,
-                        createTime: resultMsg.createTime,
-                        uuid: clientUUID,
-                        resultMsg
-                    };
-                    next(null, { code: Code.OK, data: params });
-                    clearTimeout(timeout_id);
-
-                    pushMessage(self.app, session, room, resultMsg, clientUUID, target);
-                }
-                else {
-                    next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
-                    clearTimeout(timeout_id);
-                }
+            messageService.saveMessage(_msg).then(value => {
+                // <!-- send callback to user who send chat msg.
+                let params = {
+                    uuid: client_uuid,
+                    status: "sent",
+                    resultMsg: value
+                };
+                next(null, { code: Code.OK, data: params });
+                pushMessage(self.app, session, room, value, client_uuid, msg_target);
+                clearTimeout(timeout_id);
             }).catch(err => {
                 next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
                 clearTimeout(timeout_id);
@@ -182,48 +175,6 @@ handler.getSyncDateTime = function (msg, session, next) {
     };
 
     next(null, param);
-};
-
-/**
-* UpLoadContentFinish ,
-* Require { contentUrl, ownerMessageId }
-*/
-handler.uploadImageFinished = function (msg, session, next) {
-    let self = this;
-    let rid = session.get("rid");
-    let channelService = this.app.get("channelService");
-    let channel = channelService.getChannel(rid, false);
-    let contentUrl = msg.contentUrl;
-    let ownerMessageId = msg.ownerMessageId;
-
-    if (!contentUrl || !ownerMessageId) {
-        next(null, { code: Code.FAIL, message: "path or ownerMessageId is invalid..." });
-        return;
-    }
-
-    chatRoomManager.updateChatRecordContent(ownerMessageId, contentUrl, (err, res) => {
-        console.log("updateChatRecord: ", res.result);
-        if (res !== null) {
-            chatRoomManager.GetChatContent(ownerMessageId, (content) => {
-                console.log("GetChatContent: ", content);
-                if (content !== null) {
-                    let obj = JSON.parse(JSON.stringify(content));
-                    console.log(obj._id);
-
-                    let param = {
-                        route: "onUploaded",
-                        ownerMessageId: obj._id,
-                        body: obj.body,
-                        type: obj.type,
-                        sender: obj.sender
-                    };
-                    channel.pushMessage(param.route, param);
-                }
-            });
-        }
-
-        next(null, { code: Code.OK, data: res });
-    });
 };
 
 /**
