@@ -10,8 +10,8 @@ module.exports = function (app) {
 const AuthenRemote = function (app) {
     this.app = app;
     channelService = app.get("channelService");
-    if (app.getServerType() === 'auth') {
-        accountService = app.get('accountService');
+    if (app.getServerType() === "auth") {
+        accountService = app.get("accountService");
         initServer();
     }
 };
@@ -21,7 +21,7 @@ const remote = AuthenRemote.prototype;
  * for load room members from database to cache in memmory before.
  */
 const initServer = function () {
-    //<!-- To reduce database retrive data. We store rooms Map data to server memory.
+    // <!-- To reduce database retrive data. We store rooms Map data to server memory.
     console.log("init AuthenServer.");
 };
 /**

@@ -1,12 +1,12 @@
 ﻿import mongodb = require("mongodb");
-import Code from '../../../../shared/Code';
+import Code from "../../../../shared/Code";
 
-import { UserDataAccessService } from '../../../controller/UserManager';
-import User = require('../../../model/User');
+import { UserDataAccessService } from "../../../controller/UserManager";
+import User = require("../../../model/User");
 import { Room } from "../../../model/Room";
-import { AccountService } from '../../../services/accountService';
-import * as chatroomService from '../../../services/chatroomService';
-import Mcontroller = require('../../../controller/ChatRoomManager');
+import { AccountService } from "../../../services/accountService";
+import * as chatroomService from "../../../services/chatroomService";
+import Mcontroller = require("../../../controller/ChatRoomManager");
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 let accountService: AccountService;
 let channelService;
@@ -21,8 +21,8 @@ const AuthenRemote = function (app) {
     this.app = app;
 
     channelService = app.get("channelService");
-    if (app.getServerType() === 'auth') {
-        accountService = app.get('accountService');
+    if (app.getServerType() === "auth") {
+        accountService = app.get("accountService");
         initServer();
     }
 };
@@ -34,7 +34,7 @@ const remote = AuthenRemote.prototype;
  * for load room members from database to cache in memmory before.
  */
 const initServer = function (): void {
-    //<!-- To reduce database retrive data. We store rooms Map data to server memory.
+    // <!-- To reduce database retrive data. We store rooms Map data to server memory.
     console.log("init AuthenServer.");
 };
 

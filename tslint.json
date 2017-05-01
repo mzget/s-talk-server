@@ -6,7 +6,7 @@
             "check-space"
         ],
         "indent": [
-            true,
+            false,
             "spaces"
         ],
         "no-duplicate-variable": true,
@@ -50,7 +50,7 @@
             "check-space"
         ],
         "indent": [
-            true,
+            false,
             "spaces"
         ],
         "no-eval": true,

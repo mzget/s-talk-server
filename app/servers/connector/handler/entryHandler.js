@@ -5,17 +5,18 @@ const userDAL = require("../../../dal/userDataAccess");
 const tokenService_1 = require("../../../services/tokenService");
 const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi);
+const joiObj = require("joi-objectid");
+Joi["objectId"] = joiObj(Joi);
 const config_1 = require("../../../../config/config");
 const tokenService = new tokenService_1.default();
-var channelService;
+let channelService;
 module.exports = function (app) {
     console.info("instanctiate connector handler.");
     return new Handler(app);
 };
 const Handler = function (app) {
     this.app = app;
-    channelService = app.get('channelService');
+    channelService = app.get("channelService");
 };
 const handler = Handler.prototype;
 /**
@@ -45,7 +46,7 @@ handler.login = function (msg, session, next) {
                 self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
                     // 	//@ Signing success.
                     session.bind(msg.user._id);
-                    session.on('closed', onUserLeave.bind(null, self.app));
+                    session.on("closed", onUserLeave.bind(null, self.app));
                     let param = {
                         route: Code_1.default.sharedEvents.onUserLogin,
                         data: msg.user
@@ -80,14 +81,14 @@ const logOut = function (app, session, next) {
             console.log("User logout.", user);
         }
     });
-    //!-- log user out.
+    // !-- log user out.
     app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
     if (next !== null)
         next();
 };
 handler.kickMe = function (msg, session, next) {
     session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
-    //!-- log user out.
+    // !-- log user out.
     this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
     userDAL.prototype.removeAllRegistrationId(msg.uid);
     next(null, { message: "kicked! " + msg.uid });
@@ -142,16 +143,16 @@ handler.enterRoom = function (msg, session, next) {
                 next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
             }
             else {
-                session.set('rid', rid);
-                session.push('rid', function (err) {
+                session.set("rid", rid);
+                session.push("rid", function (err) {
                     if (err) {
-                        console.error('set rid for session service failed! error is : %j', err.stack);
+                        console.error("set rid for session service failed! error is : %j", err.stack);
                     }
                 });
                 let onlineUser = new User.OnlineUser();
                 onlineUser.username = uname;
                 onlineUser.uid = uid;
-                addChatUser(self.app, session, onlineUser, self.app.get('serverId'), rid, function () {
+                addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, function () {
                     clearTimeout(timeOut_id);
                     next(null, { code: Code_1.default.OK, data: room });
                 });
@@ -163,7 +164,7 @@ handler.enterRoom = function (msg, session, next) {
     });
 };
 const addChatUser = function (app, session, user, sid, rid, next) {
-    //put user into channel
+    // put user into channel
     app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 };
 /**
@@ -177,7 +178,7 @@ handler.leaveRoom = function (msg, session, next) {
     let token = msg.token;
     let rid = msg.rid;
     let uid = session.uid;
-    let sid = self.app.get('serverId');
+    let sid = self.app.get("serverId");
     let schema = {
         token: Joi.string().required(),
         rid: Joi.string().required()
@@ -188,10 +189,10 @@ handler.leaveRoom = function (msg, session, next) {
     }
     self.app.rpc.auth.authRemote.getUserTransaction(session, uid, (err, userTransaction) => {
         self.app.rpc.chat.chatRemote.kick(session, userTransaction, sid, rid, function (err, res) {
-            session.set('rid', null);
-            session.push('rid', function (err) {
+            session.set("rid", null);
+            session.push("rid", function (err) {
                 if (err) {
-                    console.error('set rid for session service failed! error is : %j', err.stack);
+                    console.error("set rid for session service failed! error is : %j", err.stack);
                 }
             });
             if (err) {
@@ -214,7 +215,7 @@ const onUserLeave = function (app, session) {
         return;
     }
     app.rpc.auth.authRemote.getUserTransaction(session, session.uid, (err, userTransaction) => {
-        app.rpc.chat.chatRemote.kick(session, userTransaction, app.get('serverId'), session.get('rid'), null);
+        app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
         logOut(app, session, null);
     });
 };
@@ -223,11 +224,11 @@ const onUserLeave = function (app, session) {
 * @param {object} msg.targetId, myRtcId, token.
 */
 handler.videoCallRequest = function (msg, session, next) {
-    var targetId = msg.targetId;
-    var uid = session.uid;
-    var myRtcId = msg.myRtcId;
-    var token = msg.token;
-    var self = this;
+    let targetId = msg.targetId;
+    let uid = session.uid;
+    let myRtcId = msg.myRtcId;
+    let token = msg.token;
+    let self = this;
     if (!targetId || !uid || !myRtcId) {
         next(null, { code: Code_1.default.FAIL, message: "some parametor has a problem." });
         return;
@@ -238,17 +239,17 @@ handler.videoCallRequest = function (msg, session, next) {
             next(err, res);
         }
         else {
-            var onVideoCall = {
+            let onVideoCall = {
                 route: Code_1.default.sharedEvents.onVideoCall,
                 data: {
                     from: uid,
                     peerId: myRtcId
                 }
             };
-            var uidsGroup = new Array();
+            let uidsGroup = new Array();
             self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (err, user) => {
                 if (!err) {
-                    var group = {
+                    let group = {
                         uid: user.uid,
                         sid: user.serverId
                     };
@@ -257,7 +258,7 @@ handler.videoCallRequest = function (msg, session, next) {
                     next(null, { code: Code_1.default.OK });
                 }
                 else {
-                    var msg = "target userId is not a list of onlineUser Please use notification server instead.";
+                    let msg = "target userId is not a list of onlineUser Please use notification server instead.";
                     console.warn(msg);
                     next(null, { code: Code_1.default.FAIL, message: msg });
                 }
@@ -270,11 +271,11 @@ handler.videoCallRequest = function (msg, session, next) {
 * @param {object} msg.targetId, myRtcId, token.
 */
 handler.voiceCallRequest = function (msg, session, next) {
-    var targetId = msg.targetId;
-    var uid = session.uid;
-    var myRtcId = msg.myRtcId;
-    var token = msg.token;
-    var self = this;
+    let targetId = msg.targetId;
+    let uid = session.uid;
+    let myRtcId = msg.myRtcId;
+    let token = msg.token;
+    let self = this;
     if (!targetId || !uid || !myRtcId) {
         next(null, { code: Code_1.default.FAIL, message: "some parametor has a problem." });
         return;
@@ -285,22 +286,22 @@ handler.voiceCallRequest = function (msg, session, next) {
             next(err, res);
         }
         else {
-            var onVoiceCall = {
+            let onVoiceCall = {
                 route: Code_1.default.sharedEvents.onVoiceCall,
                 data: {
                     from: uid,
                     peerId: myRtcId
                 }
             };
-            var uidsGroup = new Array();
+            let uidsGroup = new Array();
             self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (e, user) => {
                 if (!user) {
-                    var msg = "target userId is not a list of onlineUser Please use notification server instead.";
+                    let msg = "target userId is not a list of onlineUser Please use notification server instead.";
                     console.warn(msg);
                     next(null, { code: Code_1.default.FAIL, message: msg });
                 }
                 else {
-                    var group = {
+                    let group = {
                         uid: user.uid,
                         sid: user.serverId
                     };
@@ -316,10 +317,10 @@ handler.voiceCallRequest = function (msg, session, next) {
 * Call this function when want to send hangupCall signaling to other.
 */
 handler.hangupCall = function (msg, session, next) {
-    var myId = msg.userId;
-    var contactId = msg.contactId;
-    var token = msg.token;
-    var self = this;
+    let myId = msg.userId;
+    let contactId = msg.contactId;
+    let token = msg.token;
+    let self = this;
     if (!myId || !contactId || !token) {
         next(null, { code: Code_1.default.FAIL, message: "some parametor has a problem." });
         return;
@@ -365,7 +366,7 @@ handler.theLineIsBusy = function (msg, session, next) {
     let contactId = msg.contactId;
     let userId = session.uid;
     if (!contactId || !userId) {
-        var message = "Some params is invalid.";
+        let message = "Some params is invalid.";
         next(null, { code: Code_1.default.FAIL, message: message });
         return;
     }
@@ -375,12 +376,12 @@ handler.theLineIsBusy = function (msg, session, next) {
     };
     this.app.rpc.auth.authRemote.getOnlineUser(session, contactId, (e, user) => {
         if (!user) {
-            var msg = "The contactId is not online.";
+            let msg = "The contactId is not online.";
             console.warn(msg);
         }
         else {
-            var uidsGroup = new Array();
-            var userInfo = {
+            let uidsGroup = new Array();
+            let userInfo = {
                 uid: user.uid,
                 sid: user.serverId
             };

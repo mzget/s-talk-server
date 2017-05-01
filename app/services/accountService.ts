@@ -1,10 +1,8 @@
-﻿import Code from '../../shared/Code';
-import User = require('../model/User');
-import Room = require('../model/Room');
+﻿import Code from "../../shared/Code";
+import User = require("../model/User");
+import Room = require("../model/Room");
 
-const dispatcher = require('../util/dispatcher');
-
-import { Config } from "../../config/config";
+const dispatcher = require("../util/dispatcher");
 
 interface IUsersMap {
     [uid: string]: User.UserTransaction;
@@ -83,7 +81,7 @@ export class AccountService {
      * @return {Number} see code.js
      */
     add(uid, playerName, channelName) {
-        var sid = this.getSidByUid(uid, this.app);
+        let sid = this.getSidByUid(uid, this.app);
         if (!sid) {
             return Code.CHAT.FA_UNKNOWN_CONNECTOR;
         }
@@ -92,7 +90,7 @@ export class AccountService {
             return Code.OK;
         }
 
-        var channel = this.app.get('channelService').getChannel(channelName, true);
+        let channel = this.app.get("channelService").getChannel(channelName, true);
         if (!channel) {
             return Code.CHAT.FA_CHANNEL_CREATE;
         }
@@ -110,8 +108,8 @@ export class AccountService {
      * @param  {String} channelName channel name
      */
     leave(uid, channelName) {
-        var record = this.uidMap[uid];
-        var channel = this.app.get('channelService').getChannel(channelName, true);
+        let record = this.uidMap[uid];
+        let channel = this.app.get("channelService").getChannel(channelName, true);
 
         if (channel && record) {
             channel.leave(uid, record.sid);
@@ -128,14 +126,14 @@ export class AccountService {
      * @param  {String} uid user id
      */
     kick(uid) {
-        var channelNames = this.channelMap[uid];
-        var record = this.uidMap[uid];
+        let channelNames = this.channelMap[uid];
+        let record = this.uidMap[uid];
 
         if (channelNames && record) {
             // remove user from channels
-            var channel;
-            for (var name in channelNames) {
-                channel = this.app.get('channelService').getChannel(name);
+            let channel;
+            for (let name in channelNames) {
+                channel = this.app.get("channelService").getChannel(name);
                 if (channel) {
                     channel.leave(uid, record.sid);
                 }
@@ -153,9 +151,9 @@ export class AccountService {
      * @param  {Function} cb          callback function
      */
     pushByChannel(channelName, msg, cb) {
-        var channel = this.app.get('channelService').getChannel(channelName);
+        let channel = this.app.get("channelService").getChannel(channelName);
         if (!channel) {
-            cb(new Error('channel ' + channelName + ' dose not exist'));
+            cb(new Error("channel " + channelName + " dose not exist"));
             return;
         }
 
@@ -170,7 +168,7 @@ export class AccountService {
      * @param  {Function} cb         callback
      */
     pushByPlayerName(playerName, msg, cb) {
-        var record = this.nameMap[playerName];
+        let record = this.nameMap[playerName];
         if (!record) {
             cb(null, Code.CHAT.FA_USER_NOT_ONLINE);
             return;
@@ -183,10 +181,10 @@ export class AccountService {
      * Add records for the specified user
      */
     addRecord = function (service, uid, name, sid, channelName) {
-        var record = { uid: uid, name: name, sid: sid };
+        let record = { uid: uid, name: name, sid: sid };
         service.uidMap[uid] = record;
         service.nameMap[name] = record;
-        var item = service.channelMap[uid];
+        let item = service.channelMap[uid];
         if (!item) {
             item = service.channelMap[uid] = {};
         }
@@ -219,7 +217,7 @@ export class AccountService {
     clearRecords = function (service, uid) {
         delete service.channelMap[uid];
 
-        var record = service.uidMap[uid];
+        let record = service.uidMap[uid];
         if (!record) {
             return;
         }
@@ -232,7 +230,7 @@ export class AccountService {
      * Get the connector server id assosiated with the uid
      */
     getSidByUid = function (uid, app) {
-        var connector = dispatcher.dispatch(uid, app.getServersByType('connector'));
+        let connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
         if (connector) {
             return connector.id;
         }
