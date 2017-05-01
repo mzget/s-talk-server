@@ -1,17 +1,17 @@
 
-import request = require('request');
+import request = require("request");
 
 import { Config } from "../../config/config";
-import { Room, RoomStatus, RoomType } from '../model/Room';
+import { Room, RoomStatus, RoomType } from "../model/Room";
 
 export async function getRoom(roomId: string) {
     let p = await new Promise((resolve: (room: Room) => void, rejected) => {
         let options = {
             url: `${Config.api.chatroom}?room_id=${roomId}`,
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 "cache-control": "no-cache",
-                'x-api-key': `${Config.api.apikey}`
+                "x-api-key": `${Config.api.apikey}`
             }
         };
 
@@ -52,4 +52,4 @@ export function checkedCanAccessRoom(room: Room, userId: string, callback: (err:
     });
 
     callback(null, result);
-};
+}

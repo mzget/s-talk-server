@@ -15,9 +15,9 @@ function getRoom(roomId) {
             let options = {
                 url: `${config_1.Config.api.chatroom}?room_id=${roomId}`,
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                     "cache-control": "no-cache",
-                    'x-api-key': `${config_1.Config.api.apikey}`
+                    "x-api-key": `${config_1.Config.api.apikey}`
                 }
             };
             function callback(error, response, body) {
@@ -55,4 +55,3 @@ function checkedCanAccessRoom(room, userId, callback) {
     callback(null, result);
 }
 exports.checkedCanAccessRoom = checkedCanAccessRoom;
-;

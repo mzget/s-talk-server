@@ -52,7 +52,7 @@ handler.send = function (msg, session, next) {
     let target = msg.target;
 
     if (!rid) {
-        let errMsg = "rid is invalid please check.";
+        const errMsg = "rid is invalid please check.";
         return next(null, { code: Code.FAIL, message: errMsg, body: msg });
     }
 
@@ -61,10 +61,10 @@ handler.send = function (msg, session, next) {
     }, Config.timeout);
 
     chatroomService.getRoom(rid).then((room: Room) => {
-        console.log("getRoom: ", room._id, room.name);
+        console.log("getRoom value: ", room._id, room.name);
 
         if (!room.members) {
-            let errMsg = "Room no have a members.";
+            const errMsg = "Room no have a members.";
             next(null, { code: Code.FAIL, message: errMsg });
             clearTimeout(timeout_id);
             return;
