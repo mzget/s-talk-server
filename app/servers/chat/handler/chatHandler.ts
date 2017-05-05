@@ -62,7 +62,7 @@ handler.send = function (msg, session, next) {
     }, Config.timeout);
 
     chatroomService.getRoom(rid).then((room: Room) => {
-        console.log("getRoom value: ", room._id, room.name);
+        console.log("getRoom value: ", room);
 
         if (!room.members) {
             const errMsg = "Room no have a members.";

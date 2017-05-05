@@ -1,23 +1,23 @@
-﻿import RoomAccessData from './RoomAccessData';
-import UserRole from './UserRole';
-import JobLevel from './JobLevel';
+﻿import RoomAccessData from "./RoomAccessData";
+import UserRole from "./UserRole";
+import JobLevel from "./JobLevel";
 
 interface IUser {
     uid: string;
-};
+}
 export class OnlineUser implements IUser {
     uid: string;
     registrationIds: string[];
     username: string;
     serverId: string;
-};
+}
 export class UserTransaction implements IUser {
     uid: string;
     username: string;
 }
 export interface IOnlineUser {
     [uid: string]: OnlineUser;
-};
+}
 
 export class StalkAccount {
     _id: string;
@@ -28,7 +28,7 @@ export class StalkAccount {
     lastname: string;
     tel: string;
     mail: string;
-    image: string; //!-- mean image url.
+    image: string; // !-- mean image url.
     role: UserRole;
     department: string;
     jobLevel: JobLevel;
@@ -42,4 +42,4 @@ export class StalkAccount {
     closedNoticeUsers: string[]; // user_id
     closedNoticeGroups: string[]; // room_id
     deviceTokens: string[];
-};
+}

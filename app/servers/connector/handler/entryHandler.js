@@ -135,12 +135,15 @@ handler.enterRoom = function (msg, session, next) {
         return;
     }, config_1.Config.timeout);
     chatroomService.getRoom(rid).then((room) => {
-        console.log("getRoom", room._id, room.name);
+        console.log("getRoom", room);
         chatroomService.checkedCanAccessRoom(room, uid, function (err, res) {
             console.log("checkedCanAccessRoom: ", res);
             if (err || res === false) {
                 clearTimeout(timeOut_id);
-                next(null, { code: Code_1.default.FAIL, message: "cannot access your request room. may be you are not a member or leaved room!" });
+                next(null, {
+                    code: Code_1.default.FAIL,
+                    message: "cannot access your request room. may be you are not a member or leaved room!"
+                });
             }
             else {
                 session.set("rid", rid);

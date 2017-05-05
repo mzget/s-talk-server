@@ -1,5 +1,5 @@
-﻿import User = require('../../../model/User');
-var channelService;
+﻿import User = require("../../../model/User");
+let channelService;
 
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
@@ -8,7 +8,7 @@ module.exports = function (app) {
 
 const ChatRemote = function (app) {
     this.app = app;
-    channelService = app.get('channelService');
+    channelService = app.get("channelService");
 };
 
 const remote = ChatRemote.prototype;
@@ -28,7 +28,7 @@ remote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
     console.log("chatRemote.add : user %s to room %s", user.username, rid);
 
     let param = {
-        route: 'onAdd',
+        route: "onAdd",
         user: user
     };
 
@@ -53,21 +53,21 @@ remote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
 */
 
 remote.getUsers = function (name, flag) {
-    var users = [];
-    var channel = channelService.getChannel(name, flag);
+    let users = [];
+    let channel = channelService.getChannel(name, flag);
     if (!!channel) {
         users = channel.getMembers();
         console.warn("Heavy operation.!!! channel members: ", users);
     }
-    for (var i = 0; i < users.length; i++) {
-        users[i] = users[i].split('*')[0];
+    for (let i = 0; i < users.length; i++) {
+        users[i] = users[i].split("*")[0];
     }
     return users;
 };
 
 /**
 * Kick user out chat channel.
-* When user leave room. Server will update lastAccessTime of left room for them. 
+* When user leave room. Server will update lastAccessTime of left room for them.
 * Then server return roomAccess data of left room to them.
 *
 * @param {String} uid unique id for user
@@ -79,15 +79,15 @@ remote.kick = function (user: User.UserTransaction, sid, rid, cb: Function) {
     if (!rid) { return; }
 
     let channel = channelService.getChannel(rid, false);
-    //<!-- when user leave channel.
+    // <!-- when user leave channel.
     if (!!channel) {
-        var username = user.username;
-        var uid = user.uid;
+        let username = user.username;
+        let uid = user.uid;
 
         console.log("uid %s leave channel ", uid);
 
-        var param = {
-            route: 'onLeave',
+        let param = {
+            route: "onLeave",
             user: user
         };
         channel.pushMessage(param);

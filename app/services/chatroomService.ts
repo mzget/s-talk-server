@@ -21,7 +21,6 @@ export async function getRoom(roomId: string) {
                 rejected(error);
             }
             else if (!error && response.statusCode == 200) {
-
                 let data = JSON.parse(body);
                 if (data.result && data.result.length > 0) {
                     resolve(data.result[0]);
@@ -31,7 +30,7 @@ export async function getRoom(roomId: string) {
                 }
             }
             else {
-                console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
+                console.log("getUserInfo: ", response.statusCode, response.statusMessage);
                 rejected(response);
             }
         }

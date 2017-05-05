@@ -55,7 +55,7 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
     }, config_1.Config.timeout);
     chatroomService.getRoom(rid).then((room) => {
-        console.log("getRoom value: ", room._id, room.name);
+        console.log("getRoom value: ", room);
         if (!room.members) {
             const errMsg = "Room no have a members.";
             next(null, { code: Code_1.default.FAIL, message: errMsg });

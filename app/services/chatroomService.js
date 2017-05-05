@@ -35,7 +35,7 @@ function getRoom(roomId) {
                     }
                 }
                 else {
-                    console.dir("getUserInfo: ", response.statusCode, response.statusMessage);
+                    console.log("getUserInfo: ", response.statusCode, response.statusMessage);
                     rejected(response);
                 }
             }
