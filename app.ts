@@ -1,7 +1,5 @@
 ﻿const pomelo = require('pomelo');
 import routeUtil from './app/util/routeUtil';
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
 import mongodb = require('mongodb');
 import { AccountService } from './app/services/accountService';
 

@@ -1,8 +1,6 @@
 "use strict";
 const pomelo = require('pomelo');
 const routeUtil_1 = require("./app/util/routeUtil");
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
 const mongodb = require("mongodb");
 const accountService_1 = require("./app/services/accountService");
 process.env.TZ = 'UTC';
