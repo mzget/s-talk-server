@@ -1,13 +1,13 @@
-﻿const pomelo = require('pomelo');
-import routeUtil from './app/util/routeUtil';
-import mongodb = require('mongodb');
-import { AccountService } from './app/services/accountService';
-
-process.env.TZ = 'UTC';
+﻿process.env.TZ = 'UTC';
 process.env.NODE_ENV = `production`;
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
+
+const pomelo = require('pomelo');
+import routeUtil from './app/util/routeUtil';
+import mongodb = require('mongodb');
+import { AccountService } from './app/services/accountService';
 
 import webConfig = require('./config/config');
 
