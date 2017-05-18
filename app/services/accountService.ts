@@ -221,7 +221,7 @@ export class AccountService {
     /**
      * Add records for the specified user
      */
-    addRecord = function(service, uid, name, sid, channelName) {
+    addRecord = function (service, uid, name, sid, channelName) {
         var record = { uid: uid, name: name, sid: sid };
         service.uidMap[uid] = record;
         service.nameMap[name] = record;
@@ -235,14 +235,14 @@ export class AccountService {
     /**
      * Cehck whether the user has already in the channel
      */
-    checkDuplicate = function(service, uid, channelName): boolean {
+    checkDuplicate = function (service, uid, channelName): boolean {
         return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
     };
 
     /**
      * Remove records for the specified user and channel pair
      */
-    removeRecord = function(service, uid, channelName) {
+    removeRecord = function (service, uid, channelName) {
         delete service.channelMap[uid][channelName];
         //    if (utils.size(service.channelMap[uid])) {
         //        return;
@@ -255,7 +255,7 @@ export class AccountService {
     /**
      * Clear all records of the user
      */
-    clearRecords = function(service, uid) {
+    clearRecords = function (service, uid) {
         delete service.channelMap[uid];
 
         var record = service.uidMap[uid];
@@ -270,7 +270,7 @@ export class AccountService {
     /**
      * Get the connector server id assosiated with the uid
      */
-    getSidByUid = function(uid, app) {
+    getSidByUid = function (uid, app) {
         var connector = dispatcher.dispatch(uid, app.getServersByType('connector'));
         if (connector) {
             return connector.id;
