@@ -465,7 +465,7 @@ handler.enterRoom = function (msg, session, next) {
 	self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
 		let room = res;
 		if (!!room) {
-			console.log("getRoomMap", room._id, room.name);
+			console.log(`room is ${room._id}, room-name : ${room.name}, type : ${room.type}`);
 
 			self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
 				console.log("checkedCanAccessRoom: ", res);
