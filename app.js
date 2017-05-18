@@ -1,16 +1,13 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const pomelo = require('pomelo');
-const routeUtil_1 = require("./app/util/routeUtil");
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
-const mongodb = require("mongodb");
-const accountService_1 = require("./app/services/accountService");
 process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
+const pomelo = require('pomelo');
+const routeUtil_1 = require("./app/util/routeUtil");
+const mongodb = require("mongodb");
+const accountService_1 = require("./app/services/accountService");
 const webConfig = require("./config/config");
 /**
  * Init app for client.
@@ -46,12 +43,6 @@ app.configure('production|development', 'auth', function () {
 });
 app.configure('production|development', 'chat', function () {
 });
-//app.configure('production|development', 'master', function () {
-//var http = new HttpDebug();
-//http.start();
-//var net = new netserver.NetServer();
-//net.Start();
-//});
 mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
     db.stats(function (err, stat) {
         console.log("api status ready.", stat.db);

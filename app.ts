@@ -1,15 +1,13 @@
-﻿const pomelo = require('pomelo');
-import routeUtil from './app/util/routeUtil';
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
-import mongodb = require('mongodb');
-import { AccountService } from './app/services/accountService';
-
-process.env.TZ = 'UTC';
+﻿process.env.TZ = 'UTC';
 process.env.NODE_ENV = 'development';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
+
+const pomelo = require('pomelo');
+import routeUtil from './app/util/routeUtil';
+import mongodb = require('mongodb');
+import { AccountService } from './app/services/accountService';
 
 import webConfig = require('./config/config');
 
@@ -55,13 +53,6 @@ app.configure('production|development', 'auth', function () {
 app.configure('production|development', 'chat', function () {
 
 });
-
-//app.configure('production|development', 'master', function () {
-//var http = new HttpDebug();
-//http.start();
-//var net = new netserver.NetServer();
-//net.Start();
-//});
 
 mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
     db.stats(function (err, stat) {
