@@ -39,7 +39,7 @@ function saveMessage(_message) {
                 }
                 else {
                     console.warn("saveMessage: ", response.statusCode, response.statusMessage);
-                    rejected(response);
+                    rejected(response.statusMessage);
                 }
             }
             request.post(options, callback);

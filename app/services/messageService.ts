@@ -34,7 +34,7 @@ export async function saveMessage(_message: Message) {
             }
             else {
                 console.warn("saveMessage: ", response.statusCode, response.statusMessage);
-                rejected(response);
+                rejected(response.statusMessage);
             }
         }
 

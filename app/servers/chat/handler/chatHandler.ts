@@ -83,7 +83,7 @@ handler.send = function (msg, session, next) {
                 pushMessage(self.app, session, room, value, client_uuid, msg_target);
                 clearTimeout(timeout_id);
             }).catch(err => {
-                next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." + err });
                 clearTimeout(timeout_id);
             });
         }

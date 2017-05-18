@@ -7,7 +7,7 @@ const devConfig = {
     authen: `${devApi}:3002/api/authenticate/verify`,
     user: `${devApi}:3002/users/query`,
     chatroom: `${devApi}:3003/api/chatroom`,
-    chat: `${devApi}/api/stalk/chat`
+    chat: `${devApi}:3003/api/stalk/chat`
   },
   chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
   fileDB: "",
