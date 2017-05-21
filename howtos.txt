@@ -1,0 +1,6 @@
+- docker build -t mzget/stalk-chitchat .
+- docker run --name stalk-chitchat -p 3050-3052:3050-3052 -d mzget/stalk-chitchat
+- docker exec -it stalk-chitchat /bin/bash
+
+// push to docker hub 
+- docker push mzget/stalk-chitchat
