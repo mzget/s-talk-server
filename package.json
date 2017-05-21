@@ -12,13 +12,13 @@
   "dependencies": {
     "@types/async": "^2.0.40",
     "@types/node": "^7.0.12",
-    "async": "^2.2.0",
+    "async": "^2.4.0",
     "crc": "0.2.0",
     "form-data": "0.2.0",
-    "joi": "^10.2.0",
+    "joi": "^10.5.0",
     "joi-objectid": "^2.0.0",
-    "jsonwebtoken": "^7.3.0",
-    "mongodb": "^2.2.25",
+    "jsonwebtoken": "^7.4.1",
+    "mongodb": "^2.2.26",
     "pomelo": "^2.2.5",
     "request": "^2.79.0"
   },

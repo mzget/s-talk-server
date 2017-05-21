@@ -7,7 +7,7 @@ import Room = require('../../../model/Room');
 import TokenService from '../../../services/tokenService';
 import request = require('request');
 import Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
+Joi["objectId"] = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const tokenService: TokenService = new TokenService();
@@ -40,13 +40,19 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
 	let self = this;
 	let schema = {
-		token: Joi.string().allow(null),
-		user: Joi.object().optional()
+		token: Joi.string().optional(),
+		user: Joi.object().optional(),
+		"x-api-key": Joi.strict().required()
 	};
 	const result = Joi.validate(msg._object, schema);
 
 	if (result.error) {
 		return next(null, { code: Code.FAIL, message: result.error });
+	}
+
+	let apiKey = msg["x-api-key"];
+	if (apiKey != Config.apiKey) {
+		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 
 	if (msg.token) {
