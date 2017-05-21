@@ -2,6 +2,7 @@
 let masterApi = "http://matchlink.asia";
 
 const devConfig = {
+  apiKey: "matchlink1234",
   api: {
     apikey: "smelink-chat1234",
     authen: `${devApi}:3002/api/authenticate/verify`,
@@ -26,6 +27,7 @@ const devConfig = {
 }
 
 const masterConfig = {
+  apiKey: "matchlink1234",
   api: {
     apikey: "smelink-chat1234",
     authen: `${masterApi}:3002/api/authenticate/verify`,
