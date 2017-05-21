@@ -3,6 +3,7 @@ let devApi = "http://localhost:9000";
 let dev2Api = "http://git.animation-genius.com:3000";
 let masterApi = "http://203.148.250.152:3002";
 const devConfig = {
+    apiKey: "chitchat1234",
     api: {
         apikey: "chitchat1234",
         host: `${dev2Api}`,
@@ -19,11 +20,12 @@ const devConfig = {
     pushPort: 4040,
     pushPath: "/parse/push",
     session: {
-        expire: "300",
+        expire: "1 days",
         secret: "ahoostudio_session_secret"
     }
 };
 const masterConfig = {
+    apiKey: "chitchat1234",
     api: {
         authen: `${masterApi}/api/authenticate/verify`
     },

@@ -2,6 +2,9 @@
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
 const dispatcher_1 = require("../../../util/dispatcher");
+const config_1 = require("../../../../config/config");
+const Joi = require("joi");
+Joi["objectId"] = require("joi-objectid")(Joi);
 const tokenService = new tokenService_1.default();
 module.exports = function (app) {
     return new Handler(app);
@@ -20,28 +23,28 @@ const handler = Handler.prototype;
  *
  */
 handler.queryEntry = function (msg, session, next) {
-    let uid = msg.uid;
-    if (!uid) {
-        next(null, {
-            code: Code_1.default.FAIL, message: "uid is invalid."
-        });
-        return;
+    let schema = {
+        "uid": Joi.string().required(),
+        "x-api-key": Joi.string().required()
+    };
+    const result = Joi.validate(msg._object, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
+    }
+    let uid = msg["uid"];
+    let apiKey = msg["x-api-key"];
+    if (apiKey != config_1.Config.apiKey) {
+        return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
     // get all connectors
     let connectors = this.app.getServersByType("connector");
     if (!connectors || connectors.length === 0) {
-        next(null, {
-            code: Code_1.default.FAIL, message: connectors
-        });
+        next(null, { code: Code_1.default.FAIL, message: connectors });
         return;
     }
     // select connector
     let res = dispatcher_1.default(uid, connectors);
-    next(null, {
-        code: Code_1.default.OK,
-        host: res.host,
-        port: res.clientPort
-    });
+    next(null, { code: Code_1.default.OK, host: res.host, port: res.clientPort });
 };
 handler.authenGateway = function (msg, session, next) {
     tokenService.ensureAuthorized(msg.token, function (err, res) {

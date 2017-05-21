@@ -40,11 +40,6 @@ const handler = Handler.prototype;
  * @param {Object} msg message from client
  * @param {Object} session
  * @param  {Function} next next stemp callback
- *
- * TODO...
- * ==> 1. room members who online and join in room. <for case but not significant>.
- * ==> 2. room members who online and not join room.
- * ==> 3. room members who not online. <Push>
  */
 handler.send = function (msg, session, next) {
     let self = this;

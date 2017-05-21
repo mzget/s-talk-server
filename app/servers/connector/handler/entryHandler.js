@@ -27,42 +27,45 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     let self = this;
     let schema = {
-        user: Joi.object().not(null)
+        user: Joi.object().required(),
+        "x-api-key": Joi.string().required()
     };
     const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    if (msg.user) {
-        if (!msg.user._id && !!msg.user.username) {
-            return next(null, { code: Code_1.default.FAIL, message: "missing user info" });
-        }
-        tokenService.signToken(msg.user, (err, encode) => {
-            if (err) {
-                return next(null, { code: Code_1.default.FAIL, message: err });
-            }
-            else {
-                session.__sessionService__.kick(msg.user._id, "New login...");
-                self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
-                    // 	//@ Signing success.
-                    session.bind(msg.user._id);
-                    session.on("closed", onUserLeave.bind(null, self.app));
-                    let param = {
-                        route: Code_1.default.sharedEvents.onUserLogin,
-                        data: msg.user
-                    };
-                    channelService.broadcast("connector", param.route, param.data);
-                    addOnlineUser(self.app, session, msg.user);
-                    next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
-                    if (!user) {
-                    }
-                    else {
-                        console.warn("Duplicate user by onlineUsers collections.");
-                    }
-                });
-            }
-        });
+    let apiKey = msg["x-api-key"];
+    if (apiKey != config_1.Config.apiKey) {
+        return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
+    if (!msg.user._id && !!msg.user.username) {
+        return next(null, { code: Code_1.default.FAIL, message: "missing user info" });
+    }
+    tokenService.signToken(msg.user, (err, encode) => {
+        if (err) {
+            return next(null, { code: Code_1.default.FAIL, message: err });
+        }
+        else {
+            session.__sessionService__.kick(msg.user._id, "New login...");
+            self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+                // 	//@ Signing success.
+                session.bind(msg.user._id);
+                session.on("closed", onUserLeave.bind(null, self.app));
+                let param = {
+                    route: Code_1.default.sharedEvents.onUserLogin,
+                    data: msg.user
+                };
+                channelService.broadcast("connector", param.route, param.data);
+                addOnlineUser(self.app, session, msg.user);
+                next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
+                if (!user) {
+                }
+                else {
+                    console.warn("Duplicate user by onlineUsers collections.");
+                }
+            });
+        }
+    });
 };
 handler.logout = function (msg, session, next) {
     console.log("logout", msg);
