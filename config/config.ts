@@ -1,5 +1,5 @@
 ﻿let devApi = "http://localhost:9000";
-let dev2Api = "http://git.animation-genius.com:3000";
+let dev2Api = "http://203.150.95.146:9000";
 let masterApi = "http://203.148.250.152:3002";
 
 const devConfig = {
