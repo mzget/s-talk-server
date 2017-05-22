@@ -1,6 +1,6 @@
 "use strict";
 process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });

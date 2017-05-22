@@ -33,7 +33,7 @@ const masterConfig = {
     authen: `${masterApi}:3002/api/authenticate/verify`,
     user: `${masterApi}:3002/users/query`,
     chatroom: `${masterApi}:3003/api/chatroom`,
-    chat: `${devApi}/api/stalk/chat`
+    chat: `${masterApi}:3003/api/stalk/chat`
   },
   chatDB: "mongodb://smelink:arrapwd#2017@203.148.255.26:27017/Chat",
   fileDB: "",
