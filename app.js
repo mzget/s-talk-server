@@ -1,6 +1,6 @@
 "use strict";
 process.env.TZ = 'UTC';
-process.env.NODE_ENV = `production`;
+process.env.NODE_ENV = 'production';
 process.on('uncaughtException', function (err) {
     console.error(' Caught exception: ' + err.stack);
 });
@@ -43,12 +43,6 @@ app.configure('production|development', 'auth', function () {
 });
 app.configure('production|development', 'chat', function () {
 });
-//app.configure('production|development', 'master', function () {
-//var http = new HttpDebug();
-//http.start();
-//var net = new netserver.NetServer();
-//net.Start();
-//});
 mongodb.MongoClient.connect(webConfig.Config.chatDB).then(db => {
     db.stats(function (err, stat) {
         console.log("api status ready.", stat.db);

@@ -1,12 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 const mongodb = require("mongodb");
 const async = require("async");
 const MDb = require("../db/dbClient");
@@ -15,16 +7,6 @@ const UserManager_1 = require("./UserManager");
 const ObjectID = mongodb.ObjectID;
 const dbClient = MDb.DbController.DbClient.GetInstance();
 const MongoClient = mongodb.MongoClient;
-function AddChatRecord(object) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let db = yield MongoClient.connect(MDb.DbController.chatDB);
-        let col = db.collection(MDb.DbController.messageColl);
-        let result = yield col.insertOne(object, { w: 1 });
-        db.close();
-        return result.ops;
-    });
-}
-exports.AddChatRecord = AddChatRecord;
 class ChatRoomManager {
     constructor() {
         this.userManager = UserManager_1.UserManager.getInstance();

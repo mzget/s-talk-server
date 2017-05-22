@@ -7,7 +7,7 @@ const userDAL = require("../../../dal/userDataAccess");
 const tokenService_1 = require("../../../services/tokenService");
 const request = require("request");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi);
+Joi["objectId"] = require('joi-objectid')(Joi);
 const config_1 = require("../../../../config/config");
 const tokenService = new tokenService_1.default();
 const companyManager = CompanyController.CompanyManager.getInstance();
@@ -30,12 +30,17 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     let self = this;
     let schema = {
-        token: Joi.string().allow(null),
-        user: Joi.object().optional()
+        token: Joi.string().optional(),
+        user: Joi.object().optional(),
+        "x-api-key": Joi.strict().required()
     };
     const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
+    }
+    let apiKey = msg["x-api-key"];
+    if (apiKey != config_1.Config.apiKey) {
+        return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
     if (msg.token) {
         let token = msg.token;
@@ -129,8 +134,9 @@ const logOut = function (app, session, next) {
     });
     //!-- log user out.
     app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-    if (!!next)
+    if (!!next) {
         next();
+    }
 };
 handler.kickMe = function (msg, session, next) {
     session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
@@ -386,7 +392,7 @@ handler.enterRoom = function (msg, session, next) {
     self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
         let room = res;
         if (!!room) {
-            console.log("getRoomMap", room._id, room.name);
+            console.log(`room is ${room._id}, room-name : ${room.name}, type : ${room.type}`);
             self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
                 console.log("checkedCanAccessRoom: ", res);
                 if (err || res === false) {

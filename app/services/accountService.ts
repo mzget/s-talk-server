@@ -84,7 +84,6 @@ export class AccountService {
                     rejected(error);
                 }
                 else if (!error && response.statusCode == 200) {
-
                     let data = JSON.parse(body);
                     if (data.result && data.result.length > 0) {
                         resolve(data.result[0]);

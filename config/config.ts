@@ -2,11 +2,13 @@
 let masterApi = "http://matchlink.asia";
 
 const devConfig = {
+  apiKey: "matchlink1234",
   api: {
     apikey: "smelink-chat1234",
     authen: `${devApi}:3002/api/authenticate/verify`,
     user: `${devApi}:3002/users/query`,
-    chatroom: `${devApi}:3003/api/chatroom`
+    chatroom: `${devApi}:3003/api/chatroom`,
+    chat: `${devApi}:3003/api/stalk/chat`
   },
   chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/smelink-chat-dev",
   fileDB: "",
@@ -25,11 +27,13 @@ const devConfig = {
 }
 
 const masterConfig = {
+  apiKey: "matchlink1234",
   api: {
     apikey: "smelink-chat1234",
-    authen: `${masterApi}/v2/api/authenticate/verify`,
-    user: `${masterApi}/v2/users/query`,
-    chatroom: `${masterApi}/v1/chatapi/api/chatroom`
+    authen: `${masterApi}:3002/api/authenticate/verify`,
+    user: `${masterApi}:3002/users/query`,
+    chatroom: `${masterApi}:3003/api/chatroom`,
+    chat: `${masterApi}:3003/api/stalk/chat`
   },
   chatDB: "mongodb://smelink:arrapwd#2017@203.148.255.26:27017/Chat",
   fileDB: "",

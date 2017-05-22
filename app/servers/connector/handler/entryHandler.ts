@@ -7,7 +7,7 @@ import Room = require('../../../model/Room');
 import TokenService from '../../../services/tokenService';
 import request = require('request');
 import Joi = require('joi');
-Joi.objectId = require('joi-objectid')(Joi);
+Joi["objectId"] = require('joi-objectid')(Joi);
 
 import { Config } from '../../../../config/config';
 const tokenService: TokenService = new TokenService();
@@ -40,13 +40,19 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
 	let self = this;
 	let schema = {
-		token: Joi.string().allow(null),
-		user: Joi.object().optional()
+		token: Joi.string().optional(),
+		user: Joi.object().optional(),
+		"x-api-key": Joi.strict().required()
 	};
 	const result = Joi.validate(msg._object, schema);
 
 	if (result.error) {
 		return next(null, { code: Code.FAIL, message: result.error });
+	}
+
+	let apiKey = msg["x-api-key"];
+	if (apiKey != Config.apiKey) {
+		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 
 	if (msg.token) {
@@ -158,8 +164,9 @@ const logOut = function (app, session, next) {
 	//!-- log user out.
 	app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
 
-	if (!!next)
+	if (!!next) {
 		next();
+	}
 };
 
 handler.kickMe = function (msg, session, next) {
@@ -464,7 +471,7 @@ handler.enterRoom = function (msg, session, next) {
 	self.app.rpc.auth.authRemote.getRoomMap(session, rid, (err, res) => {
 		let room = res;
 		if (!!room) {
-			console.log("getRoomMap", room._id, room.name);
+			console.log(`room is ${room._id}, room-name : ${room.name}, type : ${room.type}`);
 
 			self.app.rpc.auth.authRemote.checkedCanAccessRoom(session, room, uid, function (err, res) {
 				console.log("checkedCanAccessRoom: ", res);
