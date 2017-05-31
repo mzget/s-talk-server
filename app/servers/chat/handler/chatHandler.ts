@@ -123,7 +123,7 @@ function pushMessage(app, session, room: Room, message: Message, clientUUID: str
         if (target === "*") {
             // <!-- Push new message to online users.
             let uidsGroup = new Array();
-            async.eachSeries(onlineMembers, function iterator(val, cb) {
+            async.each(onlineMembers, function iterator(val, cb) {
                 let group = {
                     uid: val.uid,
                     sid: val.serverId
