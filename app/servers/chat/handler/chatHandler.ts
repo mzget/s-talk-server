@@ -1,11 +1,11 @@
 ﻿import User = require("../../../model/User");
-import UserService = require("../../../dal/userDataAccess");
 import { Room, RoomStatus, RoomType } from "../../../model/Room";
 import { Message } from "../../../model/Message";
 import Code from "../../../../shared/Code";
 import MPushService = require("../../../services/ParsePushService");
 import * as chatroomService from "../../../services/chatroomService";
 import * as messageService from "../../../services/messageService";
+import * as userService from "../../../services/userService";
 
 import mongodb = require("mongodb");
 type ObjectID = mongodb.ObjectID;
@@ -415,7 +415,7 @@ function getWhoReadMessages(messages: Array<string>, channel) {
 function simplePushNotification(app: any, session: any, offlineMembers: Array<string>, room: Room, sender: string): void {
     let pushTitle = room.name;
     let alertMessage = "";
-    let targetMemberWhoSubscribeRoom = new Array<ObjectID>();
+    let targetMemberWhoSubscribeRoom = new Array<string>();
     let targetDevices = new Array<string>();
     if (!!pushTitle) {
         alertMessage = pushTitle + " sent you message.";
@@ -447,18 +447,16 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
 
     function call() {
         async.map(offlineMembers, function iterator(item, result: (err, obj: ObjectID) => void) {
-            result(null, new mongodb.ObjectID(item));
+            result(null, item);
         }, function done(err, results) {
             targetMemberWhoSubscribeRoom = results.slice();
 
             let promise = new Promise(function (resolve, reject) {
                 // <!-- Query all deviceTokens for each members.
-                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-
-                    console.warn("DeviceToken", err, res);
-                    // DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
-                    if (!!res) {
-                        let memberTokens: Array<any> = res; // array of deviceTokens for each member.
+                userService.getDeviceTokens(targetMemberWhoSubscribeRoom)
+                    .then(res => {
+                        // DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
+                        let memberTokens = res as Array<any>; // array of deviceTokens for each member.
                         async.mapSeries(memberTokens, function iterator(item, cb) {
                             if (!!item.deviceTokens) {
                                 let deviceTokens: Array<string> = item.deviceTokens;
@@ -485,8 +483,9 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
                                 resolve(results);
                             }
                         });
-                    }
-                });
+                    }).catch(err => {
+                        reject(err);
+                    });
             }).then(function onfulfill(value) {
                 console.warn("Push", targetDevices, alertMessage);
                 pushService.sendPushToTargetDevices(targetDevices, alertMessage);

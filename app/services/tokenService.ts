@@ -1,10 +1,10 @@
-import jwt = require('jsonwebtoken');
-import { Config } from '../../config/config';
+import jwt = require("jsonwebtoken");
+import { Config } from "../../config/config";
 
 export default class TokenService {
 	private secret = "";
 	private expire: string | number;
-	//	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
+	// 	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
 
 	constructor() {
 		this.secret = Config.session.secret;

@@ -1,7 +1,7 @@
 "use strict";
 const Code_1 = require("../../../../shared/Code");
 const User = require("../../../model/User");
-const userDAL = require("../../../dal/userDataAccess");
+const userDataAccess_1 = require("../../../dal/userDataAccess");
 const tokenService_1 = require("../../../services/tokenService");
 const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
@@ -73,7 +73,7 @@ handler.logout = function (msg, session, next) {
     let registrationId = msg.registrationId;
     let self = this;
     if (!!session.uid && !!registrationId) {
-        userDAL.prototype.removeRegistrationId(session.uid, registrationId);
+        userDataAccess_1.UserDataAccess.prototype.removeRegistrationId(session.uid, registrationId);
     }
     logOut(self.app, session, null);
     next();
@@ -93,7 +93,7 @@ handler.kickMe = function (msg, session, next) {
     session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
     // !-- log user out.
     this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
-    userDAL.prototype.removeAllRegistrationId(msg.uid);
+    userDataAccess_1.UserDataAccess.prototype.removeAllRegistrationId(msg.uid);
     next(null, { message: "kicked! " + msg.uid });
 };
 function addOnlineUser(app, session, user) {

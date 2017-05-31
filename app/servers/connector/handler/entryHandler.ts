@@ -1,6 +1,6 @@
 ﻿import Code from "../../../../shared/Code";
 import User = require("../../../model/User");
-import userDAL = require("../../../dal/userDataAccess");
+import { UserDataAccess } from "../../../dal/userDataAccess";
 import { Room, RoomStatus, RoomType } from "../../../model/Room";
 import TokenService from "../../../services/tokenService";
 import * as chatroomService from "../../../services/chatroomService";
@@ -98,7 +98,7 @@ handler.logout = function (msg, session, next) {
 	let self = this;
 
 	if (!!session.uid && !!registrationId) {
-		userDAL.prototype.removeRegistrationId(session.uid, registrationId);
+		UserDataAccess.prototype.removeRegistrationId(session.uid, registrationId);
 	}
 	logOut(self.app, session, null);
 	next();
@@ -122,7 +122,7 @@ handler.kickMe = function (msg, session, next) {
 
 	// !-- log user out.
 	this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
-	userDAL.prototype.removeAllRegistrationId(msg.uid);
+	UserDataAccess.prototype.removeAllRegistrationId(msg.uid);
 
 	next(null, { message: "kicked! " + msg.uid });
 };

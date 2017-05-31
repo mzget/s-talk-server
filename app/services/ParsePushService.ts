@@ -58,19 +58,19 @@ export class ParsePushService {
             path: "/push",
             method: 'POST',
             headers: {
-                'X-Parse-Application-Id': Config.ParseApplicationId,
+                "X-Parse-Application-Id": Config.ParseApplicationId,
                 'X-Parse-REST-API-Key': Config.ParseRESTAPIKey,
-                'Content-Type': 'application/json'
+                'Content-Type': "application/json"
             }
         };
-        var request = https.request(options, function (res) {
+        let request = https.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
 
-            res.on('data', function (data) {
-                console.log('Response: ' + data);
+            res.on("data", function (data) {
+                console.log("Response: " + data);
 
-                var json = JSON.parse(JSON.stringify(data));
+                let json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -78,8 +78,8 @@ export class ParsePushService {
                 }
             });
         });
-        request.on('error', function (e) {
-            console.log('problem with request: ' + e.message);
+        request.on("error", function (e) {
+            console.log("problem with request: " + e.message);
         });
         request.write(postJson);
         request.end();
@@ -92,7 +92,7 @@ export class ParsePushService {
         }
 
         //        where = { "score": { "$in": [1, 3, 5, 7, 9] } }
-        var data = {
+        let data = {
             "where": {
                 "installationId": { "$in": installationsId }
             },
@@ -101,27 +101,27 @@ export class ParsePushService {
                 "content-available": 1
             }
         };
-        var postJson = JSON.stringify(data);
+        let postJson = JSON.stringify(data);
 
-        var options = {
+        let options = {
             hostname: Config.pushServer,
             port: 443,
             path: "/1/push",
-            method: 'POST',
+            method: "POST",
             headers: {
-                'X-Parse-Application-Id': Config.ParseApplicationId,
-                'X-Parse-REST-API-Key': Config.ParseRESTAPIKey,
-                'Content-Type': 'application/json'
+                "X-Parse-Application-Id": Config.ParseApplicationId,
+                "X-Parse-REST-API-Key": Config.ParseRESTAPIKey,
+                "Content-Type": "application/json"
             }
         };
-        var request = https.request(options, function (res) {
+        let request = https.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
 
-            res.on('data', function (data) {
-                console.log('Response: ' + data);
+            res.on("data", function (data) {
+                console.log("Response: " + data);
 
-                var json = JSON.parse(JSON.stringify(data));
+                let json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -129,8 +129,8 @@ export class ParsePushService {
                 }
             });
         });
-        request.on('error', function (e) {
-            console.log('problem with request: ' + e.message);
+        request.on("error", function (e) {
+            console.log("problem with request: " + e.message);
         });
         request.write(postJson);
         request.end();
@@ -160,22 +160,22 @@ export class ParsePushService {
             host: Config.pushServer,
             port: Config.pushPort,
             path: Config.pushPath,
-            method: 'POST',
+            method: "POST",
             headers: {
-                'X-Parse-Application-Id': Config.ParseApplicationId,
-                'X-Parse-REST-API-Key': Config.ParseRESTAPIKey,
-                'X-Parse-Master-Key': Config.ParseMasterKey,
-                'Content-Type': 'application/json'
+                "X-Parse-Application-Id": Config.ParseApplicationId,
+                "X-Parse-REST-API-Key": Config.ParseRESTAPIKey,
+                "X-Parse-Master-Key": Config.ParseMasterKey,
+                "Content-Type": "application/json"
             }
         };
         let request = http.request(options, function (res) {
             console.log("statusCode: ", res.statusCode);
             console.log("headers: ", res.headers);
 
-            res.on('data', function (data) {
-                console.log('Response: ' + data);
+            res.on("data", function (data) {
+                console.log("Response: " + data);
 
-                var json = JSON.parse(JSON.stringify(data));
+                let json = JSON.parse(JSON.stringify(data));
                 if (json.results === false) {
                 }
                 else {
@@ -183,8 +183,8 @@ export class ParsePushService {
                 }
             });
         });
-        request.on('error', function (e) {
-            console.log('problem with request: ' + e.message);
+        request.on("error", function (e) {
+            console.log("problem with request: " + e.message);
         });
         request.write(postJson);
         request.end();

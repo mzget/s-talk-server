@@ -7,12 +7,11 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
     }
     return t;
 };
-const UserService = require("../../../dal/userDataAccess");
 const Code_1 = require("../../../../shared/Code");
 const MPushService = require("../../../services/ParsePushService");
 const chatroomService = require("../../../services/chatroomService");
 const messageService = require("../../../services/messageService");
-const mongodb = require("mongodb");
+const userService = require("../../../services/userService");
 const async = require("async");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
@@ -397,43 +396,43 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
     }
     function call() {
         async.map(offlineMembers, function iterator(item, result) {
-            result(null, new mongodb.ObjectID(item));
+            result(null, item);
         }, function done(err, results) {
             targetMemberWhoSubscribeRoom = results.slice();
             let promise = new Promise(function (resolve, reject) {
                 // <!-- Query all deviceTokens for each members.
-                UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-                    console.warn("DeviceToken", err, res);
+                userService.getDeviceTokens(targetMemberWhoSubscribeRoom)
+                    .then(res => {
                     // DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
-                    if (!!res) {
-                        let memberTokens = res; // array of deviceTokens for each member.
-                        async.mapSeries(memberTokens, function iterator(item, cb) {
-                            if (!!item.deviceTokens) {
-                                let deviceTokens = item.deviceTokens;
-                                async.mapSeries(deviceTokens, (token, resultCb) => {
-                                    resultCb(null, token);
-                                }, function done(err, results) {
-                                    if (!!err) {
-                                        cb(err, null);
-                                    }
-                                    else {
-                                        targetDevices = results.slice();
-                                        cb(null, null);
-                                    }
-                                });
-                            }
-                            else {
-                                cb(null, null);
-                            }
-                        }, function done(err, results) {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                resolve(results);
-                            }
-                        });
-                    }
+                    let memberTokens = res; // array of deviceTokens for each member.
+                    async.mapSeries(memberTokens, function iterator(item, cb) {
+                        if (!!item.deviceTokens) {
+                            let deviceTokens = item.deviceTokens;
+                            async.mapSeries(deviceTokens, (token, resultCb) => {
+                                resultCb(null, token);
+                            }, function done(err, results) {
+                                if (!!err) {
+                                    cb(err, null);
+                                }
+                                else {
+                                    targetDevices = results.slice();
+                                    cb(null, null);
+                                }
+                            });
+                        }
+                        else {
+                            cb(null, null);
+                        }
+                    }, function done(err, results) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            resolve(results);
+                        }
+                    });
+                }).catch(err => {
+                    reject(err);
                 });
             }).then(function onfulfill(value) {
                 console.warn("Push", targetDevices, alertMessage);

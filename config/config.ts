@@ -9,7 +9,8 @@ const devConfig = {
     host: `${dev2Api}`,
     authen: `${dev2Api}/api/authenticate/verify`,
     chatroom: `${dev2Api}/api/chatroom`,
-    chat: `${dev2Api}/api/stalk/chat`
+    chat: `${dev2Api}/api/stalk/chat`,
+    user: `${dev2Api}/api/stalk/user`
   },
   chatDB: "mongodb://rfl_dev:rfl1234@git.animation-genius.com:27017/chitchat-dev",
   timeout: 10000,
@@ -29,7 +30,11 @@ const devConfig = {
 const masterConfig = {
   apiKey: "chitchat1234",
   api: {
-    authen: `${masterApi}/api/authenticate/verify`
+    apikey: "chitchat1234",
+    authen: `${masterApi}/api/authenticate/verify`,
+    chatroom: `${masterApi}/api/chatroom`,
+    chat: `${masterApi}/api/stalk/chat`,
+    user: `${masterApi}/api/stalk/user`
   },
   chatDB: "mongodb://chats:chats1234@smelink.animation-genius.com:27017/chats",
   timeout: 10000,

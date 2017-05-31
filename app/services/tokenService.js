@@ -2,7 +2,7 @@
 const jwt = require("jsonwebtoken");
 const config_1 = require("../../config/config");
 class TokenService {
-    //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
+    // 	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
     constructor() {
         this.secret = "";
         this.secret = config_1.Config.session.secret;

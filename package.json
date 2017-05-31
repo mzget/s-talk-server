@@ -10,25 +10,27 @@
     "deploy": "pm2 start app.js --name chitchat-node"
   },
   "dependencies": {
-    "async": "^2.4.0",
+    "async": "^2.4.1",
     "crc": "0.2.0",
     "joi": "^10.4.1",
     "joi-objectid": "^2.0.0",
-    "jsonwebtoken": "^7.4.0",
-    "mongodb": "^2.2.26",
+    "jsonwebtoken": "^7.4.1",
+    "mongodb": "^2.2.27",
     "pomelo": "^2.2.5",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "request-promise-native": "^1.0.4"
   },
   "devDependencies": {
     "@types/async": "^2.0.40",
-    "@types/joi": "^10.3.1",
+    "@types/joi": "^10.3.2",
     "@types/jsonwebtoken": "^7.2.0",
-    "@types/mongodb": "^2.2.0",
+    "@types/mongodb": "^2.2.2",
     "@types/node": "^7.0.14",
     "@types/promise": "^7.1.30",
     "@types/request": "0.0.42",
-    "tslint": "^5.1.0",
-    "typescript": "^2.3.2"
+    "@types/request-promise-native": "^1.0.5",
+    "tslint": "^5.3.2",
+    "typescript": "^2.3.4"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
   "repository": {

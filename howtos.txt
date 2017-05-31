@@ -4,3 +4,6 @@
 
 // push to docker hub 
 - docker push mzget/stalk-chitchat
+
+// pull from docker hub 
+- docker pull mzget/stalk-chitchat
