@@ -7,6 +7,9 @@ process.env.NODE_ENV = "development";
 process.on("uncaughtException", function (err) {
     console.error(" Caught exception: " + err.stack);
 });
+/**
+ * Logging database.
+ */
 const DbClient_1 = require("./app/DbClient");
 DbClient_1.InitDatabaseConnection().then(db => {
     db.stats().then(stat => {

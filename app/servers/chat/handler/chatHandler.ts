@@ -93,6 +93,48 @@ handler.send = function (msg, session, next) {
     });
 };
 
+handler.chat = function (msg, session, next) {
+    let self = this;
+    let rid = session.get("rid");
+    let client_uuid = msg.uuid;
+    let msg_target = msg.target;
+
+
+    if (!rid) {
+        const errMsg = "rid is invalid please check.";
+        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
+    }
+
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+    }, Config.timeout);
+
+    delete msg.__route__;
+    delete msg.uuid;
+    delete msg.status;
+
+    let _msg = { ...msg } as Message;
+    messageService.chat(_msg, rid).then(value => {
+        // <!-- send callback to user who send chat msg.
+        let params = {
+            uuid: client_uuid,
+            status: "sent",
+            resultMsg: value
+        };
+        clearTimeout(timeout_id);
+        next(null, { code: Code.OK, data: params });
+
+        chatroomService.getRoom(rid).then(room => {
+            pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        }).catch(err => {
+            next(null, { code: Code.FAIL, message: err.message });
+        });
+    }).catch(err => {
+        clearTimeout(timeout_id);
+        next(null, { code: Code.FAIL, message: err.message });
+    });
+};
+
 function pushMessage(app, session, room: Room, message: Message, clientUUID: string, target: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
@@ -446,7 +488,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
     }
 
     function call() {
-        async.map(offlineMembers, function iterator(item, result: (err, obj: ObjectID) => void) {
+        async.map(offlineMembers, function iterator(item, result: (err, obj: string) => void) {
             result(null, item);
         }, function done(err, results) {
             targetMemberWhoSubscribeRoom = results.slice();

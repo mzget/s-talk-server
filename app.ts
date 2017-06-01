@@ -10,6 +10,9 @@ process.on("uncaughtException", function (err) {
 });
 
 import { Config } from "./config/config";
+/**
+ * Logging database.
+ */
 import { InitDatabaseConnection } from "./app/DbClient";
 InitDatabaseConnection().then(db => {
     db.stats().then(stat => {

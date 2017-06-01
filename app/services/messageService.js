@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const request = require("request");
+const rp = require("request-promise-native");
 const config_1 = require("../../config/config");
 function saveMessage(_message) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -48,3 +49,27 @@ function saveMessage(_message) {
     });
 }
 exports.saveMessage = saveMessage;
+function chat(_message, room) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            let options = {
+                url: `${config_1.Config.api.chat}/chat`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "cache-control": "no-cache",
+                    "x-api-key": `${config_1.Config.api.apikey}`
+                },
+                body: JSON.stringify({
+                    message: _message,
+                    room: room
+                })
+            };
+            let data = yield rp.post(options);
+            return data.result;
+        }
+        catch (ex) {
+            throw new Error(ex.message);
+        }
+    });
+}
+exports.chat = chat;

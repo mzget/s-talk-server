@@ -81,6 +81,41 @@ handler.send = function (msg, session, next) {
         next(null, { code: Code_1.default.FAIL, message: err.toString() });
     });
 };
+handler.chat = function (msg, session, next) {
+    let self = this;
+    let rid = session.get("rid");
+    let client_uuid = msg.uuid;
+    let msg_target = msg.target;
+    if (!rid) {
+        const errMsg = "rid is invalid please check.";
+        return next(null, { code: Code_1.default.FAIL, message: errMsg, body: msg });
+    }
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
+    }, config_1.Config.timeout);
+    delete msg.__route__;
+    delete msg.uuid;
+    delete msg.status;
+    let _msg = __assign({}, msg);
+    messageService.chat(_msg, rid).then(value => {
+        // <!-- send callback to user who send chat msg.
+        let params = {
+            uuid: client_uuid,
+            status: "sent",
+            resultMsg: value
+        };
+        clearTimeout(timeout_id);
+        next(null, { code: Code_1.default.OK, data: params });
+        chatroomService.getRoom(rid).then(room => {
+            pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        }).catch(err => {
+            next(null, { code: Code_1.default.FAIL, message: err.message });
+        });
+    }).catch(err => {
+        clearTimeout(timeout_id);
+        next(null, { code: Code_1.default.FAIL, message: err.message });
+    });
+};
 function pushMessage(app, session, room, message, clientUUID, target) {
     let onlineMembers = new Array();
     let offlineMembers = new Array();

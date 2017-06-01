@@ -1,5 +1,6 @@
 
 import request = require("request");
+import * as rp from "request-promise-native";
 
 import { Config } from "../../config/config";
 import { Message } from "../model/Message";
@@ -42,4 +43,27 @@ export async function saveMessage(_message: Message) {
     });
 
     return p;
+}
+
+export async function chat(_message: Message, room: string) {
+    try {
+        let options = {
+            url: `${Config.api.chat}/chat`,
+            headers: {
+                "Content-Type": "application/json",
+                "cache-control": "no-cache",
+                "x-api-key": `${Config.api.apikey}`
+            },
+            body: JSON.stringify({
+                message: _message,
+                room: room
+            })
+        };
+
+        let data = await rp.post(options);
+
+        return data.result as Message;
+    } catch (ex) {
+        throw new Error(ex.message);
+    }
 }
