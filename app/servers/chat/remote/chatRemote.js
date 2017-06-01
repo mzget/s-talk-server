@@ -21,17 +21,16 @@ remote.add = function (user, sid, rid, flag, cb) {
     let username = user.username;
     let uid = user.uid;
     console.log("chatRemote.add : user %s to room %s", user.username, rid);
-    let param = {
-        route: "onAdd",
-        user: user
-    };
     if (!!channel) {
-        channel.add(uid, sid);
+        let param = {
+            route: "onAdd",
+            user: user
+        };
         channel.pushMessage(param);
+        channel.add(uid, sid);
     }
     if (!!cb)
         cb();
-    //    var users = this.getUsers(rid, flag);
 };
 /**
 * Get user from chat channel.
@@ -73,12 +72,12 @@ remote.kick = function (user, sid, rid, cb) {
     if (!!channel) {
         let username = user.username;
         let uid = user.uid;
-        console.log("uid %s leave channel ", uid);
+        channel.leave(uid, sid);
+        console.log("user %s leave channel ", user);
         let param = {
             route: "onLeave",
             user: user
         };
         channel.pushMessage(param);
-        channel.leave(uid, sid);
     }
 };

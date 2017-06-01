@@ -27,19 +27,17 @@ remote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
 
     console.log("chatRemote.add : user %s to room %s", user.username, rid);
 
-    let param = {
-        route: "onAdd",
-        user: user
-    };
-
     if (!!channel) {
-        channel.add(uid, sid);
+        let param = {
+            route: "onAdd",
+            user: user
+        };
         channel.pushMessage(param);
+
+        channel.add(uid, sid);
     }
 
     if (!!cb) cb();
-
-    //    var users = this.getUsers(rid, flag);
 };
 
 /**
@@ -84,13 +82,13 @@ remote.kick = function (user: User.UserTransaction, sid, rid, cb: Function) {
         let username = user.username;
         let uid = user.uid;
 
-        console.log("uid %s leave channel ", uid);
+        channel.leave(uid, sid);
+        console.log("user %s leave channel ", user);
 
         let param = {
             route: "onLeave",
             user: user
         };
         channel.pushMessage(param);
-        channel.leave(uid, sid);
     }
 };
