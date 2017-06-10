@@ -280,63 +280,7 @@ handler.getMessageContent = function (msg, session, next) {
 * ////////////////////////////////////////////////////////////
 * Return : no return anything.
 */
-handler.updateWhoReadMessage = function (msg, session, next) {
-    //    var token = msg.token;
-    let messageId = msg.messageId;
-    let rid = msg.roomId;
-    let uid = session.uid;
-    if (!messageId || !uid || !rid) {
-        let errMsg = "messageId or uid or rid data field is invalid.";
-        console.error(errMsg);
-        next(null, { code: Code_1.default.FAIL, message: errMsg });
-        return;
-    }
-    let channel = channelService.getChannel(rid, false);
-    if (!channel) {
-        let message = "no have room for your request.";
-        console.warn(message);
-        next(null, { code: Code_1.default.FAIL, message: message });
-        return;
-    }
-    else {
-        // <!-- update whether this session read this message_id.
-        chatRoomManager.updateWhoReadMessage(messageId, uid, (err, res) => {
-            if (err) {
-                return;
-            }
-            else {
-                // <!-- Push who read message to sender.
-                chatRoomManager.getWhoReadMessage(messageId, function (err, res) {
-                    if (!err) {
-                        let onMessageRead = {
-                            route: Code_1.default.sharedEvents.onMessageRead,
-                            data: res
-                        };
-                        let senderInfo = channel.getMember(res.sender);
-                        if (!senderInfo) {
-                            return;
-                        }
-                        else {
-                            let uidsGroup = new Array();
-                            uidsGroup.push(senderInfo);
-                            console.info("Push member who read message to msg sender.", senderInfo);
-                            channelService.pushMessageByUids(onMessageRead.route, onMessageRead.data, uidsGroup);
-                        }
-                    }
-                });
-            }
-        });
-    }
-    next(null, { code: Code_1.default.OK });
-};
-/*
-* Update who read message by specific message_id.
-* And then push readers array to sender of specific message_id
-* ////////////////////////////////////////////////////////////
-* Return : no return anything.
-*/
 handler.updateWhoReadMessages = function (msg, session, next) {
-    //    var token = msg.token;
     let messages = JSON.parse(msg.messageIds);
     let rid = msg.roomId;
     let uid = session.uid;
