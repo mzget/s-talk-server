@@ -36,7 +36,7 @@ app.configure("production|development", function () {
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     const options = {
         key: fs.readFileSync('./certs/server-key.pem'),
-        cert: fs.readFileSync('./certs/server-cert.pem'),
+        cert: fs.readFileSync('./certs/fullchain1.pem'),
     };
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
