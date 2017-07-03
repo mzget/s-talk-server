@@ -1,5 +1,5 @@
 
-FROM node:6.10.3
+FROM node:8.1.2
 MAINTAINER nattapon.r <nattapon.r@live.com>
 LABEL Name=stalk-chitchat Version=0.0.1 
 COPY package.json /tmp/package.json
