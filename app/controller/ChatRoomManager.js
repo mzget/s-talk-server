@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb = require("mongodb");
 const async = require("async");
 const MDb = require("../db/dbClient");

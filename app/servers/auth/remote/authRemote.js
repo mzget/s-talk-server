@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 let accountService;

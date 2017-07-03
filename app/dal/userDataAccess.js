@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb = require("mongodb");
 const assert = require("assert");
 const Mdb = require("../db/dbClient");

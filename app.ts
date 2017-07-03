@@ -6,7 +6,7 @@ import { AccountService } from "./app/services/accountService";
 
 process.env.TZ = "UTC";
 process.env.NODE_ENV = "development";
-process.on("uncaughtException", function (err) {
+process.on("uncaughtException", function(err) {
     console.error(" Caught exception: " + err.stack);
 });
 
@@ -32,7 +32,7 @@ const app = pomelo.createApp();
 app.set("name", "stalk-node-server");
 
 // app configure
-app.configure("production|development", function () {
+app.configure("production|development", function() {
     // filter configures
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
@@ -70,12 +70,12 @@ app.configure("production|development", function () {
 });
 
 // Configure for auth server
-app.configure("production|development", "auth", function () {
+app.configure("production|development", "auth", function() {
     console.log("start auth server");
     app.set("accountService", new AccountService(app));
 });
 
-app.configure("production|development", "chat", function () {
+app.configure("production|development", "chat", function() {
     console.log("start chat server");
 });
 

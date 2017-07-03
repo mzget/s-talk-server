@@ -26,10 +26,10 @@ const handler = Handler.prototype;
 handler.queryEntry = function (msg, session, next) {
     let schema = {
         "uid": Joi.string().required(),
-        "x-api-key": Joi.string().required()
+        "x-api-key": Joi.string().required(),
+        "__route__": Joi.any()
     };
-    const result = Joi.validate(msg._object, schema);
-    console.log(schema, result);
+    const result = Joi.validate(msg, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }

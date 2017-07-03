@@ -1,7 +1,8 @@
+"use strict";
 /**
  *  friend Manager.
  */
-"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Mdb = require("../../app/db/dbClient");
 const mongodb = require("mongodb");
 const MongoClient = mongodb.MongoClient;
@@ -52,5 +53,4 @@ class FriendManager {
         });
     }
 }
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = FriendManager;

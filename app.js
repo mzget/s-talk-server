@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const pomelo = require("pomelo");
 const routeUtil_1 = require("./app/util/routeUtil");
 const fs = require("fs");

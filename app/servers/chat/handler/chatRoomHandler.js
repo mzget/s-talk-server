@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Mcontroller = require("../../../controller/ChatRoomManager");
 const UserManager_1 = require("../../../controller/UserManager");
 const Code_1 = require("../../../../shared/Code");

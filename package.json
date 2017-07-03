@@ -12,7 +12,7 @@
   "dependencies": {
     "async": "^2.4.1",
     "crc": "0.2.0",
-    "joi": "^10.4.1",
+    "joi": "^10.6.0",
     "joi-objectid": "^2.0.0",
     "jsonwebtoken": "^7.4.1",
     "mongodb": "^2.2.27",
@@ -29,8 +29,8 @@
     "@types/promise": "^7.1.30",
     "@types/request": "0.0.42",
     "@types/request-promise-native": "^1.0.5",
-    "tslint": "^5.3.2",
-    "typescript": "^2.3.4"
+    "tslint": "^5.4.3",
+    "typescript": "^2.4.1"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
   "repository": {

@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 let channelService;
 module.exports = function (app) {
     console.info("instanctiate ChatRemote.");
