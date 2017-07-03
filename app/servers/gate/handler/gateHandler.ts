@@ -32,6 +32,8 @@ handler.queryEntry = function (msg, session, next) {
 	};
 	const result = Joi.validate(msg._object, schema);
 
+	console.log(schema, result);
+
 	if (result.error) {
 		return next(null, { code: Code.FAIL, message: result.error });
 	}

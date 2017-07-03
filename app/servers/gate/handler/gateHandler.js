@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
 const dispatcher_1 = require("../../../util/dispatcher");
@@ -28,6 +29,7 @@ handler.queryEntry = function (msg, session, next) {
         "x-api-key": Joi.string().required()
     };
     const result = Joi.validate(msg._object, schema);
+    console.log(schema, result);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
