@@ -5,14 +5,14 @@ import * as rp from "request-promise-native";
 import { Config } from "../../config/config";
 import { Message } from "../model/Message";
 
-export async function saveMessage(_message: Message) {
+export async function pushByUids(_message: Message) {
     let p = await new Promise((resolve: (message: Message) => void, rejected) => {
         let options = {
-            url: `${Config.api.chat}/send`,
+            url: `${Config.stalkHook.onPushByUids}`,
             headers: {
                 "Content-Type": "application/json",
                 "cache-control": "no-cache",
-                "x-api-key": `${Config.api.apikey}`
+                "x-api-key": `${Config.stalkHook.apikey}`
             },
             body: JSON.stringify({
                 message: _message

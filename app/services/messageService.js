@@ -11,15 +11,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const request = require("request");
 const rp = require("request-promise-native");
 const config_1 = require("../../config/config");
-function saveMessage(_message) {
+function pushByUids(_message) {
     return __awaiter(this, void 0, void 0, function* () {
         let p = yield new Promise((resolve, rejected) => {
             let options = {
-                url: `${config_1.Config.api.chat}/send`,
+                url: `${config_1.Config.stalkHook.onPushByUids}`,
                 headers: {
                     "Content-Type": "application/json",
                     "cache-control": "no-cache",
-                    "x-api-key": `${config_1.Config.api.apikey}`
+                    "x-api-key": `${config_1.Config.stalkHook.apikey}`
                 },
                 body: JSON.stringify({
                     message: _message
@@ -49,7 +49,7 @@ function saveMessage(_message) {
         return p;
     });
 }
-exports.saveMessage = saveMessage;
+exports.pushByUids = pushByUids;
 function chat(_message, room) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

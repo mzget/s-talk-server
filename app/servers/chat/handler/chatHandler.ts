@@ -72,7 +72,7 @@ handler.send = function (msg, session, next) {
 
             let _msg = { ...msg } as Message;
 
-            messageService.saveMessage(_msg).then(value => {
+            messageService.pushByUids(_msg).then(value => {
                 // <!-- send callback to user who send chat msg.
                 let params = {
                     uuid: client_uuid,
@@ -151,7 +151,7 @@ handler.pushByUids = function (msg, session, next) {
 
     let _msg = { ...msg } as Message;
 
-    messageService.saveMessage(_msg).then(value => {
+    messageService.pushByUids(_msg).then(value => {
         // <!-- send callback to user who send chat msg.
         let params = {
             uuid: client_uuid,
