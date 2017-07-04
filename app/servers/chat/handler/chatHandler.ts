@@ -138,12 +138,23 @@ handler.chat = function (msg, session, next) {
 handler.pushByUids = function (msg, session, next) {
     let self = this;
     let client_uuid = msg.uuid;
-    let msg_target = msg.target;
+    let targets = msg.target as Array<string>;
+
+    let schema = {
+        "uuid": Joi.string().optional(),
+        "x-api-key": Joi.string().optional(),
+        "target": Joi.array().required(),
+        "__route__": Joi.any()
+    };
+
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code.FAIL, message: result.error });
+    }
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
     }, Config.timeout);
-
 
     delete msg.__route__;
     delete msg.uuid;
@@ -151,21 +162,57 @@ handler.pushByUids = function (msg, session, next) {
 
     let _msg = { ...msg } as Message;
 
-    messageService.pushByUids(_msg).then(value => {
+    messageService.pushByUids(_msg).then(resultMsg => {
         // <!-- send callback to user who send chat msg.
         let params = {
             uuid: client_uuid,
             status: "sent",
-            resultMsg: value
+            resultMsg: resultMsg
         };
         next(null, { code: Code.OK, data: params });
-        pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        pushToTarget(self.app, session, resultMsg, client_uuid, targets);
         clearTimeout(timeout_id);
     }).catch(err => {
         next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
         clearTimeout(timeout_id);
     });
 };
+
+async function pushToTarget(app, session, message: Message, clientUUID: string, target: Array<string>) {
+    let onlineMembers = new Array<User.OnlineUser>();
+    let offlineMembers = new Array<string>();
+
+    app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
+        if (err2 || user === null) {
+            offlineMembers.push(item._id);
+        }
+        else {
+            onlineMembers.push(user);
+        }
+
+        resultCallback(null, item);
+    });
+
+    // <!-- Push new message to online users.
+    let uidsGroup = new Array();
+    async.each(onlineMembers, function iterator(val, cb) {
+        let group = {
+            uid: val.uid,
+            sid: val.serverId
+        };
+        uidsGroup.push(group);
+
+        cb();
+    }, function done() {
+        channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+
+        // <!-- Push message to off line users via parse.
+        if (!!offlineMembers && offlineMembers.length > 0) {
+            // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+            simplePushNotification(app, session, offlineMembers, room, message.sender);
+        }
+    });
+}
 
 function pushMessage(app, session, room: Room, message: Message, clientUUID: string, target: string) {
     let onlineMembers = new Array<User.OnlineUser>();

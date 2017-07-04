@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
 const MPushService = require("../../../services/ParsePushService");
@@ -112,7 +120,17 @@ handler.chat = function (msg, session, next) {
 handler.pushByUids = function (msg, session, next) {
     let self = this;
     let client_uuid = msg.uuid;
-    let msg_target = msg.target;
+    let targets = msg.target;
+    let schema = {
+        "uuid": Joi.string().optional(),
+        "x-api-key": Joi.string().optional(),
+        "target": Joi.array().required(),
+        "__route__": Joi.any()
+    };
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
+    }
     let timeout_id = setTimeout(function () {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
     }, config_1.Config.timeout);
@@ -120,21 +138,53 @@ handler.pushByUids = function (msg, session, next) {
     delete msg.uuid;
     delete msg.status;
     let _msg = Object.assign({}, msg);
-    messageService.pushByUids(_msg).then(value => {
+    messageService.pushByUids(_msg).then(resultMsg => {
         // <!-- send callback to user who send chat msg.
         let params = {
             uuid: client_uuid,
             status: "sent",
-            resultMsg: value
+            resultMsg: resultMsg
         };
         next(null, { code: Code_1.default.OK, data: params });
-        pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        pushToTarget(self.app, session, resultMsg, client_uuid, targets);
         clearTimeout(timeout_id);
     }).catch(err => {
         next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
         clearTimeout(timeout_id);
     });
 };
+function pushToTarget(app, session, message, clientUUID, target) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let onlineMembers = new Array();
+        let offlineMembers = new Array();
+        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
+            if (err2 || user === null) {
+                offlineMembers.push(item._id);
+            }
+            else {
+                onlineMembers.push(user);
+            }
+            resultCallback(null, item);
+        });
+        // <!-- Push new message to online users.
+        let uidsGroup = new Array();
+        async.each(onlineMembers, function iterator(val, cb) {
+            let group = {
+                uid: val.uid,
+                sid: val.serverId
+            };
+            uidsGroup.push(group);
+            cb();
+        }, function done() {
+            channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+            // <!-- Push message to off line users via parse.
+            if (!!offlineMembers && offlineMembers.length > 0) {
+                // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                simplePushNotification(app, session, offlineMembers, room, message.sender);
+            }
+        });
+    });
+}
 function pushMessage(app, session, room, message, clientUUID, target) {
     let onlineMembers = new Array();
     let offlineMembers = new Array();
