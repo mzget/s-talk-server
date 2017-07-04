@@ -9,6 +9,7 @@ import request = require("request");
 import Joi = require("joi");
 import joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
+import * as R from "ramda";
 
 
 import { Config } from "../../../../config/config";
@@ -50,7 +51,7 @@ handler.login = function (msg, session, next) {
 	}
 
 	let apiKey = msg["x-api-key"];
-	if (apiKey != Config.apiKey) {
+	if (R.contains(apiKey, Config.apiKeys) == false) {
 		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 

@@ -6,6 +6,7 @@ const dispatcher_1 = require("../../../util/dispatcher");
 const config_1 = require("../../../../config/config");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
+const R = require("ramda");
 const tokenService = new tokenService_1.default();
 module.exports = function (app) {
     return new Handler(app);
@@ -35,7 +36,8 @@ handler.queryEntry = function (msg, session, next) {
     }
     let uid = msg["uid"];
     let apiKey = msg["x-api-key"];
-    if (apiKey != config_1.Config.apiKey) {
+    let pass = R.contains(apiKey, config_1.Config.apiKeys);
+    if (pass == false) {
         return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
     // get all connectors

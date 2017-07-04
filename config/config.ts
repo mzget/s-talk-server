@@ -3,7 +3,7 @@ let dev2Api = "http://203.150.95.146:9000";
 let masterApi = "http://203.148.250.152:3002";
 
 const devConfig = {
-  apiKey: "chitchat1234",
+  apiKeys: ["chitchat1234", "alcohol1234"],
   api: {
     apikey: "chitchat1234",
     host: `${dev2Api}`,
@@ -28,7 +28,7 @@ const devConfig = {
 };
 
 const masterConfig = {
-  apiKey: "chitchat1234",
+  apiKeys: "chitchat1234",
   api: {
     apikey: "chitchat1234",
     authen: `${masterApi}/api/authenticate/verify`,

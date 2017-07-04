@@ -17,6 +17,7 @@
     "jsonwebtoken": "^7.4.1",
     "mongodb": "^2.2.27",
     "pomelo": "^2.2.5",
+    "ramda": "^0.24.1",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4"
   },
@@ -27,6 +28,7 @@
     "@types/mongodb": "^2.2.2",
     "@types/node": "^7.0.14",
     "@types/promise": "^7.1.30",
+    "@types/ramda": "^0.24.1",
     "@types/request": "0.0.42",
     "@types/request-promise-native": "^1.0.5",
     "tslint": "^5.4.3",

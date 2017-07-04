@@ -4,6 +4,8 @@ import dispatcher from "../../../util/dispatcher";
 import { Config } from "../../../../config/config";
 import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
+import * as R from "ramda";
+
 const tokenService = new TokenService();
 
 module.exports = function (app) {
@@ -40,7 +42,8 @@ handler.queryEntry = function (msg, session, next) {
 	let uid = msg["uid"];
 	let apiKey = msg["x-api-key"];
 
-	if (apiKey != Config.apiKey) {
+	let pass = R.contains(apiKey, Config.apiKeys);
+	if (pass == false) {
 		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 	// get all connectors

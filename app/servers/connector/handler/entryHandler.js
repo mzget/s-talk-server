@@ -8,6 +8,7 @@ const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
 const joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
+const R = require("ramda");
 const config_1 = require("../../../../config/config");
 const tokenService = new tokenService_1.default();
 let channelService;
@@ -36,7 +37,7 @@ handler.login = function (msg, session, next) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
     let apiKey = msg["x-api-key"];
-    if (apiKey != config_1.Config.apiKey) {
+    if (R.contains(apiKey, config_1.Config.apiKeys) == false) {
         return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
     if (!msg.user._id && !!msg.user.username) {
