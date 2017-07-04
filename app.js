@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const pomelo = require("pomelo");
 const routeUtil_1 = require("./app/util/routeUtil");
-const fs = require("fs");
 const accountService_1 = require("./app/services/accountService");
 process.env.TZ = "UTC";
 process.env.NODE_ENV = "development";
@@ -35,17 +34,13 @@ app.configure("production|development", function () {
     // route configures
     app.route("chat", routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    const options = {
-        key: fs.readFileSync('./certs/server-key.pem'),
-        cert: fs.readFileSync('./certs/fullchain1.pem'),
-    };
+    const options = {};
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
         // connector: pomelo.connectors.sioconnector,
         transports: ["websocket"],
         heartbeatTimeout: 60,
         heartbeatInterval: 25,
-        ssl: options
     });
     // @ require monitor in pomelo@2x
     //   app.set('monitorConfig',

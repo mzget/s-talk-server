@@ -135,6 +135,38 @@ handler.chat = function (msg, session, next) {
     });
 };
 
+handler.pushByUids = function (msg, session, next) {
+    let self = this;
+    let client_uuid = msg.uuid;
+    let msg_target = msg.target;
+
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+    }, Config.timeout);
+
+
+    delete msg.__route__;
+    delete msg.uuid;
+    delete msg.status;
+
+    let _msg = { ...msg } as Message;
+
+    messageService.saveMessage(_msg).then(value => {
+        // <!-- send callback to user who send chat msg.
+        let params = {
+            uuid: client_uuid,
+            status: "sent",
+            resultMsg: value
+        };
+        next(null, { code: Code.OK, data: params });
+        pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        clearTimeout(timeout_id);
+    }).catch(err => {
+        next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+        clearTimeout(timeout_id);
+    });
+};
+
 function pushMessage(app, session, room: Room, message: Message, clientUUID: string, target: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
