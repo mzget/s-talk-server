@@ -10,7 +10,7 @@ const hooks = new Map<string, any>();
 const getHookApi = (appKey: string) => {
   return {
     apikey: "alcohol!@#$",
-    onPushByUids: "http://localhost:9001/api/message/pushByUids"
+    onPushByUids: "http://git.animation-genius.com:9000/api/message/pushByUids"
   } as StalkHookApi;
 }
 
