@@ -121,10 +121,10 @@ handler.pushByUids = function (msg, session, next) {
     let self = this;
     let client_uuid = msg.uuid;
     let targets = msg.target;
+    console.log(msg);
     let schema = {
-        "uuid": Joi.string().optional(),
         "x-api-key": Joi.string().optional(),
-        "target": Joi.array().required(),
+        "data": Joi.any().required(),
         "__route__": Joi.any()
     };
     const result = Joi.validate(msg, schema);
@@ -135,9 +135,9 @@ handler.pushByUids = function (msg, session, next) {
         next(null, { code: Code_1.default.RequestTimeout, message: "send message timeout..." });
     }, config_1.Config.timeout);
     delete msg.__route__;
-    delete msg.uuid;
-    delete msg.status;
-    let _msg = Object.assign({}, msg);
+    delete msg.data.uuid;
+    delete msg.data.status;
+    let _msg = msg.data;
     messageService.pushByUids(_msg).then(resultMsg => {
         // <!-- send callback to user who send chat msg.
         let params = {
@@ -153,35 +153,43 @@ handler.pushByUids = function (msg, session, next) {
         clearTimeout(timeout_id);
     });
 };
-function pushToTarget(app, session, message, clientUUID, target) {
+function pushToTarget(app, session, message, clientUUID, targets) {
     return __awaiter(this, void 0, void 0, function* () {
         let onlineMembers = new Array();
         let offlineMembers = new Array();
-        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
-            if (err2 || user === null) {
-                offlineMembers.push(item._id);
-            }
-            else {
-                onlineMembers.push(user);
-            }
-            resultCallback(null, item);
-        });
-        // <!-- Push new message to online users.
-        let uidsGroup = new Array();
-        async.each(onlineMembers, function iterator(val, cb) {
-            let group = {
-                uid: val.uid,
-                sid: val.serverId
-            };
-            uidsGroup.push(group);
-            cb();
-        }, function done() {
-            channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-            // <!-- Push message to off line users via parse.
-            if (!!offlineMembers && offlineMembers.length > 0) {
-                // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
-                simplePushNotification(app, session, offlineMembers, room, message.sender);
-            }
+        let onChat = {
+            route: Code_1.default.sharedEvents.onChat,
+            data: message
+        };
+        async.map(targets, (item, cb) => {
+            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
+                if (err2 || user === null) {
+                    offlineMembers.push(item);
+                }
+                else {
+                    onlineMembers.push(user);
+                }
+                cb(null, item);
+            });
+        }, (err, results) => {
+            // <!-- Push new message to online users.
+            let uidsGroup = new Array();
+            async.map(onlineMembers, function iterator(val, cb) {
+                let group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup.push(group);
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                // <!-- Push message to off line users via parse.
+                if (!!offlineMembers && offlineMembers.length > 0) {
+                    // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                    console.log("Push to offline members not yet ready...");
+                    // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                }
+            });
         });
     });
 }
