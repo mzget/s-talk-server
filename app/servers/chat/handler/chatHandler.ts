@@ -137,10 +137,6 @@ handler.chat = function (msg, session, next) {
 
 handler.pushByUids = function (msg, session, next) {
     let self = this;
-    let client_uuid = msg.uuid;
-    let targets = msg.target as Array<string>;
-
-    console.log(msg);
 
     let schema = {
         "x-api-key": Joi.string().optional(),
@@ -159,6 +155,9 @@ handler.pushByUids = function (msg, session, next) {
     delete msg.__route__;
     delete msg.data.uuid;
     delete msg.data.status;
+
+    let client_uuid = msg.data.uuid;
+    let targets = msg.data.target as Array<string>;
 
     let _msg = msg.data as Message;
 
@@ -179,7 +178,7 @@ handler.pushByUids = function (msg, session, next) {
     });
 };
 
-async function pushToTarget(app, session, message: Message, clientUUID: string, targets: Array<string>) {
+function pushToTarget(app, session, message: Message, clientUUID: string, targets: Array<string>) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 
