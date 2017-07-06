@@ -6,7 +6,7 @@ let masterApi = "http://203.148.250.152:3002";
 const hooks = new Map();
 const getHookApi = (appKey) => {
     return {
-        apikey: "alcohol!@#$",
+        apikey: "alcohol1234",
         onPushByUids: "http://git.animation-genius.com:9000/api/message/pushByUids"
     };
 };
