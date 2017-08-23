@@ -16,6 +16,7 @@ function pushByUids(_message) {
         let p = yield new Promise((resolve, rejected) => {
             let options = {
                 url: `${config_1.Config.stalkHook.onPushByUids}`,
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "cache-control": "no-cache",
@@ -44,7 +45,7 @@ function pushByUids(_message) {
                     rejected(response);
                 }
             }
-            request.post(options, callback);
+            request(options, callback);
         });
         return p;
     });

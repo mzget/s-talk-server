@@ -9,6 +9,7 @@ export async function pushByUids(_message: Message) {
     let p = await new Promise((resolve: (message: Message) => void, rejected) => {
         let options = {
             url: `${Config.stalkHook.onPushByUids}`,
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "cache-control": "no-cache",
@@ -39,7 +40,7 @@ export async function pushByUids(_message: Message) {
             }
         }
 
-        request.post(options, callback);
+        request(options, callback);
     });
 
     return p;
