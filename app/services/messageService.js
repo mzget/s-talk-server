@@ -27,7 +27,7 @@ function pushByUids(_message) {
             };
             function callback(error, response, body) {
                 if (error) {
-                    console.warn(`problem with request: ${error}`, response.statusCode, response.statusMessage);
+                    console.warn(`problem with request: ${error}`, response);
                     rejected(error);
                 }
                 else if (!error && response.statusCode == 200) {
