@@ -40,10 +40,14 @@ app.configure("production|development", function () {
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     let _p = path.join(__dirname, "../../chitchats.ga", "/privkey1.pem");
     let _c = path.join(__dirname, "../../chitchats.ga", "/cert1.pem");
-    // let _c = path.join(__dirname, "../../chitchats.ga", "/fullchain1.pem");
+    let _ca = path.join(__dirname, "../../chitchats.ga", "/chain1.pem");
     const options = {
         key: fs.readFileSync(_p),
         cert: fs.readFileSync(_c),
+        // This is necessary only if using the client certificate authentication.
+        // requestCert: true,
+        // This is necessary only if the client uses the self-signed certificate.
+        ca: [fs.readFileSync(_ca)]
     };
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
