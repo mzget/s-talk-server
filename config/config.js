@@ -7,7 +7,7 @@ const hooks = new Map();
 const getHookApi = (appKey) => {
     return {
         apikey: "alcohol1234",
-        onPushByUids: "http://localhost:8999/api/message/pushByUids"
+        onPushByUids: "http://chitchats.ga:8999/api/message/pushByUids"
     };
 };
 const devConfig = {
