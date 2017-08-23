@@ -2,6 +2,7 @@
 import routeUtil from "./app/util/routeUtil";
 import mongodb = require("mongodb");
 import * as fs from "fs";
+import * as path from "path";
 import { AccountService } from "./app/services/accountService";
 
 process.env.TZ = "UTC";
