@@ -46,7 +46,8 @@ app.configure("production|development", function () {
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
     let _p = path.join(__dirname, "../../chitchats.ga", "/privkey1.pem");
-    let _c = path.join(__dirname, "../../chitchats.ga", "/cert1.pem");
+    // let _c = path.join(__dirname, "../../chitchats.ga", "/cert1.pem");
+    let _c = path.join(__dirname, "../../chitchats.ga", "/fullchain1.pem");
     const options = {
         key: fs.readFileSync(_p),
         cert: fs.readFileSync(_c),
