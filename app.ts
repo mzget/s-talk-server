@@ -43,8 +43,8 @@ app.configure("production|development", function () {
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
     const options = {
-        // key: fs.readFileSync('./certs/server-key.pem'),
-        // cert: fs.readFileSync('./certs/fullchain1.pem'),
+        key: fs.readFileSync('./certs/server-key.pem'),
+        cert: fs.readFileSync('./certs/fullchain1.pem'),
 
         // This is necessary only if using the client certificate authentication.
         // requestCert: true,
@@ -58,7 +58,7 @@ app.configure("production|development", function () {
         transports: ["websocket"],   // websocket, polling
         heartbeatTimeout: 60,
         heartbeatInterval: 25,
-        // ssl: options
+        ssl: options
     });
 
     // @ require monitor in pomelo@2x
