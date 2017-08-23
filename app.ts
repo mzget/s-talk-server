@@ -42,9 +42,11 @@ app.configure("production|development", function () {
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
+    let _p = path.join(__dirname, "../../chitchats.ga", "/privkey1.pem");
+    let _c = path.join(__dirname, "../../chitchats.ga", "/cert1.pem");
     const options = {
-        key: fs.readFileSync('./certs/server-key.pem'),
-        cert: fs.readFileSync('./certs/fullchain1.pem'),
+        key: fs.readFileSync(_p),
+        cert: fs.readFileSync(_c),
 
         // This is necessary only if using the client certificate authentication.
         // requestCert: true,
