@@ -10,7 +10,7 @@ const hooks = new Map<string, any>();
 const getHookApi = (appKey: string) => {
   return {
     apikey: "alcohol1234",
-    onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids"
+    onPushByUids: "http://localhost:8999/api/message/pushByUids"
   } as StalkHookApi;
 }
 
