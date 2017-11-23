@@ -38,9 +38,9 @@ app.configure("production|development", function () {
     // route configures
     app.route("chat", routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    let _p = path.join(__dirname, "/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
-    let _c = path.join(__dirname, "/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
-    let _ca = path.join(__dirname, "/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
+    let _p = path.join("/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
+    let _c = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
+    let _ca = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
     const options = {
         key: fs.readFileSync(_p),
         cert: fs.readFileSync(_c),
