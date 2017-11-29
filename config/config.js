@@ -11,7 +11,7 @@ const getHookApi = (appKey) => {
     };
 };
 const devConfig = {
-    apiKeys: ["chitchat1234", "alcohol1234"],
+    apiKeys: ["chitchat1234", "alcohol1234", "survey1234"],
     api: {
         apikey: "chitchat1234",
         host: `${dev2Api}`,
