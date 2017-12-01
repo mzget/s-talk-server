@@ -234,6 +234,8 @@ function pushToTarget(app, session, message: Message, clientUUID: string, target
             }
         }
 
+        console.log(JSON.stringify(onlineMembers));
+
         async.each(onlineMembers, function iterator(val, cb) {
             let group = {
                 uid: val.uid,
