@@ -178,7 +178,7 @@ handler.pushByUids = function (msg, session, next) {
     });
 };
 
-function pushToTarget(app, session, message: Message, clientUUID: string, targets: Array<string>) {
+function pushToTarget(app, session, message: Message, clientUUID: string, targets: Array<string> | string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
 
@@ -187,21 +187,54 @@ function pushToTarget(app, session, message: Message, clientUUID: string, target
         data: message
     };
 
-    async.map(targets, (item, cb) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
-            if (err2 || user === null) {
-                offlineMembers.push(item);
-            }
-            else {
-                onlineMembers.push(user);
-            }
+    if (Array.isArray(targets)) {
+        async.map(targets, (item, cb) => {
+            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
+                if (err2 || user === null) {
+                    offlineMembers.push(item);
+                }
+                else {
+                    onlineMembers.push(user);
+                }
 
-            cb(null, item);
+                cb(null, item);
+            });
+        }, (err, results) => {
+            // <!-- Push new message to online users.
+            let uidsGroup = new Array();
+            async.map(onlineMembers, function iterator(val, cb) {
+                let group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup.push(group);
+
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+
+                // <!-- Push message to off line users via parse.
+                if (!!offlineMembers && offlineMembers.length > 0) {
+                    // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                    console.log("Push to offline members not yet ready...");
+                    // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                }
+            });
         });
-    }, (err, results) => {
+    }
+    else if (targets == "*") {
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
-        async.map(onlineMembers, function iterator(val, cb) {
+        let onlineUsers = app.rpc.auth.authRemote.OnlineUsers() as User.IOnlineUser;
+        for (const userId in onlineUsers) {
+            if (onlineUsers.hasOwnProperty(userId)) {
+                const onlineUser = onlineUsers[userId] as User.OnlineUser;
+
+                onlineMembers.push(onlineUser);
+            }
+        }
+
+        async.each(onlineMembers, function iterator(val, cb) {
             let group = {
                 uid: val.uid,
                 sid: val.serverId
@@ -215,11 +248,10 @@ function pushToTarget(app, session, message: Message, clientUUID: string, target
             // <!-- Push message to off line users via parse.
             if (!!offlineMembers && offlineMembers.length > 0) {
                 // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
-                console.log("Push to offline members not yet ready...");
                 // simplePushNotification(app, session, offlineMembers, room, message.sender);
             }
         });
-    });
+    }
 }
 
 function pushMessage(app, session, room: Room, message: Message, clientUUID: string, target: string) {

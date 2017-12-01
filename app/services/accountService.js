@@ -81,7 +81,6 @@ class AccountService {
         cb(null, user);
     }
     addOnlineUser(user, callback) {
-        console.log("accountService.addOnlineUser");
         if (!this.onlineUsers)
             this.onlineUsers = {};
         if (!this.onlineUsers[user.uid]) {
