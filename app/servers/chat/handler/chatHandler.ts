@@ -227,7 +227,7 @@ function pushToTarget(app, session, message: Message, clientUUID: string) {
     else if (targets == "*") {
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
-        app.rpc.auth.authRemote.getOnlineUsers((err, users: User.IOnlineUser) => {
+        app.rpc.auth.authRemote.getOnlineUsers(session, (err, users: User.IOnlineUser) => {
             if (!!users) {
                 console.log(JSON.stringify(users));
 
