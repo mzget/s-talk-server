@@ -141,6 +141,7 @@ handler.pushByUids = function (msg, session, next) {
 
     let schema = {
         "x-api-key": Joi.string().optional(),
+        "api-version": Joi.string().optional(),
         "data": Joi.any().required(),
         "__route__": Joi.any()
     };
@@ -159,6 +160,7 @@ handler.pushByUids = function (msg, session, next) {
 
     let client_uuid = msg.data.uuid;
     // let targets = msg.data.target as Array<string>;
+    let apiVersion = msg["api-version"];
     let appKey = msg["x-api-key"];
     let _msg = msg.data as Message;
 
@@ -171,7 +173,8 @@ handler.pushByUids = function (msg, session, next) {
         };
         next(null, { code: Code.OK, data: params });
 
-        pushToTarget(self.app, session, resultMsg, client_uuid);
+        let onChat = withApiVersion(parseFloat(apiVersion))(resultMsg);
+        pushToTarget(self.app, session, onChat, client_uuid);
         clearTimeout(timeout_id);
     }).catch(err => {
         next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
@@ -179,15 +182,31 @@ handler.pushByUids = function (msg, session, next) {
     });
 };
 
-function pushToTarget(app, session, message: Message, clientUUID: string) {
+function withApiVersion(apiVersion: number = 0.1) {
+    return (message: Message) => {
+        if (apiVersion > 0.1) {
+            let onChat = {
+                route: Code.sharedEvents.ON_CHAT,
+                data: message
+            };
+
+            return onChat;
+        }
+        else {
+            let onChat = {
+                route: Code.sharedEvents.onChat,
+                data: message
+            };
+
+            return onChat;
+        }
+    }
+}
+
+function pushToTarget(app, session, message: { route: string, data: Message }, clientUUID: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
-    let targets = message.target as Array<string> | string;
-
-    let onChat = {
-        route: Code.sharedEvents.onChat,
-        data: message
-    };
+    let targets = message.data.target as Array<string> | string;
 
     if (Array.isArray(targets)) {
         async.map(targets, (item, cb) => {
@@ -213,7 +232,7 @@ function pushToTarget(app, session, message: Message, clientUUID: string) {
 
                 cb();
             }, function done() {
-                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                channelService.pushMessageByUids(message.route, message.data, uidsGroup);
 
                 // <!-- Push message to off line users via parse.
                 if (!!offlineMembers && offlineMembers.length > 0) {
@@ -229,8 +248,6 @@ function pushToTarget(app, session, message: Message, clientUUID: string) {
         let uidsGroup = new Array();
         app.rpc.auth.authRemote.getOnlineUsers(session, (err, users: User.IOnlineUser) => {
             if (!!users) {
-                console.log(JSON.stringify(users));
-
                 for (const userId in users) {
                     if (users.hasOwnProperty(userId)) {
                         const onlineUser = users[userId] as User.OnlineUser;
@@ -238,8 +255,6 @@ function pushToTarget(app, session, message: Message, clientUUID: string) {
                         onlineMembers.push(onlineUser);
                     }
                 }
-
-                console.log(JSON.stringify(onlineMembers));
 
                 async.each(onlineMembers, function iterator(val, cb) {
                     let group = {
@@ -250,7 +265,7 @@ function pushToTarget(app, session, message: Message, clientUUID: string) {
 
                     cb();
                 }, function done() {
-                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                    channelService.pushMessageByUids(message.route, message.data, uidsGroup);
 
                     // <!-- Push message to off line users via parse.
                     if (!!offlineMembers && offlineMembers.length > 0) {

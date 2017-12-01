@@ -113,6 +113,7 @@ handler.pushByUids = function (msg, session, next) {
     let self = this;
     let schema = {
         "x-api-key": Joi.string().optional(),
+        "api-version": Joi.string().optional(),
         "data": Joi.any().required(),
         "__route__": Joi.any()
     };
@@ -128,6 +129,7 @@ handler.pushByUids = function (msg, session, next) {
     delete msg.data.status;
     let client_uuid = msg.data.uuid;
     // let targets = msg.data.target as Array<string>;
+    let apiVersion = msg["api-version"];
     let appKey = msg["x-api-key"];
     let _msg = msg.data;
     messageService.pushByUids(_msg, appKey).then(resultMsg => {
@@ -138,21 +140,36 @@ handler.pushByUids = function (msg, session, next) {
             resultMsg: resultMsg
         };
         next(null, { code: Code_1.default.OK, data: params });
-        pushToTarget(self.app, session, resultMsg, client_uuid);
+        let onChat = withApiVersion(parseFloat(apiVersion))(resultMsg);
+        pushToTarget(self.app, session, onChat, client_uuid);
         clearTimeout(timeout_id);
     }).catch(err => {
         next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
         clearTimeout(timeout_id);
     });
 };
+function withApiVersion(apiVersion = 0.1) {
+    return (message) => {
+        if (apiVersion > 0.1) {
+            let onChat = {
+                route: Code_1.default.sharedEvents.ON_CHAT,
+                data: message
+            };
+            return onChat;
+        }
+        else {
+            let onChat = {
+                route: Code_1.default.sharedEvents.onChat,
+                data: message
+            };
+            return onChat;
+        }
+    };
+}
 function pushToTarget(app, session, message, clientUUID) {
     let onlineMembers = new Array();
     let offlineMembers = new Array();
-    let targets = message.target;
-    let onChat = {
-        route: Code_1.default.sharedEvents.onChat,
-        data: message
-    };
+    let targets = message.data.target;
     if (Array.isArray(targets)) {
         async.map(targets, (item, cb) => {
             app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
@@ -175,7 +192,7 @@ function pushToTarget(app, session, message, clientUUID) {
                 uidsGroup.push(group);
                 cb();
             }, function done() {
-                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                channelService.pushMessageByUids(message.route, message.data, uidsGroup);
                 // <!-- Push message to off line users via parse.
                 if (!!offlineMembers && offlineMembers.length > 0) {
                     // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
@@ -190,14 +207,12 @@ function pushToTarget(app, session, message, clientUUID) {
         let uidsGroup = new Array();
         app.rpc.auth.authRemote.getOnlineUsers(session, (err, users) => {
             if (!!users) {
-                console.log(JSON.stringify(users));
                 for (const userId in users) {
                     if (users.hasOwnProperty(userId)) {
                         const onlineUser = users[userId];
                         onlineMembers.push(onlineUser);
                     }
                 }
-                console.log(JSON.stringify(onlineMembers));
                 async.each(onlineMembers, function iterator(val, cb) {
                     let group = {
                         uid: val.uid,
@@ -206,7 +221,7 @@ function pushToTarget(app, session, message, clientUUID) {
                     uidsGroup.push(group);
                     cb();
                 }, function done() {
-                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                    channelService.pushMessageByUids(message.route, message.data, uidsGroup);
                     // <!-- Push message to off line users via parse.
                     if (!!offlineMembers && offlineMembers.length > 0) {
                         // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);

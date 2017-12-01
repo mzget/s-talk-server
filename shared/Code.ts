@@ -29,7 +29,9 @@
         onUserUpdateProfile: "onUserUpdateProfile",
         onUserLogin: "onUserLogin",
 
+        /**@deprecated */
         onChat: "onChat",
+        ON_CHAT: "ON_CHAT",
         ON_PUSH: "ON_PUSH",
 
         onAccessRooms: "onAccessRooms",
