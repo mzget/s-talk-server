@@ -152,7 +152,9 @@ function pushToTarget(app, session, message, clientUUID, targets) {
         route: Code_1.default.sharedEvents.onChat,
         data: message
     };
+    console.log(message, clientUUID, targets);
     if (Array.isArray(targets)) {
+        console.log("isArray");
         async.map(targets, (item, cb) => {
             app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
                 if (err2 || user === null) {
