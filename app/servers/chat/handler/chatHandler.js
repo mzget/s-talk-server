@@ -186,6 +186,7 @@ function pushToTarget(app, session, message, clientUUID) {
         });
     }
     else if (targets == "*") {
+        console.log(targets, onChat);
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
         let onlineUsers = app.rpc.auth.authRemote.OnlineUsers();
