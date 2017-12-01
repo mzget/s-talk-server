@@ -22,4 +22,5 @@ export interface Message {
      * uuid mean client side uuid.
      */
     uuid: string;
+    target: Array<string> | string;
 }

@@ -157,7 +157,7 @@ handler.pushByUids = function (msg, session, next) {
     delete msg.data.status;
 
     let client_uuid = msg.data.uuid;
-    let targets = msg.data.target as Array<string>;
+    // let targets = msg.data.target as Array<string>;
     let appKey = msg["x-api-key"];
     let _msg = msg.data as Message;
 
@@ -170,7 +170,7 @@ handler.pushByUids = function (msg, session, next) {
         };
         next(null, { code: Code.OK, data: params });
 
-        pushToTarget(self.app, session, resultMsg, client_uuid, targets);
+        pushToTarget(self.app, session, resultMsg, client_uuid);
         clearTimeout(timeout_id);
     }).catch(err => {
         next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
@@ -178,19 +178,17 @@ handler.pushByUids = function (msg, session, next) {
     });
 };
 
-function pushToTarget(app, session, message: Message, clientUUID: string, targets: Array<string> | string) {
+function pushToTarget(app, session, message: Message, clientUUID: string) {
     let onlineMembers = new Array<User.OnlineUser>();
     let offlineMembers = new Array<string>();
+    let targets = message.target as Array<string> | string;
 
     let onChat = {
         route: Code.sharedEvents.onChat,
         data: message
     };
 
-    console.log(message, clientUUID, targets);
-
     if (Array.isArray(targets)) {
-        console.log("isArray");
         async.map(targets, (item, cb) => {
             app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
                 if (err2 || user === null) {
@@ -229,6 +227,9 @@ function pushToTarget(app, session, message: Message, clientUUID: string, target
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
         let onlineUsers = app.rpc.auth.authRemote.OnlineUsers() as User.IOnlineUser;
+
+        console.log(JSON.stringify(onlineUsers));
+
         for (const userId in onlineUsers) {
             if (onlineUsers.hasOwnProperty(userId)) {
                 const onlineUser = onlineUsers[userId] as User.OnlineUser;

@@ -127,7 +127,7 @@ handler.pushByUids = function (msg, session, next) {
     delete msg.data.uuid;
     delete msg.data.status;
     let client_uuid = msg.data.uuid;
-    let targets = msg.data.target;
+    // let targets = msg.data.target as Array<string>;
     let appKey = msg["x-api-key"];
     let _msg = msg.data;
     messageService.pushByUids(_msg, appKey).then(resultMsg => {
@@ -138,23 +138,22 @@ handler.pushByUids = function (msg, session, next) {
             resultMsg: resultMsg
         };
         next(null, { code: Code_1.default.OK, data: params });
-        pushToTarget(self.app, session, resultMsg, client_uuid, targets);
+        pushToTarget(self.app, session, resultMsg, client_uuid);
         clearTimeout(timeout_id);
     }).catch(err => {
         next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
         clearTimeout(timeout_id);
     });
 };
-function pushToTarget(app, session, message, clientUUID, targets) {
+function pushToTarget(app, session, message, clientUUID) {
     let onlineMembers = new Array();
     let offlineMembers = new Array();
+    let targets = message.target;
     let onChat = {
         route: Code_1.default.sharedEvents.onChat,
         data: message
     };
-    console.log(message, clientUUID, targets);
     if (Array.isArray(targets)) {
-        console.log("isArray");
         async.map(targets, (item, cb) => {
             app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
                 if (err2 || user === null) {
@@ -190,6 +189,7 @@ function pushToTarget(app, session, message, clientUUID, targets) {
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
         let onlineUsers = app.rpc.auth.authRemote.OnlineUsers();
+        console.log(JSON.stringify(onlineUsers));
         for (const userId in onlineUsers) {
             if (onlineUsers.hasOwnProperty(userId)) {
                 const onlineUser = onlineUsers[userId];
