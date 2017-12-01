@@ -186,31 +186,33 @@ function pushToTarget(app, session, message, clientUUID) {
         });
     }
     else if (targets == "*") {
-        console.log(targets, onChat);
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
-        let onlineUsers = app.rpc.auth.authRemote.OnlineUsers();
-        console.log(JSON.stringify(onlineUsers));
-        for (const userId in onlineUsers) {
-            if (onlineUsers.hasOwnProperty(userId)) {
-                const onlineUser = onlineUsers[userId];
-                onlineMembers.push(onlineUser);
-            }
-        }
-        console.log(JSON.stringify(onlineMembers));
-        async.each(onlineMembers, function iterator(val, cb) {
-            let group = {
-                uid: val.uid,
-                sid: val.serverId
-            };
-            uidsGroup.push(group);
-            cb();
-        }, function done() {
-            channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-            // <!-- Push message to off line users via parse.
-            if (!!offlineMembers && offlineMembers.length > 0) {
-                // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
-                // simplePushNotification(app, session, offlineMembers, room, message.sender);
+        app.rpc.auth.authRemote.getOnlineUsers((err, users) => {
+            if (!!users) {
+                console.log(JSON.stringify(users));
+                for (const userId in users) {
+                    if (users.hasOwnProperty(userId)) {
+                        const onlineUser = users[userId];
+                        onlineMembers.push(onlineUser);
+                    }
+                }
+                console.log(JSON.stringify(onlineMembers));
+                async.each(onlineMembers, function iterator(val, cb) {
+                    let group = {
+                        uid: val.uid,
+                        sid: val.serverId
+                    };
+                    uidsGroup.push(group);
+                    cb();
+                }, function done() {
+                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+                    // <!-- Push message to off line users via parse.
+                    if (!!offlineMembers && offlineMembers.length > 0) {
+                        // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                        // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                    }
+                });
             }
         });
     }
