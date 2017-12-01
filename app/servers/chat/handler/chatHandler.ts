@@ -72,7 +72,7 @@ handler.send = function (msg, session, next) {
 
             let _msg = { ...msg } as Message;
 
-            messageService.pushByUids(_msg).then(value => {
+            messageService.pushByUids(_msg, null).then(value => {
                 // <!-- send callback to user who send chat msg.
                 let params = {
                     uuid: client_uuid,
@@ -158,10 +158,10 @@ handler.pushByUids = function (msg, session, next) {
 
     let client_uuid = msg.data.uuid;
     let targets = msg.data.target as Array<string>;
-
+    let appKey = msg["x-api-key"];
     let _msg = msg.data as Message;
 
-    messageService.pushByUids(_msg).then(resultMsg => {
+    messageService.pushByUids(_msg, appKey).then(resultMsg => {
         // <!-- send callback to user who send chat msg.
         let params = {
             uuid: client_uuid,

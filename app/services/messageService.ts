@@ -2,18 +2,19 @@
 import request = require("request");
 import * as rp from "request-promise-native";
 
-import { Config } from "../../config/config";
+import { Config, getWebhook } from "../../config/config";
 import { Message } from "../model/Message";
 
-export async function pushByUids(_message: Message) {
+export async function pushByUids(_message: Message, appKey: string) {
+    let webhook = getWebhook(appKey);
     let p = await new Promise((resolve: (message: Message) => void, rejected) => {
         let options = {
-            url: `${Config.stalkHook.onPushByUids}`,
+            url: `${webhook.onPushByUids}`,
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "cache-control": "no-cache",
-                "x-api-key": `${Config.stalkHook.apikey}`
+                "x-api-key": `${webhook.apikey}`
             },
             body: JSON.stringify({
                 message: _message

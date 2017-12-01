@@ -11,16 +11,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const request = require("request");
 const rp = require("request-promise-native");
 const config_1 = require("../../config/config");
-function pushByUids(_message) {
+function pushByUids(_message, appKey) {
     return __awaiter(this, void 0, void 0, function* () {
+        let webhook = config_1.getWebhook(appKey);
         let p = yield new Promise((resolve, rejected) => {
             let options = {
-                url: `${config_1.Config.stalkHook.onPushByUids}`,
+                url: `${webhook.onPushByUids}`,
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "cache-control": "no-cache",
-                    "x-api-key": `${config_1.Config.stalkHook.apikey}`
+                    "x-api-key": `${webhook.apikey}`
                 },
                 body: JSON.stringify({
                     message: _message

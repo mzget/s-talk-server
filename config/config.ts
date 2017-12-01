@@ -6,12 +6,17 @@ interface StalkHookApi {
   apikey: string;
   onPushByUids: string;
 }
-const hooks = new Map<string, any>();
+const hooks = new Map<string, StalkHookApi>();
+hooks.set("alcohol1234", {
+  apikey: "alcohol1234",
+  onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids"
+});
+hooks.set("survey1234", {
+  apikey: "survey1234",
+  onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids"
+});
 const getHookApi = (appKey: string) => {
-  return {
-    apikey: "alcohol1234",
-    onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids"
-  } as StalkHookApi;
+  return hooks.get(appKey);
 }
 
 const devConfig = {
@@ -24,7 +29,6 @@ const devConfig = {
     chat: `${dev2Api}/api/stalk/chat`,
     user: `${dev2Api}/api/stalk/user`
   },
-  stalkHook: getHookApi("alcohol1234"),
   timeout: 10000,
 
   pushServer: "smelink.animation-genius.com",
@@ -44,6 +48,11 @@ function getConfig() {
   // console.log(process.env.NODE_ENV, conf.chatDB);
 
   return devConfig;
+}
+
+export function getWebhook(appKey: string = "alcohol1234") {
+  let webhook = getHookApi(appKey);
+  return webhook;
 }
 
 export const Config = getConfig();
