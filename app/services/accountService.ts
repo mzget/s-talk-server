@@ -1,5 +1,5 @@
 ﻿import Code from "../../shared/Code";
-import User = require("../model/User");
+import * as User from "../model/User";
 import Room = require("../model/Room");
 
 const dispatcher = require("../util/dispatcher");
@@ -18,7 +18,7 @@ export class AccountService {
      * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
      */
     private onlineUsers: User.IOnlineUser;
-    public get OnlineUsers(): User.IOnlineUser {
+    public OnlineUsers(): User.IOnlineUser {
         if (!this.onlineUsers)
             this.onlineUsers = {};
 
@@ -37,6 +37,7 @@ export class AccountService {
         let user = this.onlineUsers[userId];
         cb(null, user);
     }
+
     public addOnlineUser(user: User.OnlineUser, callback: Function) {
         if (!this.onlineUsers)
             this.onlineUsers = {};

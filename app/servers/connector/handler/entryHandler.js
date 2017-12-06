@@ -9,7 +9,9 @@ const Joi = require("joi");
 const joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
 const R = require("ramda");
+const Const_1 = require("../../../Const");
 const config_1 = require("../../../../config/config");
+const joi_1 = require("joi");
 const tokenService = new tokenService_1.default();
 let channelService;
 module.exports = function (app) {
@@ -29,19 +31,20 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
     let self = this;
     let schema = {
-        user: Joi.object().required(),
-        "x-api-key": Joi.string().required()
+        user: Joi.object({
+            _id: joi_1.string,
+            username: joi_1.string,
+        }).required(),
+        X_API_KEY: Joi.string().required(),
+        X_APP_ID: (msg[Const_1.API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
     };
     const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    let apiKey = msg["x-api-key"];
+    let apiKey = msg[Const_1.X_API_KEY];
     if (R.contains(apiKey, config_1.Config.apiKeys) == false) {
         return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
-    }
-    if (!msg.user._id && !!msg.user.username) {
-        return next(null, { code: Code_1.default.FAIL, message: "missing user info" });
     }
     tokenService.signToken(msg.user, (err, encode) => {
         if (err) {
@@ -49,7 +52,7 @@ handler.login = function (msg, session, next) {
         }
         else {
             session.__sessionService__.kick(msg.user._id, "New login...");
-            self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+            self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, (err, user) => {
                 // 	//@ Signing success.
                 session.bind(msg.user._id);
                 session.on("closed", onUserLeave.bind(null, self.app));
@@ -103,7 +106,7 @@ function addOnlineUser(app, session, user) {
     onlineUser.uid = user._id;
     onlineUser.username = user.username;
     onlineUser.serverId = session.frontendId;
-    onlineUser.registrationIds = user.deviceTokens || [];
+    onlineUser.applicationId = "";
     userTransaction.uid = user._id;
     userTransaction.username = user.username;
     console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));

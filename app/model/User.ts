@@ -7,9 +7,9 @@ interface IUser {
 }
 export class OnlineUser implements IUser {
     uid: string;
-    registrationIds: string[];
-    username: string;
     serverId: string;
+    username: string;
+    applicationId: string;
 }
 export class UserTransaction implements IUser {
     uid: string;
@@ -43,3 +43,5 @@ export class StalkAccount {
     closedNoticeGroups: string[]; // room_id
     deviceTokens: string[];
 }
+
+export default IUser;

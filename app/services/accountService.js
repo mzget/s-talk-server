@@ -64,7 +64,7 @@ class AccountService {
         this.nameMap = {};
         this.channelMap = {};
     }
-    get OnlineUsers() {
+    OnlineUsers() {
         if (!this.onlineUsers)
             this.onlineUsers = {};
         return this.onlineUsers;

@@ -11,8 +11,10 @@ import joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
 import * as R from "ramda";
 
-
+import { X_API_KEY, X_APP_ID, API_VERSION } from "../../../Const";
 import { Config } from "../../../../config/config";
+import { string, strict } from "joi";
+import { OnlineUser } from "../../../model/User";
 const tokenService = new TokenService();
 let channelService;
 
@@ -40,9 +42,14 @@ const handler = Handler.prototype;
 */
 handler.login = function (msg, session, next) {
 	let self = this;
+
 	let schema = {
-		user: Joi.object().required(),
-		"x-api-key": Joi.string().required()
+		user: Joi.object({
+			_id: string,
+			username: string,
+		}).required(),
+		X_API_KEY: Joi.string().required(),
+		X_APP_ID: (msg[API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
 	};
 	const result = Joi.validate(msg._object, schema);
 
@@ -50,13 +57,9 @@ handler.login = function (msg, session, next) {
 		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	let apiKey = msg["x-api-key"];
+	let apiKey = msg[X_API_KEY];
 	if (R.contains(apiKey, Config.apiKeys) == false) {
 		return next(null, { code: Code.FAIL, message: "authorized key fail." });
-	}
-
-	if (!msg.user._id && !!msg.user.username) {
-		return next(null, { code: Code.FAIL, message: "missing user info" });
 	}
 
 	tokenService.signToken(msg.user, (err, encode) => {
@@ -66,7 +69,7 @@ handler.login = function (msg, session, next) {
 		else {
 			session.__sessionService__.kick(msg.user._id, "New login...");
 
-			self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, function (err, user) {
+			self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, (err: Error, user: OnlineUser) => {
 				// 	//@ Signing success.
 				session.bind(msg.user._id);
 				session.on("closed", onUserLeave.bind(null, self.app));
@@ -135,7 +138,7 @@ function addOnlineUser(app, session, user: DecodedToken) {
 	onlineUser.uid = user._id;
 	onlineUser.username = user.username;
 	onlineUser.serverId = session.frontendId;
-	onlineUser.registrationIds = user.deviceTokens || [];
+	onlineUser.applicationId = "";
 
 	userTransaction.uid = user._id;
 	userTransaction.username = user.username;
