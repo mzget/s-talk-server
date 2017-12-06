@@ -38,7 +38,7 @@ handler.push = function (msg, session, next) {
 };
 
 function pushMessage(app, session, body: { event: string, message: string, members: string[] | string }) {
-    let onlineMembers = new Array<User.OnlineUser>();
+    let onlineMembers = new Array<User.UserSession>();
     let offlineMembers = new Array<string>();
 
     // @ Try to push message to others.

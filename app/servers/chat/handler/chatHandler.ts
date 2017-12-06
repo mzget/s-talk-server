@@ -204,7 +204,7 @@ function withApiVersion(apiVersion: number = 0.1) {
 }
 
 function pushToTarget(app, session, message: { route: string, data: Message }, clientUUID: string) {
-    let onlineMembers = new Array<User.OnlineUser>();
+    let onlineMembers = new Array<User.UserSession>();
     let offlineMembers = new Array<string>();
     let targets = message.data.target as Array<string> | string;
 
@@ -250,7 +250,7 @@ function pushToTarget(app, session, message: { route: string, data: Message }, c
             if (!!users) {
                 for (const userId in users) {
                     if (users.hasOwnProperty(userId)) {
-                        const onlineUser = users[userId] as User.OnlineUser;
+                        const onlineUser = users[userId] as User.UserSession;
 
                         onlineMembers.push(onlineUser);
                     }
@@ -279,7 +279,7 @@ function pushToTarget(app, session, message: { route: string, data: Message }, c
 }
 
 function pushMessage(app, session, room: Room, message: Message, clientUUID: string, target: string) {
-    let onlineMembers = new Array<User.OnlineUser>();
+    let onlineMembers = new Array<User.UserSession>();
     let offlineMembers = new Array<string>();
 
     // @ Try to push message to other ...

@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class OnlineUser {
+class UserSession {
 }
-exports.OnlineUser = OnlineUser;
+exports.UserSession = UserSession;
 class UserTransaction {
 }
 exports.UserTransaction = UserTransaction;

@@ -70,7 +70,7 @@ handler.addFriend = function (msg, session, next) {
             };
 
             let pushGroup = new Array();
-            self.app.rpc.chat.chatRemote.getOnlineUser(session, targetUid, (err, user: User.OnlineUser) => {
+            self.app.rpc.chat.chatRemote.getOnlineUser(session, targetUid, (err, user: User.UserSession) => {
                 if (!err) {
                     let item = { uid: user.uid, sid: user.serverId };
                     pushGroup.push(item);

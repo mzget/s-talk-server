@@ -80,6 +80,20 @@ class AccountService {
         let user = this.onlineUsers[userId];
         cb(null, user);
     }
+    getOnlineUserByAppId(appId, cb) {
+        if (!this.onlineUsers)
+            this.onlineUsers = {};
+        let results = new Array();
+        for (const userId in this.onlineUsers) {
+            if (this.onlineUsers.hasOwnProperty(userId)) {
+                const user = this.onlineUsers[userId];
+                if (user.applicationId === appId) {
+                    results.push(user);
+                }
+            }
+        }
+        cb(null, results);
+    }
     addOnlineUser(user, callback) {
         if (!this.onlineUsers)
             this.onlineUsers = {};

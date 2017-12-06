@@ -20,7 +20,7 @@ const remote = ChatRemote.prototype;
 * @param {String} name channel name
 * @param {boolean} flag channel parameter
 */
-remote.add = function (user: User.OnlineUser, sid, rid, flag, cb) {
+remote.add = function (user: User.UserSession, sid, rid, flag, cb) {
     let channel = channelService.getChannel(rid, flag);
     let username = user.username;
     let uid = user.uid;

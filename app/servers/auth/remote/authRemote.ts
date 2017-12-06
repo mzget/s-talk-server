@@ -2,14 +2,15 @@
 import Code from "../../../../shared/Code";
 
 import { UserDataAccessService } from "../../../controller/UserManager";
-import User, { OnlineUser, IOnlineUser, UserTransaction } from "../../../model/User";
+import User, { UserSession, IOnlineUser, UserTransaction } from "../../../model/User";
 import { Room } from "../../../model/Room";
+import IChannelService, { IUserGroup } from "../../../util/ChannelService";
 import { AccountService } from "../../../services/accountService";
 import * as chatroomService from "../../../services/chatroomService";
 import Mcontroller = require("../../../controller/ChatRoomManager");
 const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 let accountService: AccountService;
-let channelService;
+let channelService: IChannelService;
 
 const userNotFound = "Authentication failed. User not found.";
 
@@ -33,7 +34,7 @@ const remote = AuthenRemote.prototype;
  * Init Server this function call when server start.
  * for load room members from database to cache in memmory before.
  */
-const initServer = function (): void {
+const initServer = () => {
     // <!-- To reduce database retrive data. We store rooms Map data to server memory.
     console.log("init AuthenServer.");
 };
@@ -44,21 +45,24 @@ const initServer = function (): void {
  * 1. Call when user login success and joining in system.
  * 2. call when user logout.
  */
-remote.addOnlineUser = function (user: OnlineUser, cb) {
+remote.addOnlineUser = (user: UserSession, cb) => {
     accountService.addOnlineUser(user, cb);
 };
-remote.removeOnlineUser = function (userId: string, cb) {
+remote.removeOnlineUser = (userId: string, cb) => {
     accountService.removeOnlineUser(userId);
     cb();
 };
-remote.getOnlineUser = function (userId: string, callback: (err, user: OnlineUser) => void) {
+remote.getOnlineUser = (userId: string, callback: (err: Error, user: UserSession | null) => void) => {
     accountService.getOnlineUser(userId, callback);
 };
-remote.getOnlineUsers = function (callback: (err, user) => void) {
+remote.getOnlineUserByAppId = (appId: string, callback: (err: Error, users: Array<UserSession> | null) => void) => {
+    accountService.getOnlineUserByAppId(appId, callback);
+};
+remote.getOnlineUsers = (callback: (err, user) => void) => {
     callback(null, accountService.OnlineUsers);
 };
 
-remote.addUserTransaction = function (userTransac: UserTransaction, cb) {
+remote.addUserTransaction = (userTransac: UserTransaction, cb) => {
     if (accountService.userTransaction !== null) {
         if (!accountService.userTransaction[userTransac.uid]) {
             accountService.userTransaction[userTransac.uid] = userTransac;

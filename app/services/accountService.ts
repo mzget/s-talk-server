@@ -24,7 +24,7 @@ export class AccountService {
 
         return this.onlineUsers;
     }
-    public getOnlineUser(userId: string, cb: (err: any, user: User.OnlineUser) => void) {
+    public getOnlineUser(userId: string, cb: (err: any, user: User.UserSession | null) => void) {
         if (!this.onlineUsers)
             this.onlineUsers = {};
 
@@ -37,8 +37,22 @@ export class AccountService {
         let user = this.onlineUsers[userId];
         cb(null, user);
     }
+    getOnlineUserByAppId(appId: string, cb: (err: any, users: Array<User.UserSession> | null) => void) {
+        if (!this.onlineUsers)
+            this.onlineUsers = {};
 
-    public addOnlineUser(user: User.OnlineUser, callback: Function) {
+        let results = new Array<User.UserSession>();
+        for (const userId in this.onlineUsers) {
+            if (this.onlineUsers.hasOwnProperty(userId)) {
+                const user = this.onlineUsers[userId];
+                if (user.applicationId === appId) {
+                    results.push(user);
+                }
+            }
+        }
+        cb(null, results);
+    }
+    public addOnlineUser(user: User.UserSession, callback: Function) {
         if (!this.onlineUsers)
             this.onlineUsers = {};
 

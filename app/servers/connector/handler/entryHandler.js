@@ -11,7 +11,7 @@ Joi["objectId"] = joiObj(Joi);
 const R = require("ramda");
 const Const_1 = require("../../../Const");
 const config_1 = require("../../../../config/config");
-const joi_1 = require("joi");
+const ChannelHelper_1 = require("../../../util/ChannelHelper");
 const tokenService = new tokenService_1.default();
 let channelService;
 module.exports = function (app) {
@@ -32,39 +32,50 @@ handler.login = function (msg, session, next) {
     let self = this;
     let schema = {
         user: Joi.object({
-            _id: joi_1.string,
-            username: joi_1.string,
+            _id: Joi.string().required(),
+            username: Joi.string().required(),
+            email: Joi.string().optional(),
         }).required(),
         X_API_KEY: Joi.string().required(),
-        X_APP_ID: (msg[Const_1.API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
+        X_APP_ID: (msg[Const_1.X_API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
     };
     const result = Joi.validate(msg._object, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
+    let user = msg.user;
     let apiKey = msg[Const_1.X_API_KEY];
+    let appId = msg[Const_1.X_APP_ID];
+    let appVersion = msg[Const_1.X_API_VERSION];
     if (R.contains(apiKey, config_1.Config.apiKeys) == false) {
         return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
-    tokenService.signToken(msg.user, (err, encode) => {
+    console.log("Login", msg);
+    tokenService.signToken(user, (err, encode) => {
         if (err) {
             return next(null, { code: Code_1.default.FAIL, message: err });
         }
         else {
-            session.__sessionService__.kick(msg.user._id, "New login...");
-            self.app.rpc.auth.authRemote.getOnlineUser(session, msg.user._id, (err, user) => {
-                // 	//@ Signing success.
-                session.bind(msg.user._id);
-                session.on("closed", onUserLeave.bind(null, self.app));
-                let param = {
-                    route: Code_1.default.sharedEvents.onUserLogin,
-                    data: msg.user
-                };
-                channelService.broadcast("connector", param.route, param.data);
-                addOnlineUser(self.app, session, msg.user);
-                next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
-                if (user) {
-                    console.warn("Duplicate user by onlineUsers collections.");
+            session.__sessionService__.kick(user._id, "New login...");
+            //@ Signing success.
+            session.bind(user._id);
+            session.set(Const_1.X_APP_ID, appId);
+            session.set(Const_1.X_API_KEY, apiKey);
+            session.on("closed", onUserLeave.bind(null, self.app));
+            let param = {
+                route: Code_1.default.sharedEvents.onUserLogin,
+                data: user,
+            };
+            // channelService.broadcast("connector", param.route, param.data);
+            addOnlineUser(self.app, session, user);
+            next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
+            self.app.rpc.auth.authRemote.getOnlineUserByAppId(session, appId, (err, userSessions) => {
+                if (err) {
+                    return next(null, { code: Code_1.default.FAIL, message: err });
+                }
+                else {
+                    let uids = ChannelHelper_1.getUsersGroup(userSessions);
+                    channelService.pushMessageByUids(param.route, param.data, uids);
                 }
             });
         }
@@ -100,13 +111,12 @@ handler.kickMe = function (msg, session, next) {
     next(null, { message: "kicked! " + msg.uid });
 };
 function addOnlineUser(app, session, user) {
-    console.log("addOnlineUser", user);
-    let onlineUser = new User.OnlineUser();
+    let onlineUser = new User.UserSession();
     let userTransaction = new User.UserTransaction();
     onlineUser.uid = user._id;
     onlineUser.username = user.username;
     onlineUser.serverId = session.frontendId;
-    onlineUser.applicationId = "";
+    onlineUser.applicationId = session.get(Const_1.X_APP_ID);
     userTransaction.uid = user._id;
     userTransaction.username = user.username;
     console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
@@ -158,7 +168,7 @@ handler.enterRoom = function (msg, session, next) {
                         console.error("set rid for session service failed! error is : %j", err.stack);
                     }
                 });
-                let onlineUser = new User.OnlineUser();
+                let onlineUser = new User.UserSession();
                 onlineUser.username = uname;
                 onlineUser.uid = uid;
                 addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, function () {

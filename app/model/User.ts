@@ -5,7 +5,7 @@ import JobLevel from "./JobLevel";
 interface IUser {
     uid: string;
 }
-export class OnlineUser implements IUser {
+export class UserSession implements IUser {
     uid: string;
     serverId: string;
     username: string;
@@ -16,7 +16,7 @@ export class UserTransaction implements IUser {
     username: string;
 }
 export interface IOnlineUser {
-    [uid: string]: OnlineUser;
+    [uid: string]: UserSession;
 }
 
 export class StalkAccount {

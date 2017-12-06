@@ -21,7 +21,7 @@ const remote = AuthenRemote.prototype;
  * Init Server this function call when server start.
  * for load room members from database to cache in memmory before.
  */
-const initServer = function () {
+const initServer = () => {
     // <!-- To reduce database retrive data. We store rooms Map data to server memory.
     console.log("init AuthenServer.");
 };
@@ -31,20 +31,23 @@ const initServer = function () {
  * 1. Call when user login success and joining in system.
  * 2. call when user logout.
  */
-remote.addOnlineUser = function (user, cb) {
+remote.addOnlineUser = (user, cb) => {
     accountService.addOnlineUser(user, cb);
 };
-remote.removeOnlineUser = function (userId, cb) {
+remote.removeOnlineUser = (userId, cb) => {
     accountService.removeOnlineUser(userId);
     cb();
 };
-remote.getOnlineUser = function (userId, callback) {
+remote.getOnlineUser = (userId, callback) => {
     accountService.getOnlineUser(userId, callback);
 };
-remote.getOnlineUsers = function (callback) {
+remote.getOnlineUserByAppId = (appId, callback) => {
+    accountService.getOnlineUserByAppId(appId, callback);
+};
+remote.getOnlineUsers = (callback) => {
     callback(null, accountService.OnlineUsers);
 };
-remote.addUserTransaction = function (userTransac, cb) {
+remote.addUserTransaction = (userTransac, cb) => {
     if (accountService.userTransaction !== null) {
         if (!accountService.userTransaction[userTransac.uid]) {
             accountService.userTransaction[userTransac.uid] = userTransac;

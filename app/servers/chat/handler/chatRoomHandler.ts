@@ -266,7 +266,7 @@ handler.getRoomById = function (msg, session, next) {
                                 cb(err);
                             }
                             else {
-                                self.app.rpc.auth.authRemote.getOnlineUser(session, member._id, (err, user: User.OnlineUser) => {
+                                self.app.rpc.auth.authRemote.getOnlineUser(session, member._id, (err, user: User.UserSession) => {
                                     if (err) {
                                         console.warn(err);
                                     }
