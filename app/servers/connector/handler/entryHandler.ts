@@ -81,9 +81,7 @@ handler.login = function (msg, session, next) {
 				addOnlineUser(self.app, session, msg.user);
 				next(null, { code: Code.OK, data: { success: true, token: encode } });
 
-				if (!user) {
-				}
-				else {
+				if (user) {
 					console.warn("Duplicate user by onlineUsers collections.");
 				}
 			});

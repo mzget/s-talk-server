@@ -60,9 +60,7 @@ handler.login = function (msg, session, next) {
                 channelService.broadcast("connector", param.route, param.data);
                 addOnlineUser(self.app, session, msg.user);
                 next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
-                if (!user) {
-                }
-                else {
+                if (user) {
                     console.warn("Duplicate user by onlineUsers collections.");
                 }
             });

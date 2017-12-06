@@ -1,3 +1,4 @@
+"use strict";
 var http = require('http');
 var port = 1337;
 var timeout = 100000;

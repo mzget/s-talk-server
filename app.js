@@ -6,8 +6,8 @@ const fs = require("fs");
 const path = require("path");
 const accountService_1 = require("./app/services/accountService");
 process.env.TZ = "UTC";
-process.env.NODE_ENV = "production";
-process.on("uncaughtException", function (err) {
+process.env.NODE_ENV = "development";
+process.on("uncaughtException", (err) => {
     console.error(" Caught exception: " + err.stack);
 });
 /**
@@ -31,7 +31,7 @@ InitDatabaseConnection().then(db => {
 const app = pomelo.createApp();
 app.set("name", "stalk-node-server");
 // app configure
-app.configure("development", function () {
+app.configure("development", () => {
     // filter configures
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
@@ -52,7 +52,7 @@ app.configure("development", function () {
     //       servers: "git.animation-genius.com:2181"
     //     });
 });
-app.configure("production", function () {
+app.configure("production", () => {
     // filter configures
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
@@ -63,8 +63,8 @@ app.configure("production", function () {
     let _c = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
     let _ca = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
     const options = {
-        key: fs.readFileSync(_p),
         cert: fs.readFileSync(_c),
+        key: fs.readFileSync(_p),
         // This is necessary only if using the client certificate authentication.
         // requestCert: true,
         // This is necessary only if the client uses the self-signed certificate.
@@ -76,7 +76,7 @@ app.configure("production", function () {
         transports: ["websocket"],
         heartbeatTimeout: 60,
         heartbeatInterval: 25,
-        ssl: options
+        ssl: options,
     });
     // @ require monitor in pomelo@2x
     //   app.set('monitorConfig',
@@ -86,11 +86,11 @@ app.configure("production", function () {
     //     });
 });
 // Configure for auth server
-app.configure("production|development", "auth", function () {
+app.configure("production|development", "auth", () => {
     console.log("start auth server");
     app.set("accountService", new accountService_1.AccountService(app));
 });
-app.configure("production|development", "chat", function () {
+app.configure("production|development", "chat", () => {
     console.log("start chat server");
 });
 // start app
