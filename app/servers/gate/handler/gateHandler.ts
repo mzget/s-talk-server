@@ -29,9 +29,10 @@ const handler = Handler.prototype;
  *
  */
 handler.queryEntry = function (msg, session, next) {
+	console
 	let schema = {
 		"uid": Joi.string().required(),
-		X_API_KEY: Joi.string().required(),
+		"x-api-key": Joi.string().required(),
 		"__route__": Joi.any()
 	};
 

@@ -51,10 +51,11 @@ handler.login = function (msg, session, next) {
 			username: Joi.string().required(),
 			email: Joi.string().optional(),
 		}).required(),
-		X_API_KEY: Joi.string().required(),
-		X_APP_ID: (msg[X_API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
+		"x-api-key": Joi.string().required(),
+		"x-app-id": (msg[X_API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
+		"__route__": Joi.any(),
 	};
-	const result = Joi.validate(msg._object, schema);
+	const result = Joi.validate(msg, schema);
 
 	if (result.error) {
 		return next(null, { code: Code.FAIL, message: result.error });

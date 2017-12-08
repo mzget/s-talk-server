@@ -1,6 +1,7 @@
-- docker build -t mzget/stalk-chitchat .
-- docker run --name stalk-chitchat -p 3050-3052:3050-3052 -d mzget/stalk-chitchat
+- docker build -t mzget/stalk-platform .
+- docker run --name stalk-platform -p 3020-3021:3020-3021 -d mzget/stalk-platform
 - docker exec -it stalk-chitchat /bin/bash
+
 // With volume
 - docker run -v /src/stalk/certs:/usr/src/app/certs --name stalk-chitchat -p 3050-3052:3050-3052 -d mzget/stalk-chitchat
 
