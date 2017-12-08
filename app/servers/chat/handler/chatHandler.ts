@@ -17,11 +17,10 @@ Joi["objectId"] = require("joi-objectid")(Joi);
 import * as ChatRoomManager from "../../../controller/ChatRoomManager";
 const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
 
+import ChannelService from "../../../util/ChannelService";
 import { Config } from "../../../../config/config";
-import { userInfo } from "os";
 const pushService = new MPushService.ParsePushService();
-let channelService;
-
+let channelService: ChannelService;
 
 module.exports = function (app) {
     return new Handler(app);

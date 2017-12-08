@@ -4,6 +4,7 @@ const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
 const dispatcher_1 = require("../../../util/dispatcher");
 const config_1 = require("../../../../config/config");
+const Const_1 = require("../../../Const");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 const R = require("ramda");
@@ -27,7 +28,7 @@ const handler = Handler.prototype;
 handler.queryEntry = function (msg, session, next) {
     let schema = {
         "uid": Joi.string().required(),
-        "x-api-key": Joi.string().required(),
+        X_API_KEY: Joi.string().required(),
         "__route__": Joi.any()
     };
     const result = Joi.validate(msg, schema);
@@ -35,7 +36,7 @@ handler.queryEntry = function (msg, session, next) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
     let uid = msg["uid"];
-    let apiKey = msg["x-api-key"];
+    let apiKey = msg[Const_1.X_API_KEY];
     let pass = R.contains(apiKey, config_1.Config.apiKeys);
     if (pass == false) {
         return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });

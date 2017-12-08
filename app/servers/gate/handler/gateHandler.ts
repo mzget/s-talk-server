@@ -2,7 +2,7 @@ import Code from "../../../../shared/Code";
 import TokenService from "../../../services/tokenService";
 import dispatcher from "../../../util/dispatcher";
 import { Config } from "../../../../config/config";
-
+import { X_API_KEY } from "../../../Const";
 import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 import * as R from "ramda";
@@ -31,7 +31,7 @@ const handler = Handler.prototype;
 handler.queryEntry = function (msg, session, next) {
 	let schema = {
 		"uid": Joi.string().required(),
-		"x-api-key": Joi.string().required(),
+		X_API_KEY: Joi.string().required(),
 		"__route__": Joi.any()
 	};
 
@@ -41,7 +41,7 @@ handler.queryEntry = function (msg, session, next) {
 	}
 
 	let uid = msg["uid"];
-	let apiKey = msg["x-api-key"];
+	let apiKey = msg[X_API_KEY];
 
 	let pass = R.contains(apiKey, Config.apiKeys);
 	if (pass == false) {
