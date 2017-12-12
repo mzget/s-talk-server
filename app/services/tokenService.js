@@ -1,31 +1,27 @@
 "use strict";
-/// <reference path="../../typings/jsonwebtoken/jsonwebtoken.d.ts" />
-var jwt = require('jsonwebtoken');
-var sessionConfig = require('../../config/session.json');
-var TokenService = (function () {
-    //	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
-    function TokenService() {
+Object.defineProperty(exports, "__esModule", { value: true });
+const jwt = require("jsonwebtoken");
+const config_1 = require("../../config/config");
+class TokenService {
+    // 	private DEFAULT_EXPIRE = 24 * 60 * 365;	// default session expire time: 24 hours
+    constructor() {
         this.secret = "";
-        this.DEFAULT_SECRET = 'ahoostudio_session_secret';
-        this.secret = sessionConfig.secret || this.DEFAULT_SECRET;
-        this.expire = sessionConfig.expire; // || this.DEFAULT_EXPIRE;
+        this.secret = config_1.Config.session.secret;
+        this.expire = config_1.Config.session.expire;
     }
-    TokenService.prototype.signToken = function (signObj) {
-        var token = jwt.sign(signObj, this.secret, {
-            expiresInMinutes: this.expire // expires in 24 hours
-        });
-        return token;
-    };
+    signToken(signObj, callback) {
+        jwt.sign(signObj, this.secret, { expiresIn: this.expire }, callback);
+    }
     /**
      * reture token decoded.
      */
-    TokenService.prototype.ensureAuthorized = function (token, callback) {
+    ensureAuthorized(token, callback) {
         // decode token
         if (token) {
             // verifies secret and checks exp
             jwt.verify(token, this.secret, function (err, decoded) {
                 if (err) {
-                    callback(err, { success: false, message: 'Failed to authenticate token.' });
+                    callback(err, null);
                 }
                 else {
                     // if everything is good, save to request for use in other routes
@@ -36,12 +32,8 @@ var TokenService = (function () {
         else {
             // if there is no token
             // return an error
-            callback(new Error("There is no token provide."), {
-                success: false,
-                message: 'No token provided.'
-            });
+            callback(new Error("There is no token provide."), null);
         }
-    };
-    return TokenService;
-}());
-module.exports = TokenService;
+    }
+}
+exports.default = TokenService;

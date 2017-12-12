@@ -1,11 +1,19 @@
 {
   "development": {
+    "gate": [
+      {
+        "id": "gate-server-1",
+        "host": "127.0.0.1",
+        "clientPort": 3020,
+        "frontend": true
+      }
+    ],
     "connector": [
       {
         "id": "connector-server-1",
         "host": "127.0.0.1",
         "port": 4050,
-        "clientPort": 3050,
+        "clientPort": 3021,
         "frontend": true
       }
     ],
@@ -13,16 +21,25 @@
       {
         "id": "chat-server-1",
         "host": "127.0.0.1",
-        "port": 6050
+        "port": 3022
+      }
+    ],
+    "push": [
+      {
+        "id": "push-server-1",
+        "host": "127.0.0.1",
+        "port": 3023
       }
     ],
     "auth": [
       {
         "id": "auth-server-1",
         "host": "127.0.0.1",
-        "port": 3650
+        "port": 3024
       }
-    ],
+    ]
+  },
+  "production": {
     "gate": [
       {
         "id": "gate-server-1",
@@ -30,15 +47,20 @@
         "clientPort": 3010,
         "frontend": true
       }
-    ]
-  },
-  "production": {
+    ],
     "connector": [
       {
         "id": "connector-server-1",
         "host": "127.0.0.1",
-        "port": 4055,
-        "clientPort": 3055,
+        "port": 4050,
+        "clientPort": 3051,
+        "frontend": true
+      },
+      {
+        "id": "connector-server-2",
+        "host": "127.0.0.1",
+        "port": 4051,
+        "clientPort": 3052,
         "frontend": true
       }
     ],
@@ -46,22 +68,31 @@
       {
         "id": "chat-server-1",
         "host": "127.0.0.1",
-        "port": 6055
+        "port": 3053
+      },
+      {
+        "id": "chat-server-2",
+        "host": "127.0.0.1",
+        "port": 3054
+      }
+    ],
+    "push": [
+      {
+        "id": "push-server-1",
+        "host": "127.0.0.1",
+        "port": 3055
+      },
+      {
+        "id": "push-server-2",
+        "host": "127.0.0.1",
+        "port": 3056
       }
     ],
     "auth": [
       {
         "id": "auth-server-1",
         "host": "127.0.0.1",
-        "port": 3655
-      }
-    ],
-    "gate": [
-      {
-        "id": "gate-server-1",
-        "host": "127.0.0.1",
-        "clientPort": 3015,
-        "frontend": true
+        "port": 3057
       }
     ]
   }

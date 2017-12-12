@@ -1,3 +1,4 @@
+"use strict";
 var http = require('http');
 var port = 1337;
 var timeout = 100000;
@@ -48,6 +49,7 @@ var httpStart = function () {
             req.on('end', function () {
                 var result = 'ok';
                 try {
+                    //   result = eval(params.script);
                 }
                 catch (ex) {
                     result = ex.stack;

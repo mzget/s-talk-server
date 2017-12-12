@@ -1,5 +1,4 @@
-﻿/// <reference path='../../typings/node/node.d.ts' />
-
+﻿
 var net = require('net');
 var fs = require('fs');
 

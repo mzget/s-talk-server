@@ -1,91 +1,68 @@
 "use strict";
-var Code = require('../../../../shared/Code');
-var TokenService = require('../../../services/tokenService');
-var MAuthen = require('../../../controller/AuthenManager');
-var MUser = require('../../../controller/UserManager');
-var userManager = MUser.Controller.UserManager.getInstance();
-var authenManager = MAuthen.Controller.AuthenManager.getInstance();
-var tokenService = new TokenService();
-var onlineUserCollection;
+Object.defineProperty(exports, "__esModule", { value: true });
+const Mcontroller = require("../../../controller/ChatRoomManager");
+const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
+let accountService;
+let channelService;
+const userNotFound = "Authentication failed. User not found.";
 module.exports = function (app) {
     return new AuthenRemote(app);
 };
-var AuthenRemote = function (app) {
+const AuthenRemote = function (app) {
     this.app = app;
+    channelService = app.get("channelService");
+    if (app.getServerType() === "auth") {
+        accountService = app.get("accountService");
+        initServer();
+    }
 };
-var authenRemote = AuthenRemote.prototype;
-authenRemote.tokenService = function (bearerToken, cb) {
-    tokenService.ensureAuthorized(bearerToken, function (err, res) {
-        if (err) {
-            console.info("ensureAuthorized error: ", err);
-            cb(err, { code: Code.FAIL, message: err });
-        }
-        else {
-            cb(null, { code: Code.OK, decoded: res.decoded });
-        }
-    });
+const remote = AuthenRemote.prototype;
+/**
+ * Init Server this function call when server start.
+ * for load room members from database to cache in memmory before.
+ */
+const initServer = () => {
+    // <!-- To reduce database retrive data. We store rooms Map data to server memory.
+    console.log("init AuthenServer.");
 };
 /**
- * route for /me data.
- * require => username, password, bearerToken
+ * UpdateOnlineUsers.
+ * The func call with 2 scenario,
+ * 1. Call when user login success and joining in system.
+ * 2. call when user logout.
  */
-authenRemote.me = function (msg, cb) {
-    var username = msg.username;
-    var password = msg.password;
-    var bearerToken = msg.token;
-    authenManager.GetUsername({ username: username.toLowerCase() }, function (user) {
-        if (user === null) {
-            var errMsg = "Get my user data is invalid.";
-            console.error(errMsg);
-            cb({ code: Code.FAIL, message: errMsg });
-            return;
-        }
-        cb({ code: Code.OK, data: user });
-    }, { roomAccess: 0 });
+remote.addOnlineUser = (user, cb) => {
+    accountService.addOnlineUser(user, cb);
 };
-authenRemote.auth = function (username, password, onlineUsers, callback) {
-    onlineUserCollection = onlineUsers;
-    authenManager.GetUsername({ username: username }, function (res) {
-        onAuthentication(password, res, callback);
-    }, { username: 1, password: 1 });
+remote.removeOnlineUser = (userId, cb) => {
+    accountService.removeOnlineUser(userId);
+    cb();
 };
-var onAuthentication = function (_password, userInfo, callback) {
-    console.log("onAuthentication: ", userInfo);
-    if (userInfo !== null) {
-        var obj = JSON.parse(JSON.stringify(userInfo));
-        if (obj.password === _password) {
-            var user = onlineUserCollection[obj._id];
-            if (!user) {
-                // if user is found and password is right
-                // create a token
-                var token = tokenService.signToken(obj);
-                callback({
-                    code: Code.OK,
-                    uid: obj._id,
-                    message: "Authenticate success!",
-                    token: token
-                });
-            }
-            else {
-                console.warn("Duplicate user by onlineUsers collections.");
-                callback({
-                    code: Code.DuplicatedLogin,
-                    message: "duplicate log in.",
-                    uid: obj._id,
-                });
-            }
-        }
-        else {
-            callback({
-                code: Code.FAIL,
-                message: "Authentication failed. User not found."
-            });
+remote.getOnlineUser = (userId, callback) => {
+    accountService.getOnlineUser(userId, callback);
+};
+remote.getOnlineUserByAppId = (appId, callback) => {
+    accountService.getOnlineUserByAppId(appId, callback);
+};
+remote.getOnlineUsers = (callback) => {
+    callback(null, accountService.OnlineUsers);
+};
+remote.addUserTransaction = (userTransac, cb) => {
+    if (accountService.userTransaction !== null) {
+        if (!accountService.userTransaction[userTransac.uid]) {
+            accountService.userTransaction[userTransac.uid] = userTransac;
         }
     }
     else {
-        callback({
-            code: Code.FAIL,
-            message: "Authentication failed. User not found."
-        });
+        console.warn("chatService.userTransaction is null.");
+    }
+    cb();
+};
+remote.getUserTransaction = function (uid, cb) {
+    if (!!accountService.userTransaction) {
+        cb(null, accountService.userTransaction[uid]);
+    }
+    else {
+        cb(new Error("No have userTransaction"), null);
     }
 };

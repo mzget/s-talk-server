@@ -1,7 +1,5 @@
-﻿/// <reference path="../../typings/tsd.d.ts" />
-
-import mongodb = require('mongodb');
-var Db = mongodb.Db,
+﻿import mongodb = require('mongodb');
+const Db = mongodb.Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     ReplSetServers = require('mongodb').ReplSetServers,
@@ -12,18 +10,17 @@ var Db = mongodb.Db,
     Code = require('mongodb').Code,
     BSON = require('mongodb').Bson,
     assert = require('assert');
-var webConfig = require('../../config/webConfig.json');
+import { Config } from '../../config/config';
 
 export module DbController {
-
     // Connection URL
-//    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
-    export var spartanChatDb_URL = webConfig.chatDB;
-//    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
-    export var roomColl: string = "rooms";
-    export var messageColl: string = "messages";
-    export var userColl: string = "users";         
-    export var companyColl: string = "company";                    
+    //    export var spartanChatDb_URL = 'mongodb://localhost:27017/spartanchatDB';
+    export const chatDB = Config.chatDB;
+    //    export var spartanChatDb_URL = 'mongodb://animation-genius.com:27017/reasearchChatDB';
+    export const roomColl: string = "rooms";
+    export const messageColl: string = "messages";
+    export const userColl: string = "users";
+    export const companyColl: string = "company";
 
     export class DbClient {
         private static _Instance: DbClient;
@@ -34,7 +31,7 @@ export module DbController {
             }
             return DbClient._Instance;
         }
-        
+
         private targetTable: string;
 
         constructor() {
@@ -46,7 +43,7 @@ export module DbController {
 
         InsertTables(target: string, schema) {
             // Use connect method to connect to the Server
-            MongoClient.connect(spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
 
@@ -63,9 +60,9 @@ export module DbController {
         }
 
         ///* require table, callback, document.
-        public InsertDocument(table: string, callback:(err, docs)=>void, doc) {
+        public InsertDocument(table: string, callback: (err, docs) => void, doc) {
             // Use connect method to connect to the Server
-            MongoClient.connect(spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
 
@@ -74,7 +71,7 @@ export module DbController {
 
                 collection.insertOne(doc, { w: 1 }, function (err, result) {
                     assert.equal(null, err);
-//                    console.log("Found the following records", result.result);
+                    //                    console.log("Found the following records", result.result);
 
                     callback(err, result.ops);
                     db.close();
@@ -88,38 +85,38 @@ export module DbController {
             collection.insert([
                 { a: 1 }, { a: 2 }, { a: 3 }
             ], function (err, result) {
-                    assert.equal(err, null);
-                    assert.equal(3, result.result.n);
-                    assert.equal(3, result.ops.length);
-                    console.log("Inserted 3 documents into the document collection");
-                    callback(result);
-                });
+                assert.equal(err, null);
+                assert.equal(3, result.result.n);
+                assert.equal(3, result.ops.length);
+                console.log("Inserted 3 documents into the document collection");
+                callback(result);
+            });
         }
 
         public UpdateDocuments(table: string, callback, criteria?, updateAction?, options?) {
             // Use connect method to connect to the Server
-            MongoClient.connect(spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
-    
+
                 // Get the documents collection
                 var collection = db.collection(table);
                 // Find some documents
                 collection.update(criteria, updateAction, function (err, result) {
                     assert.equal(null, err);
-//                    console.log("Found the following records", result.result);
+                    //                    console.log("Found the following records", result.result);
 
                     callback(result);
                     db.close();
                 });
             });
         }
-        public UpdateDocument(table: string, callback:(res)=>void, criteria?, updateAction?, options?) {
+        public UpdateDocument(table: string, callback: (res) => void, criteria?, updateAction?, options?) {
             // Use connect method to connect to the Server
-            MongoClient.connect(spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
-    
+
                 // Get the documents collection
                 var collection = db.collection(table);
                 // Find some documents
@@ -144,12 +141,12 @@ export module DbController {
             });
         }
 
-        public FindDocuments(table: string, callback:(res:any)=>void);
-        public FindDocuments(table: string, callback:(res:any)=>void, query);
-        public FindDocuments(table: string, callback:(res:any)=>void, query, projection);
-        public FindDocuments(table: string, callback:(res:any)=>void, query?: Object, projection?: Object) {
+        public FindDocuments(table: string, callback: (res: any) => void);
+        public FindDocuments(table: string, callback: (res: any) => void, query);
+        public FindDocuments(table: string, callback: (res: any) => void, query, projection);
+        public FindDocuments(table: string, callback: (res: any) => void, query?: Object, projection?: Object) {
             // Use connect method to connect to the Server
-            MongoClient.connect(spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
 
@@ -200,12 +197,12 @@ export module DbController {
         public FindDocument(table: string, callback: (res: any) => void, query, projection);
         public FindDocument(table: string, callback: (res: any) => void, query?: any, projection?: any) {
             // Use connect method to connect to the Server
-            MongoClient.connect(spartanChatDb_URL, function (err, db) {
+            MongoClient.connect(chatDB, function (err, db) {
                 if (err) { return console.dir(err); }
                 assert.equal(null, err);
 
                 // Get the documents collection
-                var collection = db.collection(table);
+                let collection = db.collection(table);
 
                 if (query === undefined || query === null) {
                     collection.findOne(function (err, doc) {
@@ -238,7 +235,7 @@ export module DbController {
             // Get the documents collection
             var collection = db.collection(target);
             // Find some documents
-            collection.find(schema,(function (err, docs) {
+            collection.find(schema, (function (err, docs) {
                 console.error(err);
                 console.log("Found the following records", docs);
 

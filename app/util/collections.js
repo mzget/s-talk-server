@@ -692,8 +692,8 @@ var collections;
             };
         };
         return LinkedList;
-    }());
-    collections.LinkedList = LinkedList; // End of linked list 
+    }()); // End of linked list 
+    collections.LinkedList = LinkedList;
     var Dictionary = (function () {
         /**
          * Creates an empty dictionary.
@@ -865,8 +865,8 @@ var collections;
             return toret + "\n}";
         };
         return Dictionary;
-    }());
-    collections.Dictionary = Dictionary; // End of dictionary
+    }()); // End of dictionary
+    collections.Dictionary = Dictionary;
     /**
      * This class is used by the LinkedDictionary Internally
      * Has to be a class, not an interface, because it needs to have
@@ -886,11 +886,12 @@ var collections;
     var LinkedDictionary = (function (_super) {
         __extends(LinkedDictionary, _super);
         function LinkedDictionary(toStrFunction) {
-            _super.call(this, toStrFunction);
-            this.head = new LinkedDictionaryPair(null, null);
-            this.tail = new LinkedDictionaryPair(null, null);
-            this.head.next = this.tail;
-            this.tail.prev = this.head;
+            var _this = _super.call(this, toStrFunction) || this;
+            _this.head = new LinkedDictionaryPair(null, null);
+            _this.tail = new LinkedDictionaryPair(null, null);
+            _this.head.next = _this.tail;
+            _this.tail.prev = _this.head;
+            return _this;
         }
         /**
          * Inserts the new node to the 'tail' of the list, updating the
@@ -1055,8 +1056,8 @@ var collections;
             }
         };
         return LinkedDictionary;
-    }(Dictionary));
-    collections.LinkedDictionary = LinkedDictionary; // End of LinkedDictionary
+    }(Dictionary)); // End of LinkedDictionary
+    collections.LinkedDictionary = LinkedDictionary;
     // /**
     //  * Returns true if this dictionary is equal to the given dictionary.
     //  * Two dictionaries are equal if they contain the same mappings.
@@ -1235,8 +1236,8 @@ var collections;
             return this.dict.isEmpty();
         };
         return MultiDictionary;
-    }());
-    collections.MultiDictionary = MultiDictionary; // end of multi dictionary 
+    }()); // end of multi dictionary 
+    collections.MultiDictionary = MultiDictionary;
     var Heap = (function () {
         /**
          * Creates an empty Heap.
@@ -1556,8 +1557,8 @@ var collections;
             this.list.forEach(callback);
         };
         return Stack;
-    }());
-    collections.Stack = Stack; // End of stack 
+    }()); // End of stack 
+    collections.Stack = Stack;
     var Queue = (function () {
         /**
          * Creates an empty queue.
@@ -1660,8 +1661,8 @@ var collections;
             this.list.forEach(callback);
         };
         return Queue;
-    }());
-    collections.Queue = Queue; // End of queue
+    }()); // End of queue
+    collections.Queue = Queue;
     var PriorityQueue = (function () {
         /**
          * Creates an empty priority queue.
@@ -1767,8 +1768,8 @@ var collections;
             this.heap.forEach(callback);
         };
         return PriorityQueue;
-    }());
-    collections.PriorityQueue = PriorityQueue; // end of priority queue
+    }()); // end of priority queue
+    collections.PriorityQueue = PriorityQueue;
     var Set = (function () {
         /**
          * Creates an empty set.
@@ -1930,8 +1931,8 @@ var collections;
             return collections.arrays.toString(this.toArray());
         };
         return Set;
-    }());
-    collections.Set = Set; // end of Set
+    }()); // end of Set
+    collections.Set = Set;
     var Bag = (function () {
         /**
          * Creates an empty bag.
@@ -2110,8 +2111,8 @@ var collections;
             this.dictionary.clear();
         };
         return Bag;
-    }());
-    collections.Bag = Bag; // End of bag 
+    }()); // End of bag 
+    collections.Bag = Bag;
     var BSTree = (function () {
         /**
          * Creates an empty binary search tree.
@@ -2505,6 +2506,6 @@ var collections;
             };
         };
         return BSTree;
-    }());
-    collections.BSTree = BSTree; // end of BSTree
+    }()); // end of BSTree
+    collections.BSTree = BSTree;
 })(collections = exports.collections || (exports.collections = {})); // End of module 

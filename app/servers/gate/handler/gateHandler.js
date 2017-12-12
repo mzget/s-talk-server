@@ -1,15 +1,22 @@
 "use strict";
-var dispatcher = require('../../../util/dispatcher');
-var Code = require('../../../../shared/Code');
-var TokenService = require('../../../services/tokenService');
-var tokenService = new TokenService();
+Object.defineProperty(exports, "__esModule", { value: true });
+const Code_1 = require("../../../../shared/Code");
+const tokenService_1 = require("../../../services/tokenService");
+const dispatcher_1 = require("../../../util/dispatcher");
+const config_1 = require("../../../../config/config");
+const Const_1 = require("../../../Const");
+const Joi = require("joi");
+Joi["objectId"] = require("joi-objectid")(Joi);
+const R = require("ramda");
+const tokenService = new tokenService_1.default();
 module.exports = function (app) {
     return new Handler(app);
 };
-var Handler = function (app) {
+const Handler = function (app) {
+    console.log("gateHandler construc..");
     this.app = app;
 };
-var handler = Handler.prototype;
+const handler = Handler.prototype;
 /**
  * Gate handler that dispatch user to connectors.
  *
@@ -19,38 +26,41 @@ var handler = Handler.prototype;
  *
  */
 handler.queryEntry = function (msg, session, next) {
-    var uid = msg.uid;
-    if (!uid) {
-        next(null, {
-            code: Code.FAIL, message: "uid is invalid."
-        });
-        return;
+    console;
+    let schema = {
+        "uid": Joi.string().required(),
+        "x-api-key": Joi.string().required(),
+        "__route__": Joi.any()
+    };
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
+    }
+    let uid = msg["uid"];
+    let apiKey = msg[Const_1.X_API_KEY];
+    let pass = R.contains(apiKey, config_1.Config.apiKeys);
+    if (pass == false) {
+        return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
     // get all connectors
-    var connectors = this.app.getServersByType('connector');
+    let connectors = this.app.getServersByType("connector");
     if (!connectors || connectors.length === 0) {
-        next(null, {
-            code: Code.FAIL, message: connectors
-        });
+        next(null, { code: Code_1.default.FAIL, message: connectors });
         return;
     }
     // select connector
-    var res = dispatcher.dispatch(uid, connectors);
-    next(null, {
-        code: Code.OK,
-        host: res.host,
-        port: res.clientPort
-    });
+    let res = dispatcher_1.default(uid, connectors);
+    next(null, { code: Code_1.default.OK, host: res.host, port: res.clientPort });
 };
 handler.authenGateway = function (msg, session, next) {
     tokenService.ensureAuthorized(msg.token, function (err, res) {
         if (err) {
             console.warn("authenGateway err: ", err);
-            next(null, { code: Code.FAIL, message: err });
+            next(null, { code: Code_1.default.FAIL, message: err });
         }
         else {
             console.log("authenGateway response: ", res);
-            next(null, { code: Code.OK, data: res });
+            next(null, { code: Code_1.default.OK, data: res });
         }
     });
 };

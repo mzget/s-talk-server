@@ -1,40 +1,38 @@
-﻿/// <reference path="../../../../typings/tsd.d.ts" />
+﻿import User = require("../../../model/User");
+import { Room, RoomStatus, RoomType } from "../../../model/Room";
+import { Message } from "../../../model/Message";
+import Code from "../../../../shared/Code";
+import MPushService = require("../../../services/ParsePushService");
+import * as chatroomService from "../../../services/chatroomService";
+import * as messageService from "../../../services/messageService";
+import * as userService from "../../../services/userService";
 
-import Mcontroller = require('../../../controller/ChatRoomManager');
-import MChatService = require('../../../services/chatService');
-import MUserManager = require("../../../controller/UserManager");
-import User = require('../../../model/User');
-import UserService = require("../../../dal/userDataAccess");
-import MRoom = require('../../../model/Room');
-import MMessage = require('../../../model/Message');
-import Code = require('../../../../shared/Code');
-import MPushService = require('../../../services/ParsePushService');
-import mongodb = require('mongodb');
-import https = require('https');
-import async = require('async');
-import promise = require('es6-promise');
+import mongodb = require("mongodb");
+type ObjectID = mongodb.ObjectID;
 
+import async = require("async");
+import Joi = require("joi");
+Joi["objectId"] = require("joi-objectid")(Joi);
 
-var chatRoomManager: Mcontroller.ChatRoomManager = Mcontroller.ChatRoomManager.getInstance();
-var userManager = MUserManager.Controller.UserManager.getInstance();
-var channelService;
-var chatService: MChatService.ChatService;
-var pushService = new MPushService.ParsePushService();
-var ObjectID = mongodb.ObjectID;
+import * as ChatRoomManager from "../../../controller/ChatRoomManager";
+const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
 
-console.info("instanctiate ChatHandler.");
+import ChannelService from "../../../util/ChannelService";
+import { Config } from "../../../../config/config";
+const pushService = new MPushService.ParsePushService();
+let channelService: ChannelService;
 
 module.exports = function (app) {
     return new Handler(app);
-}
+};
 
-var Handler = function (app) {
+const Handler = function (app) {
+    console.info("ChatHandler construc...");
     this.app = app;
-    channelService = this.app.get('channelService');
-    chatService = this.app.get('chatService');
-}
+    channelService = this.app.get("channelService");
+};
 
-var handler = Handler.prototype;
+const handler = Handler.prototype;
 
 /**
  * Send messages to users
@@ -42,217 +40,321 @@ var handler = Handler.prototype;
  * @param {Object} msg message from client
  * @param {Object} session
  * @param  {Function} next next stemp callback
- *
- * TODO...
- * ==> 1. room members who online and join in room. <for case but not significant>.
- * ==> 2. room members who online and not join room.
- * ==> 3. room members who not online. <Push>
  */
 handler.send = function (msg, session, next) {
     let self = this;
-    let rid = session.get('rid');
+    let rid = session.get("rid");
+    let client_uuid = msg.uuid;
+    let msg_target = msg.target;
 
     if (!rid) {
-        var errMsg = "rid is invalid please chaeck.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
-        return;
+        const errMsg = "rid is invalid please check.";
+        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
     }
 
-    //<!-- Get online members of room.
-    let thisRoom: MRoom.Room = null;
-    let onlineMembers = new Array<User.OnlineUser>();
-    let offlineMembers = new Array<string>();
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+    }, Config.timeout);
 
+    chatroomService.getRoom(rid).then((room: Room) => {
+        console.log("getRoom value: ", room);
 
-    self.app.rpc.chat.chatRemote.checkedCanAccessRoom(session, rid, session.uid, function (err, res) {
-        if (err || res === false) {
-            next(null, { code: Code.FAIL, message: "cannot access your request room." });
+        if (!room.members) {
+            const errMsg = "Room no have a members.";
+            next(null, { code: Code.FAIL, message: errMsg });
+            clearTimeout(timeout_id);
+            return;
         }
         else {
-            chatService.getRoom(rid, function (err, room) {
-                console.log("get members from room: %s name %s members %s", rid, room.name, room.members.length);
-        
-                thisRoom = room;
-                if (!room.members) {
-                    console.warn("RoomMembers is empty.");
-                }
-                else {
-                    room.members.forEach(value => {
-                        self.app.rpc.chat.chatRemote.getOnlineUser(session, value.id, function (err2, user) {
-                            if (err2 || user === null) {
-                                offlineMembers.push(value.id);
-                                //console.info("who offline:", value.id, user, err2);
-                            }
-                            else {
-                                onlineMembers.push(user);
-                                //console.info("who online:", value.id);
-                            }
-                        });
-                    });
+            delete msg.__route__;
+            delete msg.uuid;
+            delete msg.status;
 
-                    var _msg = new MMessage.Message();
-                    _msg.rid = msg.rid,
-                    _msg.type = msg.type,
-                    _msg.body = msg.content,
-                    _msg.sender = msg.sender,
-                    _msg.createTime = new Date(),
-                    _msg.meta = msg.meta;
-                    chatRoomManager.AddChatRecord(_msg, function (err, docs) {
-                        if (docs !== null) {
-                            var resultMsg: MMessage.Message = JSON.parse(JSON.stringify(docs[0]));
-                            //<!-- send callback to user who send chat msg.
-                            var params = {
-                                messageId: resultMsg._id,
-                                type: resultMsg.type,
-                                createTime: resultMsg.createTime
-                            };
-                            next(null, { code: Code.OK, data: params });
-                
-                            //<!-- push chat data to other members in room.
-                            var onChat = {
-                                route: Code.sharedEvents.onChat,
-                                data: resultMsg
-                            };
-    
-                            //the target is all users
-                            if (msg.target === '*') {
-                                //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
-                                async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
-                                        uid: val.uid,
-                                        sid: val.serverId
-                                    };
-                                    uidsGroup.push(group);
+            let _msg = { ...msg } as Message;
 
-                                    console.info("online member:", val.username);
-                                    cb();
-                                }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-    
-                                    //<!-- Push message to off line users via parse.
-                                    callPushNotification(thisRoom, resultMsg.sender, offlineMembers);
-                                });
-                            }
-                            else if (msg.target === "bot") {
-                                //<!-- Push new message to online users.
-                                var uidsGroup = new Array();
-                                async.eachSeries(onlineMembers, function iterator(val, cb) {
-                                    var group = {
-                                        uid: val.uid,
-                                        sid: val.serverId
-                                    };
-                                    uidsGroup.push(group);
-
-                                    cb();
-                                }, function done() {
-                                    channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
-                                });
-                            }
-                            else {
-                                //the target is specific user
-                            }
-                        }
-                        else {
-                            next(null, { code: Code.FAIL, message: "AddChatRecord fail please try to resend your message." });
-                        }
-                    });
-                }
+            messageService.pushByUids(_msg, null).then(value => {
+                // <!-- send callback to user who send chat msg.
+                let params = {
+                    uuid: client_uuid,
+                    status: "sent",
+                    resultMsg: value
+                };
+                next(null, { code: Code.OK, data: params });
+                pushMessage(self.app, session, room, value, client_uuid, msg_target);
+                clearTimeout(timeout_id);
+            }).catch(err => {
+                next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                clearTimeout(timeout_id);
             });
         }
+    }).catch(err => {
+        clearTimeout(timeout_id);
+        next(null, { code: Code.FAIL, message: err.toString() });
     });
 };
 
-handler.getSyncDateTime = function(msg, session, next) {
-    var date:Date = new Date();
-    var param = {
-        code:Code.OK,
-        data: date
+handler.chat = function (msg, session, next) {
+    let self = this;
+    let rid = session.get("rid");
+    let client_uuid = msg.uuid;
+    let msg_target = msg.target;
+
+
+    if (!rid) {
+        const errMsg = "rid is invalid please check.";
+        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
     }
-    
-    next(null, param);
+
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+    }, Config.timeout);
+
+    delete msg.__route__;
+    delete msg.uuid;
+    delete msg.status;
+
+    let _msg = { ...msg } as Message;
+    messageService.chat(_msg, rid).then(value => {
+        // <!-- send callback to user who send chat msg.
+        let params = {
+            uuid: client_uuid,
+            status: "sent",
+            resultMsg: value
+        };
+        clearTimeout(timeout_id);
+        next(null, { code: Code.OK, data: params });
+
+        chatroomService.getRoom(rid).then(room => {
+            pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        }).catch(err => {
+            next(null, { code: Code.FAIL, message: err.message });
+        });
+    }).catch(err => {
+        clearTimeout(timeout_id);
+        next(null, { code: Code.FAIL, message: err.message });
+    });
+};
+
+handler.pushByUids = function (msg, session, next) {
+    let self = this;
+
+    let schema = {
+        "x-api-key": Joi.string().optional(),
+        "api-version": Joi.string().optional(),
+        "data": Joi.any().required(),
+        "__route__": Joi.any()
+    };
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code.FAIL, message: result.error });
+    }
+
+    let timeout_id = setTimeout(function () {
+        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+    }, Config.timeout);
+
+    delete msg.__route__;
+    delete msg.data.uuid;
+    delete msg.data.status;
+
+    let client_uuid = msg.data.uuid;
+    // let targets = msg.data.target as Array<string>;
+    let apiVersion = msg["api-version"];
+    let appKey = msg["x-api-key"];
+    let _msg = msg.data as Message;
+
+    messageService.pushByUids(_msg, appKey).then(resultMsg => {
+        // <!-- send callback to user who send chat msg.
+        let params = {
+            uuid: client_uuid,
+            status: "sent",
+            resultMsg: resultMsg
+        };
+        next(null, { code: Code.OK, data: params });
+
+        let onChat = withApiVersion(parseFloat(apiVersion))(resultMsg);
+        pushToTarget(self.app, session, onChat, client_uuid);
+        clearTimeout(timeout_id);
+    }).catch(err => {
+        next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+        clearTimeout(timeout_id);
+    });
+};
+
+function withApiVersion(apiVersion: number = 0.1) {
+    return (message: Message) => {
+        if (apiVersion > 0.1) {
+            let onChat = {
+                route: Code.sharedEvents.ON_CHAT,
+                data: message
+            };
+
+            return onChat;
+        }
+        else {
+            let onChat = {
+                route: Code.sharedEvents.onChat,
+                data: message
+            };
+
+            return onChat;
+        }
+    }
 }
 
-/**
-* UpLoadContentFinish ,
-* Require { contentUrl, ownerMessageId }
-*/
-handler.uploadImageFinished = function (msg, session, next) {
-    var self = this;
-    var rid = session.get('rid');
-    var channelService = this.app.get('channelService');
-    var channel = channelService.getChannel(rid, false);
-    var contentUrl = msg.contentUrl;
-    var ownerMessageId = msg.ownerMessageId;
+function pushToTarget(app, session, message: { route: string, data: Message }, clientUUID: string) {
+    let onlineMembers = new Array<User.UserSession>();
+    let offlineMembers = new Array<string>();
+    let targets = message.data.target as Array<string> | string;
 
-    if (!contentUrl || !ownerMessageId) {
-        next(null, { code: Code.FAIL, message: "path or ownerMessageId is invalid..." });
-        return;
+    if (Array.isArray(targets)) {
+        async.map(targets, (item, cb) => {
+            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
+                if (err2 || user === null) {
+                    offlineMembers.push(item);
+                }
+                else {
+                    onlineMembers.push(user);
+                }
+
+                cb(null, item);
+            });
+        }, (err, results) => {
+            // <!-- Push new message to online users.
+            let uidsGroup = new Array();
+            async.map(onlineMembers, function iterator(val, cb) {
+                let group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup.push(group);
+
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(message.route, message.data, uidsGroup);
+
+                // <!-- Push message to off line users via parse.
+                if (!!offlineMembers && offlineMembers.length > 0) {
+                    // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                    console.log("Push to offline members not yet ready...");
+                    // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                }
+            });
+        });
     }
+    else if (targets == "*") {
+        // <!-- Push new message to online users.
+        let uidsGroup = new Array();
+        app.rpc.auth.authRemote.getOnlineUsers(session, (err, users: User.IOnlineUser) => {
+            if (!!users) {
+                for (const userId in users) {
+                    if (users.hasOwnProperty(userId)) {
+                        const onlineUser = users[userId] as User.UserSession;
 
-    chatRoomManager.updateChatRecordContent(ownerMessageId, contentUrl, (err, res) => {
-        console.log("updateChatRecord: ", res.result);
-        if (res !== null) {
-            chatRoomManager.GetChatContent(ownerMessageId, (content) => {
-                console.log("GetChatContent: ", content);
-                if (content !== null) {
-                    var obj = JSON.parse(JSON.stringify(content));
-                    console.log(obj._id);
+                        onlineMembers.push(onlineUser);
+                    }
+                }
 
-                    var param = {
-                        route: 'onUploaded',
-                        ownerMessageId: obj._id,
-                        body: obj.body,
-                        type: obj.type,
-                        sender: obj.sender
+                async.each(onlineMembers, function iterator(val, cb) {
+                    let group = {
+                        uid: val.uid,
+                        sid: val.serverId
                     };
-                    channel.pushMessage(param.route, param);
+                    uidsGroup.push(group);
+
+                    cb();
+                }, function done() {
+                    channelService.pushMessageByUids(message.route, message.data, uidsGroup);
+
+                    // <!-- Push message to off line users via parse.
+                    if (!!offlineMembers && offlineMembers.length > 0) {
+                        // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                        // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                    }
+                });
+            }
+        });
+    }
+}
+
+function pushMessage(app, session, room: Room, message: Message, clientUUID: string, target: string) {
+    let onlineMembers = new Array<User.UserSession>();
+    let offlineMembers = new Array<string>();
+
+    // @ Try to push message to other ...
+    async.map(room.members, (item, resultCallback) => {
+        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
+            if (err2 || user === null) {
+                offlineMembers.push(item._id);
+            }
+            else {
+                onlineMembers.push(user);
+            }
+
+            resultCallback(null, item);
+        });
+    }, (err, results) => {
+        console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
+
+        // <!-- push chat data to other members in room.
+        message.uuid = clientUUID;
+        let onChat = {
+            route: Code.sharedEvents.onChat,
+            data: message
+        };
+
+        // the target is all users
+        if (target === "*") {
+            // <!-- Push new message to online users.
+            let uidsGroup = new Array();
+            async.each(onlineMembers, function iterator(val, cb) {
+                let group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup.push(group);
+
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+
+                // <!-- Push message to off line users via parse.
+                if (!!offlineMembers && offlineMembers.length > 0) {
+                    // callPushNotification(self.app, session, thisRoom, resultMsg.sender, offlineMembers);
+                    simplePushNotification(app, session, offlineMembers, room, message.sender);
                 }
             });
         }
+        else if (target === "bot") {
+            // <!-- Push new message to online users.
+            let uidsGroup = new Array();
+            async.eachSeries(onlineMembers, function iterator(val, cb) {
+                let group = {
+                    uid: val.uid,
+                    sid: val.serverId
+                };
+                uidsGroup.push(group);
 
-        next(null, { code: Code.OK, data: res });
+                cb();
+            }, function done() {
+                channelService.pushMessageByUids(onChat.route, onChat.data, uidsGroup);
+            });
+        }
+        else {
+            // the target is specific user
+        }
     });
 }
 
-/**
-* get log messageid form chat room. 
-* @param {room_id} msg message from client
-* @param {lastAccessTime} msg.lastAccessTime of room specific.
- * @param {Object} session
- * @param  {Function} next next stemp callback that return records of message_id.
-*/
-handler.getChatHistory = function (msg, session, next) {
-    let self = this;
-    let rid = msg.rid;
-    let lastMessageTime = msg.lastAccessTime;
-  
-    if (!rid) {
-        next(null, { code: Code.FAIL, message: "room_id field is in valid." });
-        return;
-    }
+handler.getSyncDateTime = function (msg, session, next) {
+    let date: Date = new Date();
+    let param = {
+        code: Code.OK,
+        data: date
+    };
 
-    if (!lastMessageTime) {
-        next(null, { code: Code.FAIL, message: "lastAccessTime field is in valid." });
-        return;
-    }
-
-    let utc = new Date(lastMessageTime);
-    
-    chatRoomManager.getNewerMessageOfChatRoom(rid, utc, function (error, result) {
-        console.log("getChatHistory: ", result.length);
-        if (result !== null) {
-            var chatrecords = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code.OK, data: chatrecords });
-
-            //<!-- When get chat history complete. System will update roomAccess data for user.
-            self.app.rpc.chat.chatRemote.updateRoomAccess(session, session.uid, rid, new Date(), null);            
-        } else {
-            next(null, { code: Code.FAIL, message: "have no a chatrecord for this room." });
-        }
-    });     
-}
+    next(null, param);
+};
 
 /**
 * Get older message for chat room.
@@ -265,45 +367,30 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
     if (!rid || !topEdgeMessageTime) {
         next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
-    } 
+    }
+
+    let _timeOut = setTimeout(() => {
+        next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
+        return;
+    }, Config.timeout);
 
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
-        console.info('getOlderMessageChunk:', res.length);
+        console.info("getOlderMessageChunk:", res.length);
 
         if (!!res) {
+            clearTimeout(_timeOut);
             next(null, { code: Code.OK, data: res });
         }
         else {
+            clearTimeout(_timeOut);
             next(null, { code: Code.FAIL });
         }
     });
-}
+};
 
-handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => void) {
-    let self = this;
-    let rid = msg.rid;
-    let topEdgeMessageTime = msg.topEdgeMessageTime;
-
-    if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
-        return;
-    }
-
-    chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
-        console.info('getOlderMessageChunk:', res.length);
-
-        if (!!res) {
-            next(null, { code: Code.OK, data: res.length });
-        }
-        else {
-            next(null, { code: Code.FAIL });
-        }
-    });
-}
-
-/* 
-* Get last limit query messages of specific user and room then return messages info. 
-* Require: 
+/*
+* Get last limit query messages of specific user and room then return messages info.
+* Require:
 { userId, for get last messages of specific user. }
 { roomId, for query last messages in room }
 * Return:
@@ -311,7 +398,7 @@ handler.checkOlderMessagesCount = function (msg, session, next: (err, res) => vo
 */
 handler.getMessagesReaders = function (msg, session, next) {
     let uid = session.uid;
-    let rid = session.get('rid');
+    let rid = session.get("rid");
     let topEdgeMessageTime = msg.topEdgeMessageTime;
 
     let errMsg = "uid or rid is invalid. or may be some params i missing.";
@@ -321,317 +408,137 @@ handler.getMessagesReaders = function (msg, session, next) {
 
         return;
     }
-    
-    let channel = channelService.getChannel(rid, false);
 
-    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime,function (err, res) {
+    let channel = channelService.getChannel(rid, false);
+    chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
-            var onGetMessagesReaders = {
+            let onGetMessagesReaders = {
                 route: Code.sharedEvents.onGetMessagesReaders,
                 data: res
             };
 
-            var memberInfo = channel.getMember(uid);
+            let memberInfo = channel.getMember(uid);
             if (!memberInfo) {
                 return;
             }
             else {
-                var uidsGroup = new Array();
-                uidsGroup.push(memberInfo);
                 console.info("Push messages readers to owner msg.", memberInfo);
+
+                let uidsGroup = new Array();
+                uidsGroup.push(memberInfo);
                 channelService.pushMessageByUids(onGetMessagesReaders.route, onGetMessagesReaders, uidsGroup);
             }
         }
     });
 
     next(null, { code: Code.OK });
-}
+};
 
 /**
-* get log message content by message_id. 
+* get log message content by message_id.
 * @param {message_id} msg message from client
 * @param {Object} session
 * @param  {Function} next next stemp callback that return records of message_id.
 */
-handler.getMessageContent = function(msg, session, next) {
-    var messageId = msg.messageId;
+handler.getMessageContent = function (msg, session, next) {
+    let messageId = msg.messageId;
     if (!messageId) {
-        var err = "messageId connot be null or empty.";
+        let err = "messageId connot be null or empty.";
         console.warn(err);
-        next(null, {code: Code.FAIL, message: err });
+        next(null, { code: Code.FAIL, message: err });
     }
-    
+
     chatRoomManager.GetChatContent(messageId, function (err, result) {
         console.log("GetChatContent: ", result);
         if (result !== null) {
-            var content = JSON.parse(JSON.stringify(result));
+            let content = JSON.parse(JSON.stringify(result));
             next(null, { code: Code.OK, data: content });
         } else {
             next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
         }
-    });  
-}
-
-/*
-* Update who read message by specific message_id.
-* And then push readers array to sender of specific message_id
-* ////////////////////////////////////////////////////////////
-* Return : no return anything.
-*/
-handler.updateWhoReadMessage = function (msg, session, next) {
-//    var token = msg.token;
-    var messageId: string = msg.messageId;
-    var rid: string = msg.roomId;
-    var uid = session.uid;
-
-    if (!messageId || !uid || !rid) {
-        var errMsg =  "messageId or uid or rid data field is invalid.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
-        return;
-    }
-    
-    var channel = channelService.getChannel(rid, false);
-    if(!channel) {
-        var message = "no have room for your request.";
-        console.warn(message);
-        next(null, {code:Code.FAIL, message : message});
-        return;
-    }
-    else {
-        //<!-- update whether this session read this message_id.
-        chatRoomManager.updateWhoReadMessage(messageId, uid, (err, res) => {
-            if (err) {
-                return;
-            }
-            else {
-                //<!-- Push who read message to sender.
-                chatRoomManager.getWhoReadMessage(messageId, function(err, res) {
-                    if(!err) {
-                        var onMessageRead = {
-                            route: Code.sharedEvents.onMessageRead,
-                            data : res
-                        };
-                        
-                        var senderInfo = channel.getMember(res.sender);
-                        if(!senderInfo) { 
-                            return;    
-                        }
-                        else {
-                            var uidsGroup = new Array();
-                            uidsGroup.push(senderInfo);
-                            console.info("Push member who read message to msg sender.", senderInfo);
-                            channelService.pushMessageByUids(onMessageRead.route, onMessageRead.data, uidsGroup);
-                        }
-                    }
-                });
-            }
-        });
-    }
-    
-    next(null , {code:Code.OK});
-}
-
-/*
-* Update who read message by specific message_id.
-* And then push readers array to sender of specific message_id
-* ////////////////////////////////////////////////////////////
-* Return : no return anything.
-*/
-handler.updateWhoReadMessages = function (msg, session, next) {
-    //    var token = msg.token;
-    var messages: Array<string> = JSON.parse(msg.messageIds);
-    var rid: string = msg.roomId;
-    var uid = session.uid;
-
-    if (!messages || !uid || !rid) {
-        var errMsg = "messageId or uid or rid data field is invalid.";
-        console.error(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
-        return;
-    }
-
-    var channel = channelService.getChannel(rid, false);
-    if (!channel) {
-        var errMsg = "no have room for your request.";
-        console.warn(errMsg);
-        next(null, { code: Code.FAIL, message: errMsg });
-        return;
-    }
-    else {
-        async.eachSeries(messages, function itorator(item, cb) {
-            chatRoomManager.updateWhoReadMessage(item, uid, function callback(err, res) {
-                if (err) {
-                    cb(err);
-                }
-                else {
-                    cb();
-                }
-            });
-        }, function done(err) {
-            //<!-- update whether this session read this message_id.
-            getWhoReadMessages(messages, channel);
-        });
-    }
-
-    next(null, { code: Code.OK });
-}
-
- //<!-- Push who read message to sender.
-function getWhoReadMessages(messages: Array<string>, channel) {
-    async.eachSeries(messages, function iterator(item, cb) {
-        chatRoomManager.getWhoReadMessage(item, function (err, res) {
-            if (!err) {
-                var onMessageRead = {
-                    route: Code.sharedEvents.onMessageRead,
-                    data: res
-                };
-
-                var senderInfo = channel.getMember(res.sender);
-                if (!senderInfo) {
-                    return;
-                }
-                else {
-                    var uidsGroup = new Array();
-                    uidsGroup.push(senderInfo);
-                    console.info("Push member who read message to msg sender.", senderInfo);
-                    channelService.pushMessageByUids(onMessageRead.route, onMessageRead.data, uidsGroup);
-                }
-
-                cb();
-            }
-            else {
-                cb(err);
-            }
-        });
-    }, function done(err) {
-        console.log("getWhoReadMessages. done");
     });
-}
+};
 
-function callPushNotification(room: MRoom.Room, sender: string, offlineMembers: Array<string>): void {
-    //<!-- Push message to off line users via parse.
-    /**<!-- Before push message via parse.
-    * Todo 
-    * 1. Know room name by get roomType and get name. 
-    * 2. Know user who send message.
-    * 3. Know message type.
-    * 4. Know installationsId of receiver users.
-    */
-    var pushTitle = room.name;
-    if (!pushTitle) {
-        var userTrans = chatService.userTransaction[sender];
-        pushTitle = userTrans.username;
-    }
-    var alertMessage = pushTitle + " has a new message.";
+function simplePushNotification(app: any, session: any, offlineMembers: Array<string>, room: Room, sender: string): void {
+    let pushTitle = room.name;
+    let alertMessage = "";
+    let targetMemberWhoSubscribeRoom = new Array<string>();
     let targetDevices = new Array<string>();
-    let targetMemberWhoSubscribeRoom = new Array<mongodb.ObjectID>();
-    //<-- To push only user who subscribe this room. This process need a some logic.
-    /**
-     * - check the offline user who subscribe this room or not.
-     * - to check closedNoticeGroupList or closedNoticeUserList user room.name to detech room type.
-     * - if one of list has contain room_id dont push message for them.
-     *  */ 
+    if (!!pushTitle) {
+        alertMessage = pushTitle + " sent you message.";
+        call();
+    }
+    else {
+        new Promise((resolve, reject) => {
+            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
+                console.warn("getUserTransaction", err, userTrans);
+                if (!!err || !userTrans) {
+                    console.warn(err);
 
-    async.waterfall([t => {
-        //<!-- checking roomType
-        chatRoomManager.GetChatRoomInfo({ _id: new ObjectID(room._id) }, { type: 1 }, (result) => {
-        if (!result) {
-            var errMsg = "checkedRoomType fail.";
-            console.error(errMsg);
-            t(new Error(errMsg), null);
-        }
-        else if(result.type === MRoom.RoomType.organizationGroup || result.type === MRoom.RoomType.projectBaseGroup){
-            t(null, {});
-        }
-        else {
-            t(null, result.type);
-        }
-        })
-    }, (arg1, cb) => {
-        if (arg1 === null) {
-            cb(null, null);
-        }
-        else if (arg1 === MRoom.RoomType.privateGroup || arg1 === MRoom.RoomType.privateChat) {
-            /** check closedNoticeGroupList. If unsubscribe room message will ignore.*/
-            //<!-- check closedNoticeUserList. If unsubscribe room message will ignore.
-            var roomType: MRoom.RoomType = JSON.parse(JSON.stringify(arg1));
-
-            async.eachSeries(offlineMembers, function iterrator(item, callback) {
-//                console.warn("offline member _id: ", item);
-                userManager.checkUnsubscribeRoom(item, roomType, room._id, (err, results) => {
-                    //<!-- if result is contain in unsubscribe list. we ignore this member.
-                    if (!err && results !== null) {
-                        // console.log("checkUnsubscribeRoom");
-                    }
-                    else {
-                        var objId = new ObjectID(item);
-                        targetMemberWhoSubscribeRoom.push(objId);
-                    }
-                    
-                    callback();
-                });
-            }, function callback(err) {
-                if(err) {
-                    cb(err, null);
+                    reject(err);
                 }
                 else {
-                    cb(null, {});
+                    pushTitle = userTrans.username;
+
+                    resolve(pushTitle);
                 }
             });
-        }
-        else { //<!-- When room type is orgGroup or ProjectBase don't check unsubscribe.
-            offlineMembers.forEach(offline => {
-                var objId = new ObjectID(offline);
-                targetMemberWhoSubscribeRoom.push(objId);
-            });
-            
-            cb(null, {});
-        }
-        }],
-        (err, result) => {
-            if (err || result === null) {
-                console.error(err);
-            }
-            else {
-                let promise = new Promise(function (resolve, reject) {
-                    //<!-- Query all deviceTokens for each members.
-                    UserService.prototype.getDeviceTokens(targetMemberWhoSubscribeRoom, (err, res) => {
-                        if (!!res) {
-                            let memberTokens: Array<any> = res; // array of deviceTokens for each member.
-                            async.mapSeries(memberTokens, function iterator(item, cb) {
-                                if (!!item.deviceTokens) {
-                                    let deviceTokens: Array<string> = item.deviceTokens;
-                                    async.mapSeries(deviceTokens, (token, resultCb) => {
-                                        targetDevices.push(token);
-                                        resultCb(null, {});
-                                    }, function done(err, results) {
-                                        if (err) {
-                                            cb(err, null);
-                                        }
-                                        else {
-                                            cb(null, null);
-                                        }
-                                    });
-                                }
-                                else {
-                                    cb(null, null);
-                                }
-                            }, function done(err, results) {
-                                if (err) {
-                                    reject();
-                                }
-                                else {
-                                    resolve();
-                                }
-                            });
-                        }
+        }).then(value => {
+            alertMessage = value + " sent you message.";
+            call();
+        }).catch(err => {
+            alertMessage = "You have a new message";
+            call();
+        });
+    }
+
+    function call() {
+        async.map(offlineMembers, function iterator(item, result: (err, obj: string) => void) {
+            result(null, item);
+        }, function done(err, results) {
+            targetMemberWhoSubscribeRoom = results.slice();
+
+            let promise = new Promise(function (resolve, reject) {
+                // <!-- Query all deviceTokens for each members.
+                userService.getDeviceTokens(targetMemberWhoSubscribeRoom)
+                    .then(res => {
+                        // DeviceToken null [ { deviceTokens: [ 'eb5f4051aea5b991e1f2a0c82f5b25afdc848eaa7e9bc76e194a475dffd95f32' ] } ]
+                        let memberTokens = res as Array<any>; // array of deviceTokens for each member.
+                        async.mapSeries(memberTokens, function iterator(item, cb) {
+                            if (!!item.deviceTokens) {
+                                let deviceTokens: Array<string> = item.deviceTokens;
+                                async.mapSeries(deviceTokens, (token, resultCb: (err, obj: string) => void) => {
+                                    resultCb(null, token);
+                                }, function done(err, results) {
+                                    if (!!err) {
+                                        cb(err, null);
+                                    }
+                                    else {
+                                        targetDevices = results.slice();
+                                        cb(null, null);
+                                    }
+                                });
+                            }
+                            else {
+                                cb(null, null);
+                            }
+                        }, function done(err, results) {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                resolve(results);
+                            }
+                        });
+                    }).catch(err => {
+                        reject(err);
                     });
-                }).then(function onfulfill(value) {
-                    pushService.sendPushToTargetDevices(targetDevices, alertMessage);
-                    }).catch(function onRejected(err) {
-                        console.error("push to target deviceTokens fail.", err);
-                });
-            }
-    });
+            }).then(function onfulfill(value) {
+                console.warn("Push", targetDevices, alertMessage);
+                pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+            }).catch(function onRejected(err) {
+                console.error("push to target deviceTokens fail.", err);
+            });
+        });
+    }
 }

@@ -1,43 +1,97 @@
-/// <reference path="./typings/tsd.d.ts" />
 "use strict";
-var pomelo = require('pomelo');
-var routeUtil = require('./app/util/routeUtil');
-var MChatService = require('./app/services/chatService');
-//var HttpDebug = require('./app/util/httpServer');
-//var netserver = require('./app/util/netServer');
-var webConfig = require('./config/webConfig');
+Object.defineProperty(exports, "__esModule", { value: true });
+const pomelo = require("pomelo");
+const routeUtil_1 = require("./app/util/routeUtil");
+const fs = require("fs");
+const path = require("path");
+const accountService_1 = require("./app/services/accountService");
+process.env.TZ = "UTC";
+process.env.NODE_ENV = "development";
+process.on("uncaughtException", (err) => {
+    console.error(" Caught exception: " + err.stack);
+});
+/**
+ * Logging database.
+ */
+/*
+import { InitDatabaseConnection } from "./app/DbClient";
+InitDatabaseConnection().then(db => {
+    db.stats().then(stat => {
+        console.log("api status ready.", stat.db);
+    }).catch(err => {
+        console.warn("Cannot get db state!", err);
+    });
+}).catch(err => {
+    console.warn("Cannot connect database", err);
+});
+*/
 /**
  * Init app for client.
  */
-var app = pomelo.createApp();
-app.set('name', 'the-spartanchat-node');
+const app = pomelo.createApp();
+app.set("name", "stalk-node-server");
 // app configure
-app.configure('production|development', function () {
+app.configure("development", () => {
     // filter configures
     //    app.before(pomelo.filters.toobusy(100));
     //    app.filter(pomelo.filters.serial(5000));
     // route configures
-    app.route('chat', routeUtil.chat);
+    app.route("chat", routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
+    app.set("connectorConfig", {
+        connector: pomelo.connectors.hybridconnector,
+        // connector: pomelo.connectors.sioconnector,
+        transports: ["websocket"],
+        heartbeatTimeout: 60,
+        heartbeatInterval: 25,
+    });
+    // @ require monitor in pomelo@2x
+    //   app.set('monitorConfig',
+    //     {
+    //       monitor : pomelo.monitors.zookeepermonitor,
+    //       servers: "git.animation-genius.com:2181"
+    //     });
+});
+app.configure("production", () => {
     // filter configures
-    app.filter(pomelo.filters.timeout(webConfig.timeout));
+    //    app.before(pomelo.filters.toobusy(100));
+    //    app.filter(pomelo.filters.serial(5000));
+    // route configures
+    app.route("chat", routeUtil_1.default);
+    //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
+    let _p = path.join("/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
+    let _c = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
+    let _ca = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
+    const options = {
+        cert: fs.readFileSync(_c),
+        key: fs.readFileSync(_p),
+        // This is necessary only if using the client certificate authentication.
+        // requestCert: true,
+        // This is necessary only if the client uses the self-signed certificate.
+        ca: [fs.readFileSync(_ca)]
+    };
+    app.set("connectorConfig", {
+        connector: pomelo.connectors.hybridconnector,
+        // connector: pomelo.connectors.sioconnector,
+        transports: ["websocket"],
+        heartbeatTimeout: 60,
+        heartbeatInterval: 25,
+        ssl: options,
+    });
+    // @ require monitor in pomelo@2x
+    //   app.set('monitorConfig',
+    //     {
+    //       monitor : pomelo.monitors.zookeepermonitor,
+    //       servers: "git.animation-genius.com:2181"
+    //     });
 });
 // Configure for auth server
-app.configure('production|development', 'auth', function () {
+app.configure("production|development", "auth", () => {
+    console.log("start auth server");
+    app.set("accountService", new accountService_1.AccountService(app));
 });
-app.configure('production|development', 'chat', function () {
-    app.set('chatService', new MChatService.ChatService(app));
+app.configure("production|development", "chat", () => {
+    console.log("start chat server");
 });
-//app.configure('production|development', 'master', function () {
-//var http = new HttpDebug();
-//http.start();
-//var net = new netserver.NetServer();
-//net.Start();
-//});
 // start app
-process.env.TZ = 'UTC';
-process.env.NODE_ENV = 'production';
-process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
-});
 app.start();

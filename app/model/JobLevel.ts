@@ -6,3 +6,5 @@ enum JobLevel {
     directors, //Directors,
     vice_president //Vice President,
 }
+
+export default JobLevel;

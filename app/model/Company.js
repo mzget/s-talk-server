@@ -1,7 +1,5 @@
 "use strict";
-var Company = (function () {
-    function Company() {
-    }
-    return Company;
-}());
+Object.defineProperty(exports, "__esModule", { value: true });
+class Company {
+}
 exports.Company = Company;

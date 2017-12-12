@@ -1,8 +1,8 @@
-﻿class Code  {
+﻿export default class Code {
     static OK = 200;
     static RequestTimeout = 408;
     static FAIL = 500;
-    
+
     static DuplicatedLogin = 1004;
 
     ENTRY = {
@@ -29,7 +29,10 @@
         onUserUpdateProfile: "onUserUpdateProfile",
         onUserLogin: "onUserLogin",
 
+        /**@deprecated */
         onChat: "onChat",
+        ON_CHAT: "ON_CHAT",
+        ON_PUSH: "ON_PUSH",
 
         onAccessRooms: "onAccessRooms",
         onUpdatedLastAccessTime: "onUpdatedLastAccessTime",
@@ -41,7 +44,7 @@
         onTheLineIsBusy: "onTheLineIsBusy",
 
         onGetMe: "onGetMe",
-        onGetCompanyInfo:"onGetCompanyInfo",
+        onGetCompanyInfo: "onGetCompanyInfo",
         onGetCompanyMembers: "onGetCompanyMembers",
         onGetPrivateGroups: "onGetPrivateGroups",
         onGetOrganizeGroups: "onGetOrganizeGroups",
@@ -55,5 +58,14 @@
 
         onUpdateMemberInfoInProjectBase: "onUpdateMemberInfoInProjectBase"
     }
-};
-export = Code;
+
+    public static friendEvents = {
+        addFriendEvent: "addFriendEvent"
+    }
+}
+
+export interface SessionInfo {
+    id: string;
+    frontendId: string;
+    uid: string;
+}

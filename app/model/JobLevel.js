@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 //<!--- Referrence by http://management.about.com/od/people/a/EEgradelevels.htm
 var JobLevel;
 (function (JobLevel) {
@@ -7,3 +9,4 @@ var JobLevel;
     JobLevel[JobLevel["directors"] = 3] = "directors";
     JobLevel[JobLevel["vice_president"] = 4] = "vice_president"; //Vice President,
 })(JobLevel || (JobLevel = {}));
+exports.default = JobLevel;

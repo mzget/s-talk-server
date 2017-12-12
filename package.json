@@ -1,16 +1,53 @@
 {
-  "name": "stalk",
+  "name": "stalk-chitchat",
   "main": "app.js",
   "version": "0.0.1",
   "private": false,
+  "scripts": {
+    "test": "jest",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
   "dependencies": {
-    "async": "*",
+    "async": "^2.6.0",
     "crc": "0.2.0",
-    "form-data": "*",
-    "jsonwebtoken": "*",
-    "mongodb": "*",
-    "parse": "^*",
-    "promise": "*",
-    "pomelo": "*"
-  }
+    "joi": "^10.6.0",
+    "joi-objectid": "^2.0.0",
+    "jsonwebtoken": "^8.1.0",
+    "mongodb": "^2.2.33",
+    "pomelo": "^2.2.5",
+    "ramda": "^0.24.1",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/async": "^2.0.45",
+    "@types/jest": "^21.1.8",
+    "@types/joi": "^10.6.0",
+    "@types/jsonwebtoken": "^7.2.3",
+    "@types/mongodb": "^2.2.16",
+    "@types/node": "^7.0.48",
+    "@types/promise": "^7.1.30",
+    "@types/ramda": "^0.24.18",
+    "@types/request": "0.0.42",
+    "@types/request-promise-native": "^1.0.10",
+    "jest": "^21.2.1"
+  },
+  "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://mz_nattapon@bitbucket.org/mz_nattapon/stalk-node-server.git"
+  },
+  "keywords": [
+    "stalk",
+    "ahoostudio",
+    "pomelo",
+    "node.js",
+    "realtime",
+    "chat",
+    "messaging-service"
+  ],
+  "author": "nattapon.r <nattapon.r@live.com>",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/mz_nattapon/stalk-node-server#readme"
 }
