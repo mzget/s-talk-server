@@ -3,10 +3,10 @@
 - docker exec -it stalk-platform /bin/bash
 
 // With volume
-- docker run -v /src/stalk/certs:/usr/src/app/certs --name stalk-chitchat -p 3050-3052:3050-3052 -d mzget/stalk-chitchat
+- docker run -v /src/stalk/certs:/usr/src/app/certs --name stalk-platform -p 3050-3052:3050-3052 -d mzget/stalk-platform
 
 // push to docker hub 
-- docker push mzget/stalk-chitchat
+- docker push mzget/stalk-platform
 
 // pull from docker hub 
-- docker pull mzget/stalk-chitchat
+- docker pull mzget/stalk-platform

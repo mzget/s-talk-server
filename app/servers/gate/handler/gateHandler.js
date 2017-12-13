@@ -8,6 +8,7 @@ const Const_1 = require("../../../Const");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 const R = require("ramda");
+const ValidationSchema_1 = require("../../../utils/ValidationSchema");
 const tokenService = new tokenService_1.default();
 module.exports = function (app) {
     return new Handler(app);
@@ -26,12 +27,14 @@ const handler = Handler.prototype;
  *
  */
 handler.queryEntry = function (msg, session, next) {
-    console;
-    let schema = {
+    let schema = ValidationSchema_1.default({
         "uid": Joi.string().required(),
-        "x-api-key": Joi.string().required(),
-        "__route__": Joi.any()
-    };
+    });
+    // {
+    // 	"uid": Joi.string().required(),
+    // 	"x-api-key": Joi.string().required(),
+    // 	"__route__": Joi.any()
+    // };
     const result = Joi.validate(msg, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });

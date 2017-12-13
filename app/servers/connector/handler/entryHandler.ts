@@ -11,6 +11,8 @@ import joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
 import * as R from "ramda";
 
+import withValidation from "../../../utils/ValidationSchema";
+
 import { X_API_KEY, X_APP_ID, X_API_VERSION } from "../../../Const";
 import { Config } from "../../../../config/config";
 import { getUsersGroup } from "../../../util/ChannelHelper";
@@ -45,16 +47,14 @@ const handler = Handler.prototype;
 handler.login = function (msg, session, next) {
 	let self = this;
 
-	let schema = {
+	let schema = withValidation({
 		user: Joi.object({
 			_id: Joi.string().required(),
 			username: Joi.string().required(),
 			email: Joi.string().optional(),
 		}).required(),
-		"x-api-key": Joi.string().required(),
-		"x-app-id": (msg[X_API_VERSION]) ? Joi.string().required() : Joi.string().optional(),
-		"__route__": Joi.any(),
-	};
+	});
+
 	const result = Joi.validate(msg, schema);
 
 	if (result.error) {
@@ -98,6 +98,8 @@ handler.login = function (msg, session, next) {
 					return next(null, { code: Code.FAIL, message: err });
 				}
 				else {
+					console.log("online by app-id", userSessions.length);
+
 					let uids = getUsersGroup(userSessions);
 					channelService.pushMessageByUids(param.route, param.data, uids);
 				}
