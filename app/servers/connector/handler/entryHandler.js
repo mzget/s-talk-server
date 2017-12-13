@@ -73,6 +73,7 @@ handler.login = function (msg, session, next) {
                     return next(null, { code: Code_1.default.FAIL, message: err });
                 }
                 else {
+                    console.log("online by app-id", userSessions.length);
                     let uids = ChannelHelper_1.getUsersGroup(userSessions);
                     channelService.pushMessageByUids(param.route, param.data, uids);
                 }

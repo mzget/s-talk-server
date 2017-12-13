@@ -98,6 +98,8 @@ handler.login = function (msg, session, next) {
 					return next(null, { code: Code.FAIL, message: err });
 				}
 				else {
+					console.log("online by app-id", userSessions.length);
+
 					let uids = getUsersGroup(userSessions);
 					channelService.pushMessageByUids(param.route, param.data, uids);
 				}
