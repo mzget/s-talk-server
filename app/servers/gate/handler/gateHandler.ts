@@ -7,6 +7,8 @@ import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 import * as R from "ramda";
 
+import withValidation from "../../../utils/ValidationSchema";
+
 const tokenService = new TokenService();
 
 module.exports = function (app) {
@@ -29,12 +31,15 @@ const handler = Handler.prototype;
  *
  */
 handler.queryEntry = function (msg, session, next) {
-	console
-	let schema = {
+
+	let schema = withValidation({
 		"uid": Joi.string().required(),
-		"x-api-key": Joi.string().required(),
-		"__route__": Joi.any()
-	};
+	});
+	// {
+	// 	"uid": Joi.string().required(),
+	// 	"x-api-key": Joi.string().required(),
+	// 	"__route__": Joi.any()
+	// };
 
 	const result = Joi.validate(msg, schema);
 	if (result.error) {

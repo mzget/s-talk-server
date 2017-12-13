@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/async": "^2.0.45",
     "@types/jest": "^21.1.8",
-    "@types/joi": "^10.6.0",
+    "@types/joi": "^10.6.1",
     "@types/jsonwebtoken": "^7.2.3",
     "@types/mongodb": "^2.2.16",
     "@types/node": "^7.0.48",
