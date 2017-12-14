@@ -17,13 +17,12 @@ import { X_API_KEY, X_APP_ID, X_API_VERSION } from "../../../Const";
 import { Config } from "../../../../config/config";
 import { getUsersGroup } from "../../../util/ChannelHelper";
 import ChannelService, { IUserGroup } from "../../../util/ChannelService";
-import { string, strict } from "joi";
 import { UserSession, UserTransaction } from "../../../model/User";
 const tokenService = new TokenService();
 let channelService: ChannelService;
 
-type DecodedToken = {
-	_id: string, email: string, username: string,
+type UserData = {
+	_id: string, username: string, payload: any
 };
 
 module.exports = function (app) {
@@ -51,7 +50,7 @@ handler.login = function (msg, session, next) {
 		user: Joi.object({
 			_id: Joi.string().required(),
 			username: Joi.string().required(),
-			email: Joi.string().optional(),
+			payload: Joi.any(),
 		}).required(),
 	});
 
@@ -61,7 +60,7 @@ handler.login = function (msg, session, next) {
 		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	let user = msg.user as DecodedToken;
+	let user = { _id: msg.user._id, username: msg.user.username };
 	let apiKey = msg[X_API_KEY];
 	let appId = msg[X_APP_ID];
 	let appVersion = msg[X_API_VERSION];
@@ -69,7 +68,7 @@ handler.login = function (msg, session, next) {
 		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 
-	console.log("Login", msg);
+	console.log("Login", user);
 	tokenService.signToken(user, (err, encode) => {
 		if (err) {
 			return next(null, { code: Code.FAIL, message: err });
@@ -90,7 +89,7 @@ handler.login = function (msg, session, next) {
 
 			// channelService.broadcast("connector", param.route, param.data);
 
-			addOnlineUser(self.app, session, user);
+			addOnlineUser(self.app, session, msg.user);
 			next(null, { code: Code.OK, data: { success: true, token: encode } });
 
 			self.app.rpc.auth.authRemote.getOnlineUserByAppId(session, appId, (err: Error, userSessions: Array<UserSession>) => {
@@ -145,21 +144,22 @@ handler.kickMe = function (msg, session, next) {
 	next(null, { message: "kicked! " + msg.uid });
 };
 
-function addOnlineUser(app, session, user: DecodedToken) {
-	let onlineUser = new User.UserSession();
+function addOnlineUser(app, session, user: UserData) {
+	let userSession = new User.UserSession();
 	let userTransaction = new User.UserTransaction();
 
-	onlineUser.uid = user._id;
-	onlineUser.username = user.username;
-	onlineUser.serverId = session.frontendId;
-	onlineUser.applicationId = session.get(X_APP_ID);
+	userSession.uid = user._id;
+	userSession.username = user.username;
+	userSession.serverId = session.frontendId;
+	userSession.applicationId = session.get(X_APP_ID);
+	userSession.payload = user.payload;
 
 	userTransaction.uid = user._id;
 	userTransaction.username = user.username;
 
-	console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
+	console.log("add to onlineUsers list : ", userSession.username);
 
-	app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+	app.rpc.auth.authRemote.addOnlineUser(session, userSession, null);
 	app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
 }
 /**
