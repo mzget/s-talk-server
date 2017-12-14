@@ -52,6 +52,9 @@ remote.removeOnlineUser = (userId: string, cb) => {
     accountService.removeOnlineUser(userId);
     cb();
 };
+remote.updateUser = (user: UserSession, cb: Function) => {
+    accountService.updateUser(user).then(value => cb(undefined, value)).catch(error => cb(error, undefined));
+}
 remote.getOnlineUser = (userId: string, callback: (err: Error, user: UserSession | null) => void) => {
     accountService.getOnlineUser(userId, callback);
 };

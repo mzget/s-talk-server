@@ -5,7 +5,6 @@ import { Room, RoomStatus, RoomType } from "../../../model/Room";
 import TokenService from "../../../services/tokenService";
 import * as chatroomService from "../../../services/chatroomService";
 
-import request = require("request");
 import Joi = require("joi");
 import joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
@@ -55,7 +54,6 @@ handler.login = function (msg, session, next) {
 	});
 
 	const result = Joi.validate(msg, schema);
-
 	if (result.error) {
 		return next(null, { code: Code.FAIL, message: result.error });
 	}
@@ -80,29 +78,13 @@ handler.login = function (msg, session, next) {
 			session.bind(user._id);
 			session.set(X_APP_ID, appId);
 			session.set(X_API_KEY, apiKey);
+			session.pushAll(() => { });
 			session.on("closed", onUserLeave.bind(null, self.app));
-
-			let param = {
-				route: Code.sharedEvents.onUserLogin,
-				data: user,
-			};
 
 			// channelService.broadcast("connector", param.route, param.data);
 
 			addOnlineUser(self.app, session, msg.user);
 			next(null, { code: Code.OK, data: { success: true, token: encode } });
-
-			self.app.rpc.auth.authRemote.getOnlineUserByAppId(session, appId, (err: Error, userSessions: Array<UserSession>) => {
-				if (err) {
-					return next(null, { code: Code.FAIL, message: err });
-				}
-				else {
-					console.log("online by app-id", userSessions.length);
-
-					let uids = getUsersGroup(userSessions);
-					channelService.pushMessageByUids(param.route, param.data, uids);
-				}
-			});
 		}
 	});
 };
@@ -144,6 +126,70 @@ handler.kickMe = function (msg, session, next) {
 	next(null, { message: "kicked! " + msg.uid });
 };
 
+handler.updateUser = function (msg, session, next) {
+	let self = this;
+
+	let schema = withValidation({
+		user: Joi.object({
+			_id: Joi.string().required(),
+			username: Joi.string().required(),
+			payload: Joi.any(),
+		}).required(),
+	});
+
+	const result = Joi.validate(msg, schema);
+	if (result.error) {
+		return next(null, { code: Code.FAIL, message: result.error });
+	}
+
+	let apiKey = msg[X_API_KEY];
+	let appId = msg[X_APP_ID];
+	let appVersion = msg[X_API_VERSION];
+	if (R.contains(apiKey, Config.apiKeys) == false) {
+		return next(null, { code: Code.FAIL, message: "authorized key fail." });
+	}
+
+	const p = new Promise((resolve: (value: UserSession) => void, rejected) => {
+		self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, userSession: UserSession) => {
+			if (err) {
+				rejected(err);
+			}
+			else {
+				resolve(userSession);
+			}
+		});
+	});
+
+	function updateUser(user: UserSession) {
+		const p2 = new Promise((resolve: (value: UserSession[]) => void, reject) => {
+			self.app.rpc.auth.authRemote.updateUser(session, user, (err: Error, results: UserSession[]) => {
+				if (err) {
+					reject(err);
+				}
+				else {
+					resolve(results);
+				}
+			});
+		});
+		return p2;
+	}
+
+	p.then(userSession => {
+		const user = mutateUserPayload(userSession, msg.user.payload);
+		return updateUser(user);
+	}).then((value) => {
+		return next(null, { code: Code.OK, data: { success: true } });
+	}).catch(err => {
+		return next(null, { code: Code.FAIL, message: err });
+	});
+};
+
+
+function mutateUserPayload(userSession: UserSession, payload: any) {
+	userSession.payload = payload;
+
+	return userSession;
+}
 function addOnlineUser(app, session, user: UserData) {
 	let userSession = new User.UserSession();
 	let userTransaction = new User.UserTransaction();
@@ -159,8 +205,24 @@ function addOnlineUser(app, session, user: UserData) {
 
 	console.log("add to onlineUsers list : ", userSession.username);
 
-	app.rpc.auth.authRemote.addOnlineUser(session, userSession, null);
+	app.rpc.auth.authRemote.addOnlineUser(session, userSession, pushNewOnline);
 	app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+
+	let param = {
+		route: Code.sharedEvents.onUserLogin,
+		data: userTransaction,
+	};
+
+	function pushNewOnline() {
+		app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: Array<UserSession>) => {
+			if (!err) {
+				console.log("online by app-id", userSessions.length);
+
+				let uids = getUsersGroup(userSessions);
+				channelService.pushMessageByUids(param.route, param.data, uids);
+			}
+		});
+	}
 }
 /**
  * New client entry chat server.
