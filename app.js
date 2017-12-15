@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const accountService_1 = require("./app/services/accountService");
 process.env.TZ = "UTC";
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err) => {
     console.error(" Caught exception: " + err.stack);
 });
@@ -59,16 +59,20 @@ app.configure("production", () => {
     // route configures
     app.route("chat", routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    let _p = path.join("/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
-    let _c = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
-    let _ca = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
+    let certsFolder = path.join(__dirname, "/certs");
+    let _p = path.join(__dirname, "/certs", "/privkey.pem");
+    let _c = path.join(__dirname, "/certs", "/cert.pem");
+    let _ca = path.join(__dirname, "/certs", "/chain.pem");
+    fs.readdirSync(certsFolder).forEach(file => {
+        console.log(file);
+    });
     const options = {
-        cert: fs.readFileSync(_c),
-        key: fs.readFileSync(_p),
+        cert: fs.readFileSync("./certs/cert.pem"),
+        key: fs.readFileSync("./certs/privkey.pem"),
         // This is necessary only if using the client certificate authentication.
         // requestCert: true,
         // This is necessary only if the client uses the self-signed certificate.
-        ca: [fs.readFileSync(_ca)]
+        ca: [fs.readFileSync("./certs/chain.pem")]
     };
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,

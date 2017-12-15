@@ -3,7 +3,7 @@
 - docker exec -it stalk-platform /bin/bash
 
 // With volume
-- docker run -v /src/stalk/certs:/usr/src/app/certs --name stalk-platform -p 3050-3052:3050-3052 -d mzget/stalk-platform
+- docker run -v /etc/letsencrypt/live/chitchats.ga:/usr/src/app/certs --name stalk-platform -p 3020-3021:3020-3021 -d mzget/stalk-platform
 
 // push to docker hub 
 - docker push mzget/stalk-platform
