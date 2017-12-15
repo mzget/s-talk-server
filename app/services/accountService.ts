@@ -1,11 +1,11 @@
 ﻿import Code from "../../shared/Code";
-import * as User from "../model/User";
+import User, { UserSession, UserTransaction } from "../model/User";
 import Room = require("../model/Room");
 
 const dispatcher = require("../util/dispatcher");
 
 interface IUsersMap {
-    [uid: string]: User.UserTransaction;
+    [uid: string]: UserTransaction;
 }
 
 export class AccountService {
@@ -17,47 +17,42 @@ export class AccountService {
     /**
      * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
      */
-    private onlineUsers: User.IOnlineUser;
-    public OnlineUsers(): User.IOnlineUser {
+    private onlineUsers = new Map<string, UserSession>();
+    public OnlineUsers() {
         if (!this.onlineUsers)
-            this.onlineUsers = {};
+            this.onlineUsers = new Map();
 
         return this.onlineUsers;
     }
-    public getOnlineUser(userId: string, cb: (err: any, user: User.UserSession | null) => void) {
+    public getOnlineUser(userId: string, cb: (err: any, user: UserSession | null) => void) {
         if (!this.onlineUsers)
-            this.onlineUsers = {};
+            this.onlineUsers = new Map();
 
-        if (!this.onlineUsers[userId]) {
+        if (this.onlineUsers.has(userId)) {
+            let user = this.onlineUsers.get(userId) as UserSession;
+            cb(null, user);
+        }
+        else {
             let errMsg = "Specific uid is not online.";
             cb(errMsg, null);
-            return;
         }
-
-        let user = this.onlineUsers[userId];
-        cb(null, user);
     }
-    getOnlineUserByAppId(appId: string, cb: (err: any, users: Array<User.UserSession> | null) => void) {
-        if (!this.onlineUsers)
-            this.onlineUsers = {};
+    getOnlineUserByAppId(appId: string, cb: (err: any, users: Array<UserSession> | null) => void) {
+        let results = new Array<UserSession>();
 
-        let results = new Array<User.UserSession>();
-        for (const userId in this.onlineUsers) {
-            if (this.onlineUsers.hasOwnProperty(userId)) {
-                const user = this.onlineUsers[userId];
-                if (user.applicationId === appId) {
-                    results.push(user);
-                }
+        this.onlineUsers.forEach(value => {
+            if (value.applicationId === appId) {
+                results.push(value);
             }
-        }
+        });
         cb(null, results);
     }
-    public addOnlineUser(user: User.UserSession, callback: Function) {
+    public addOnlineUser(user: UserSession, callback: Function) {
         if (!this.onlineUsers)
-            this.onlineUsers = {};
+            this.onlineUsers = new Map();
 
-        if (!this.onlineUsers[user.uid]) {
-            this.onlineUsers[user.uid] = user;
+        if (!this.onlineUsers.has(user.uid)) {
+            this.onlineUsers.set(user.uid, user);
         }
         else {
             console.warn("onlineUsers dict already has value.!");
@@ -65,8 +60,16 @@ export class AccountService {
 
         callback();
     }
+    async updateUser(user: UserSession) {
+        if (!this.onlineUsers)
+            this.onlineUsers = new Map();
+
+        this.onlineUsers.set(user.uid, user);
+
+        return await Array.from(this.onlineUsers.values());
+    }
     public removeOnlineUser(userId: string) {
-        delete this.onlineUsers[userId];
+        this.onlineUsers.delete(userId);
     }
 
     private _userTransaction: IUsersMap;

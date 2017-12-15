@@ -10,6 +10,7 @@ export class UserSession implements IUser {
     serverId: string;
     username: string;
     applicationId: string;
+    payload: any;
 }
 export class UserTransaction implements IUser {
     uid: string;

@@ -13,3 +13,5 @@ export function getUsersGroup(users: Array<UserSession>) {
 
     return usersGroup;
 }
+
+export default getUsersGroup;

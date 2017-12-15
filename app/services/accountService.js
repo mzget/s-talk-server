@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const dispatcher = require("../util/dispatcher");
@@ -7,6 +15,10 @@ class AccountService {
         this.uidMap = {};
         this.nameMap = {};
         this.channelMap = {};
+        /**
+         * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
+         */
+        this.onlineUsers = new Map();
         /**
          * Add records for the specified user
          */
@@ -66,47 +78,51 @@ class AccountService {
     }
     OnlineUsers() {
         if (!this.onlineUsers)
-            this.onlineUsers = {};
+            this.onlineUsers = new Map();
         return this.onlineUsers;
     }
     getOnlineUser(userId, cb) {
         if (!this.onlineUsers)
-            this.onlineUsers = {};
-        if (!this.onlineUsers[userId]) {
+            this.onlineUsers = new Map();
+        if (this.onlineUsers.has(userId)) {
+            let user = this.onlineUsers.get(userId);
+            cb(null, user);
+        }
+        else {
             let errMsg = "Specific uid is not online.";
             cb(errMsg, null);
-            return;
         }
-        let user = this.onlineUsers[userId];
-        cb(null, user);
     }
     getOnlineUserByAppId(appId, cb) {
-        if (!this.onlineUsers)
-            this.onlineUsers = {};
         let results = new Array();
-        for (const userId in this.onlineUsers) {
-            if (this.onlineUsers.hasOwnProperty(userId)) {
-                const user = this.onlineUsers[userId];
-                if (user.applicationId === appId) {
-                    results.push(user);
-                }
+        this.onlineUsers.forEach(value => {
+            if (value.applicationId === appId) {
+                results.push(value);
             }
-        }
+        });
         cb(null, results);
     }
     addOnlineUser(user, callback) {
         if (!this.onlineUsers)
-            this.onlineUsers = {};
-        if (!this.onlineUsers[user.uid]) {
-            this.onlineUsers[user.uid] = user;
+            this.onlineUsers = new Map();
+        if (!this.onlineUsers.has(user.uid)) {
+            this.onlineUsers.set(user.uid, user);
         }
         else {
             console.warn("onlineUsers dict already has value.!");
         }
         callback();
     }
+    updateUser(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.onlineUsers)
+                this.onlineUsers = new Map();
+            this.onlineUsers.set(user.uid, user);
+            return yield Array.from(this.onlineUsers.values());
+        });
+    }
     removeOnlineUser(userId) {
-        delete this.onlineUsers[userId];
+        this.onlineUsers.delete(userId);
     }
     get userTransaction() {
         if (!this._userTransaction)

@@ -8,3 +8,4 @@ function getUsersGroup(users) {
     return usersGroup;
 }
 exports.getUsersGroup = getUsersGroup;
+exports.default = getUsersGroup;

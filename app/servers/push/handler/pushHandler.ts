@@ -1,11 +1,21 @@
 import async = require("async");
 
+import ChannelService from "../../../util/ChannelService";
+import { getUsersGroup } from "../../../util/ChannelHelper";
 import Code, { SessionInfo } from "../../../../shared/Code";
-import * as User from "../../../model/User";
+import { X_APP_ID } from "../../../Const";
+import User, { UserSession } from "../../../model/User";
 import * as Room from "../../../model/Room";
 import { Config } from "../../../../config/config";
-let channelService;
+import withValidation from "../../../utils/ValidationSchema";
+import Joi = require("joi");
+let channelService: ChannelService;
 
+interface IPushMessage {
+    event: string;
+    message: string;
+    members: string[] | string;
+}
 
 module.exports = function (app) {
     return new Handler(app);
@@ -21,6 +31,18 @@ const handler = Handler.prototype;
 
 handler.push = function (msg, session, next) {
     let self = this;
+    let schema = withValidation({
+        payload: Joi.object({
+            event: Joi.string().required(),
+            message: Joi.string().required(),
+            members: Joi.any(),
+        }).required(),
+    });
+
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code.FAIL, message: result.error });
+    }
 
     let timeout_id = setTimeout(function () {
         next(null, { code: Code.RequestTimeout, message: "Push message timeout..." });
@@ -34,21 +56,29 @@ handler.push = function (msg, session, next) {
     next(null, { code: Code.OK, data: params });
     clearTimeout(timeout_id);
 
-    pushMessage(self.app, session, msg);
+    pushMessage(self.app, session, msg.payload);
 };
 
-function pushMessage(app, session, body: { event: string, message: string, members: string[] | string }) {
-    let onlineMembers = new Array<User.UserSession>();
+function pushMessage(app, session, body: IPushMessage) {
+    let onlineMembers = new Array<UserSession>();
     let offlineMembers = new Array<string>();
 
     // @ Try to push message to others.
     if (body.members == "*") {
-        let onPush = {
+        let param = {
             route: Code.sharedEvents.ON_PUSH,
             data: { event: body.event, message: body.message }
         };
 
-        channelService.broadcast("connector", onPush.route, onPush.data);
+        app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: Array<UserSession>) => {
+            if (!err) {
+                console.log("online by app-id", userSessions.length);
+
+                let uids = getUsersGroup(userSessions);
+                channelService.pushMessageByUids(param.route, param.data, uids);
+            }
+        });
+        // channelService.broadcast("connector", onPush.route, onPush.data);
     }
     else if (body.members instanceof Array) {
         async.map(body.members, (item, resultCallback) => {
@@ -60,7 +90,7 @@ function pushMessage(app, session, body: { event: string, message: string, membe
                     onlineMembers.push(user);
                 }
 
-                resultCallback(null, item);
+                resultCallback(undefined, item);
             });
         }, (err, results) => {
             console.log("online %s: offline %s: push.members %s:", onlineMembers.length, offlineMembers.length, body.members.length);
@@ -80,7 +110,7 @@ function pushMessage(app, session, body: { event: string, message: string, membe
                 };
                 uidsGroup.push(group);
 
-                cb(null, null);
+                cb(undefined, undefined);
             }, function done() {
                 channelService.pushMessageByUids(onPush.route, onPush.data, uidsGroup);
 

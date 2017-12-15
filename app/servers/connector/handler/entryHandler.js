@@ -35,21 +35,21 @@ handler.login = function (msg, session, next) {
         user: Joi.object({
             _id: Joi.string().required(),
             username: Joi.string().required(),
-            email: Joi.string().optional(),
+            payload: Joi.any(),
         }).required(),
     });
     const result = Joi.validate(msg, schema);
     if (result.error) {
         return next(null, { code: Code_1.default.FAIL, message: result.error });
     }
-    let user = msg.user;
+    let user = { _id: msg.user._id, username: msg.user.username };
     let apiKey = msg[Const_1.X_API_KEY];
     let appId = msg[Const_1.X_APP_ID];
     let appVersion = msg[Const_1.X_API_VERSION];
     if (R.contains(apiKey, config_1.Config.apiKeys) == false) {
         return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
     }
-    console.log("Login", msg);
+    console.log("Login", user);
     tokenService.signToken(user, (err, encode) => {
         if (err) {
             return next(null, { code: Code_1.default.FAIL, message: err });
@@ -60,24 +60,11 @@ handler.login = function (msg, session, next) {
             session.bind(user._id);
             session.set(Const_1.X_APP_ID, appId);
             session.set(Const_1.X_API_KEY, apiKey);
+            session.pushAll(() => { });
             session.on("closed", onUserLeave.bind(null, self.app));
-            let param = {
-                route: Code_1.default.sharedEvents.onUserLogin,
-                data: user,
-            };
             // channelService.broadcast("connector", param.route, param.data);
-            addOnlineUser(self.app, session, user);
+            addOnlineUser(self.app, session, msg.user);
             next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
-            self.app.rpc.auth.authRemote.getOnlineUserByAppId(session, appId, (err, userSessions) => {
-                if (err) {
-                    return next(null, { code: Code_1.default.FAIL, message: err });
-                }
-                else {
-                    console.log("online by app-id", userSessions.length);
-                    let uids = ChannelHelper_1.getUsersGroup(userSessions);
-                    channelService.pushMessageByUids(param.route, param.data, uids);
-                }
-            });
         }
     });
 };
@@ -110,18 +97,87 @@ handler.kickMe = function (msg, session, next) {
     userDataAccess_1.UserDataAccess.prototype.removeAllRegistrationId(msg.uid);
     next(null, { message: "kicked! " + msg.uid });
 };
+handler.updateUser = function (msg, session, next) {
+    let self = this;
+    let schema = ValidationSchema_1.default({
+        user: Joi.object({
+            _id: Joi.string().required(),
+            username: Joi.string().required(),
+            payload: Joi.any(),
+        }).required(),
+    });
+    const result = Joi.validate(msg, schema);
+    if (result.error) {
+        return next(null, { code: Code_1.default.FAIL, message: result.error });
+    }
+    let apiKey = msg[Const_1.X_API_KEY];
+    let appId = msg[Const_1.X_APP_ID];
+    let appVersion = msg[Const_1.X_API_VERSION];
+    if (R.contains(apiKey, config_1.Config.apiKeys) == false) {
+        return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
+    }
+    const p = new Promise((resolve, rejected) => {
+        self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, userSession) => {
+            if (err) {
+                rejected(err);
+            }
+            else {
+                resolve(userSession);
+            }
+        });
+    });
+    function updateUser(user) {
+        const p2 = new Promise((resolve, reject) => {
+            self.app.rpc.auth.authRemote.updateUser(session, user, (err, results) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(results);
+                }
+            });
+        });
+        return p2;
+    }
+    p.then(userSession => {
+        const user = mutateUserPayload(userSession, msg.user.payload);
+        return updateUser(user);
+    }).then((value) => {
+        return next(null, { code: Code_1.default.OK, data: { success: true } });
+    }).catch(err => {
+        return next(null, { code: Code_1.default.FAIL, message: err });
+    });
+};
+function mutateUserPayload(userSession, payload) {
+    userSession.payload = payload;
+    return userSession;
+}
 function addOnlineUser(app, session, user) {
-    let onlineUser = new User.UserSession();
+    let userSession = new User.UserSession();
     let userTransaction = new User.UserTransaction();
-    onlineUser.uid = user._id;
-    onlineUser.username = user.username;
-    onlineUser.serverId = session.frontendId;
-    onlineUser.applicationId = session.get(Const_1.X_APP_ID);
+    userSession.uid = user._id;
+    userSession.username = user.username;
+    userSession.serverId = session.frontendId;
+    userSession.applicationId = session.get(Const_1.X_APP_ID);
+    userSession.payload = user.payload;
     userTransaction.uid = user._id;
     userTransaction.username = user.username;
-    console.log("add to onlineUsers list %s : ", JSON.stringify(onlineUser));
-    app.rpc.auth.authRemote.addOnlineUser(session, onlineUser, null);
+    console.log("add to onlineUsers list : ", userSession.username);
+    app.rpc.auth.authRemote.addOnlineUser(session, userSession, pushNewOnline);
     app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+    let param = {
+        route: Code_1.default.sharedEvents.onUserLogin,
+        data: userTransaction,
+    };
+    function pushNewOnline() {
+        app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, userSessions) => {
+            if (!err) {
+                console.log("online by app-id", userSessions.length);
+                let uids = ChannelHelper_1.getUsersGroup(userSessions);
+                channelService.pushMessageByUids(param.route, param.data, uids);
+            }
+        });
+    }
 }
 /**
  * New client entry chat server.
