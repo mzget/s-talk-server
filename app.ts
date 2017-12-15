@@ -69,22 +69,22 @@ app.configure("production", () => {
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     let certsFolder = path.join(__dirname, "/certs");
-    let _p = path.join(__dirname, "/certs", "/privkey.pem");
-    let _c = path.join(__dirname, "/certs", "/cert.pem");
-    let _ca = path.join(__dirname, "/certs", "/chain.pem");
+    let _p = path.join("/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
+    let _c = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
+    let _ca = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
 
     fs.readdirSync(certsFolder).forEach(file => {
         console.log(file);
-    })
+    });
     const options = {
-        cert: fs.readFileSync("./certs/cert.pem"),
-        key: fs.readFileSync("./certs/privkey.pem"),
+        cert: fs.readFileSync(_c, "utf8"),
+        key: fs.readFileSync(_p, "utf8"),
 
         // This is necessary only if using the client certificate authentication.
         // requestCert: true,
 
         // This is necessary only if the client uses the self-signed certificate.
-        ca: [fs.readFileSync("./certs/chain.pem")]
+        ca: [fs.readFileSync(_ca, "utf8")]
     };
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
