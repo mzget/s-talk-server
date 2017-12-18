@@ -59,16 +59,16 @@ app.configure("production", () => {
     // route configures
     app.route("chat", routeUtil_1.default);
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
-    let _p = path.join("/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
-    let _c = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
-    let _ca = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
+    const privateKey = path.join("/etc/letsencrypt/live/chitchats.ga", "/privkey.pem");
+    const cert = path.join("/etc/letsencrypt/live/chitchats.ga", "/cert.pem");
+    const chain = path.join("/etc/letsencrypt/live/chitchats.ga", "/chain.pem");
     const options = {
-        cert: fs.readFileSync(_c),
-        key: fs.readFileSync(_p),
+        cert: fs.readFileSync(cert),
+        key: fs.readFileSync(privateKey),
         // This is necessary only if using the client certificate authentication.
         // requestCert: true,
         // This is necessary only if the client uses the self-signed certificate.
-        ca: [fs.readFileSync(_ca)]
+        ca: [fs.readFileSync(chain)],
     };
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,

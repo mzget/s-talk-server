@@ -1,6 +1,5 @@
 ﻿import Code from "../../../../shared/Code";
 import User = require("../../../model/User");
-import { UserDataAccess } from "../../../dal/userDataAccess";
 import { Room, RoomStatus, RoomType } from "../../../model/Room";
 import TokenService from "../../../services/tokenService";
 import * as chatroomService from "../../../services/chatroomService";
@@ -20,16 +19,18 @@ import { UserSession, UserTransaction } from "../../../model/User";
 const tokenService = new TokenService();
 let channelService: ChannelService;
 
-type UserData = {
-	_id: string, username: string, payload: any
-};
+interface IUserData {
+	_id: string;
+	username: string;
+	payload: any;
+}
 
-module.exports = function (app) {
+module.exports = (app) => {
 	console.info("instanctiate connector handler.");
 	return new Handler(app);
 };
 
-const Handler = function (app) {
+const Handler = (app) => {
 	this.app = app;
 
 	channelService = app.get("channelService");
@@ -37,15 +38,10 @@ const Handler = function (app) {
 
 const handler = Handler.prototype;
 
-/**
-* Authentication require username password.
-* For user Parse push notification. This require installationId of Parse uuid.
-* Return back token bearer.
-*/
-handler.login = function (msg, session, next) {
-	let self = this;
+handler.login = (msg, session, next) => {
+	const self = this;
 
-	let schema = withValidation({
+	const schema = withValidation({
 		user: Joi.object({
 			_id: Joi.string().required(),
 			username: Joi.string().required(),
@@ -58,11 +54,11 @@ handler.login = function (msg, session, next) {
 		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	let user = { _id: msg.user._id, username: msg.user.username };
-	let apiKey = msg[X_API_KEY];
-	let appId = msg[X_APP_ID];
-	let appVersion = msg[X_API_VERSION];
-	if (R.contains(apiKey, Config.apiKeys) == false) {
+	const user = { _id: msg.user._id, username: msg.user.username };
+	const apiKey = msg[X_API_KEY];
+	const appId = msg[X_APP_ID];
+	const appVersion = msg[X_API_VERSION];
+	if (R.contains(apiKey, Config.apiKeys) === false) {
 		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 
@@ -70,15 +66,14 @@ handler.login = function (msg, session, next) {
 	tokenService.signToken(user, (err, encode) => {
 		if (err) {
 			return next(null, { code: Code.FAIL, message: err });
-		}
-		else {
+		} else {
 			session.__sessionService__.kick(user._id, "New login...");
 
-			//@ Signing success.
+			// @ Signing success.
 			session.bind(user._id);
 			session.set(X_APP_ID, appId);
 			session.set(X_API_KEY, apiKey);
-			session.pushAll(() => { });
+			session.pushAll(() => { console.log("Push..."); });
 			session.on("closed", onUserLeave.bind(null, self.app));
 
 			// channelService.broadcast("connector", param.route, param.data);
@@ -89,47 +84,55 @@ handler.login = function (msg, session, next) {
 	});
 };
 
-handler.logout = function (msg, session, next) {
-	console.log("logout", msg);
-
-	let username = msg.username;
-	let registrationId = msg.registrationId;
-	let self = this;
-
-	if (!!session.uid && !!registrationId) {
-		UserDataAccess.prototype.removeRegistrationId(session.uid, registrationId);
-	}
-	logOut(self.app, session, null);
+handler.logout = (msg, session, next) => {
+	logOut(this.app, session, null);
 	next();
 };
 
-const logOut = function (app, session, next) {
+const logOut = (app, session, next) => {
 	app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
 		if (!err && user !== null) {
-			console.log("User logout.", user);
-		}
-	});
-	// !-- log user out.
-	app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
+			console.log("logged out Success", user);
 
-	if (next !== null)
+			const param = {
+				route: Code.sharedEvents.onUserLogout,
+				data: user,
+			};
+
+			app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID),
+				(err2: Error, userSessions: UserSession[]) => {
+					if (!err2) {
+						console.log("online by app-id", userSessions.length);
+
+						const uids = getUsersGroup(userSessions);
+						channelService.pushMessageByUids(param.route, param.data, uids);
+					}
+				});
+		}
+
+		// !-- log user out.
+		// Don't care what result of callback.
+		app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
+	});
+
+	if (next !== null) {
 		next();
+	}
 };
 
-handler.kickMe = function (msg, session, next) {
+handler.kickMe = (msg, session, next) => {
 	session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
 
 	// !-- log user out.
 	this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
-	UserDataAccess.prototype.removeAllRegistrationId(msg.uid);
 
 	next(null, { message: "kicked! " + msg.uid });
 };
 
-handler.updateUser = function (msg, session, next) {
-	let self = this;
+handler.updateUser = (msg, session, next) => {
+	const self = this;
 
-	let schema = withValidation({
+	const schema = withValidation({
 		user: Joi.object({
 			_id: Joi.string().required(),
 			username: Joi.string().required(),
@@ -142,10 +145,10 @@ handler.updateUser = function (msg, session, next) {
 		return next(null, { code: Code.FAIL, message: result.error });
 	}
 
-	let apiKey = msg[X_API_KEY];
-	let appId = msg[X_APP_ID];
-	let appVersion = msg[X_API_VERSION];
-	if (R.contains(apiKey, Config.apiKeys) == false) {
+	const apiKey = msg[X_API_KEY];
+	const appId = msg[X_APP_ID];
+	const appVersion = msg[X_API_VERSION];
+	if (R.contains(apiKey, Config.apiKeys) === false) {
 		return next(null, { code: Code.FAIL, message: "authorized key fail." });
 	}
 
@@ -174,23 +177,22 @@ handler.updateUser = function (msg, session, next) {
 		return p2;
 	}
 
-	p.then(userSession => {
+	p.then((userSession) => {
 		const user = mutateUserPayload(userSession, msg.user.payload);
 		return updateUser(user);
 	}).then((value) => {
 		return next(null, { code: Code.OK, data: { success: true } });
-	}).catch(err => {
+	}).catch((err) => {
 		return next(null, { code: Code.FAIL, message: err });
 	});
 };
-
 
 function mutateUserPayload(userSession: UserSession, payload: any) {
 	userSession.payload = payload;
 
 	return userSession;
 }
-function addOnlineUser(app, session, user: UserData) {
+function addOnlineUser(app, session, user: IUserData) {
 	let userSession = new User.UserSession();
 	let userTransaction = new User.UserTransaction();
 
@@ -415,8 +417,8 @@ handler.videoCallRequest = function (msg, session, next) {
 * @param {object} msg.targetId, myRtcId, token.
 */
 handler.voiceCallRequest = function (msg, session, next) {
-	let targetId = msg.targetId;
-	let uid = session.uid;
+	const targetId = msg.targetId;
+	const uid = session.uid;
 	let myRtcId = msg.myRtcId;
 	let token = msg.token;
 	let self = this;
@@ -443,12 +445,12 @@ handler.voiceCallRequest = function (msg, session, next) {
 			let uidsGroup = new Array();
 			self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (e, user) => {
 				if (!user) {
-					let msg = "target userId is not a list of onlineUser Please use notification server instead.";
+					const msg = "target userId is not a list of onlineUser Please use notification server instead.";
 					console.warn(msg);
 					next(null, { code: Code.FAIL, message: msg });
 				}
 				else {
-					let group = {
+					const group = {
 						uid: user.uid,
 						sid: user.serverId
 					};
@@ -486,18 +488,18 @@ handler.hangupCall = function (msg, session, next) {
 				route: Code.sharedEvents.onHangupCall,
 				data: {
 					from: myId,
-					contactId: contactId
+					contactId
 				}
 			};
 			let uidsGroup = new Array();
 			self.app.rpc.auth.authRemote.getOnlineUser(session, contactId, (e, user) => {
 				if (!user) {
-					let msg = "target userId is not a list of onlineUser Please use notification server instead.";
+					const msg = "target userId is not a list of onlineUser Please use notification server instead.";
 					console.warn(msg);
 					next(null, { code: Code.FAIL, message: msg });
 				}
 				else {
-					let group = {
+					const group = {
 						uid: user.uid,
 						sid: user.serverId
 					};
@@ -520,26 +522,26 @@ handler.theLineIsBusy = function (msg, session, next) {
 	let userId = session.uid;
 
 	if (!contactId || !userId) {
-		let message = "Some params is invalid.";
-		next(null, { code: Code.FAIL, message: message });
+		const message = "Some params is invalid.";
+		next(null, { code: Code.FAIL, message });
 		return;
 	}
 
-	let param = {
+	const param = {
 		route: Code.sharedEvents.onTheLineIsBusy,
-		data: { from: userId }
+		data: { from: userId },
 	};
 
 	this.app.rpc.auth.authRemote.getOnlineUser(session, contactId, (e, user) => {
 		if (!user) {
-			let msg = "The contactId is not online.";
+			const msg = "The contactId is not online.";
 			console.warn(msg);
 		}
 		else {
-			let uidsGroup = new Array();
-			let userInfo = {
+			const uidsGroup = new Array();
+			const userInfo = {
 				uid: user.uid,
-				sid: user.serverId
+				sid: user.serverId,
 			};
 			uidsGroup.push(userInfo);
 			channelService.pushMessageByUids(param.route, param.data, uidsGroup);
