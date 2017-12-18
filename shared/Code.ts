@@ -28,6 +28,7 @@
         onUserUpdateImgProfile: "onUserUpdateImgProfile",
         onUserUpdateProfile: "onUserUpdateProfile",
         onUserLogin: "onUserLogin",
+        onUserLogout: "onUserLogout",
 
         /**@deprecated */
         onChat: "onChat",

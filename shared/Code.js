@@ -28,6 +28,7 @@ Code.sharedEvents = {
     onUserUpdateImgProfile: "onUserUpdateImgProfile",
     onUserUpdateProfile: "onUserUpdateProfile",
     onUserLogin: "onUserLogin",
+    onUserLogout: "onUserLogout",
     /**@deprecated */
     onChat: "onChat",
     ON_CHAT: "ON_CHAT",
