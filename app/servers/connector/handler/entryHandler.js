@@ -125,7 +125,7 @@ class Handler {
     }
     getUsersPayload(msg, session, next) {
         const self = this;
-        const schema = ValidationSchema_1.default(Object.create(null));
+        const schema = ValidationSchema_1.default({ user: Joi.object().optional() });
         const result = Joi.validate(msg, schema);
         if (result.error) {
             return next(null, { code: Code_1.default.FAIL, message: result.error });

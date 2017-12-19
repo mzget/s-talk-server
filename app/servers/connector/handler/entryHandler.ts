@@ -157,7 +157,7 @@ class Handler {
 	public getUsersPayload(msg, session, next) {
 		const self = this;
 
-		const schema = withValidation(Object.create(null));
+		const schema = withValidation({ user: Joi.object().optional() });
 
 		const result = Joi.validate(msg, schema);
 		if (result.error) {
