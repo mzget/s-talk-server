@@ -153,6 +153,48 @@ class Handler {
 			return next(null, { code: Code.FAIL, message: err });
 		});
 	}
+
+	public getUsersPayload(msg, session, next) {
+		const self = this;
+
+		const schema = withValidation(Object.create(null));
+
+		const result = Joi.validate(msg, schema);
+		if (result.error) {
+			return next(null, { code: Code.FAIL, message: result.error });
+		}
+
+		const apiKey = msg[X_API_KEY];
+		const appId = msg[X_APP_ID];
+		const appVersion = msg[X_API_VERSION];
+		if (R.contains(apiKey, Config.apiKeys) === false) {
+			return next(null, { code: Code.FAIL, message: "authorized key fail." });
+		}
+
+		function getOnlineUserByAppId() {
+			const p = new Promise((resolve: (value: UserSession[]) => void, reject) => {
+				self.app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID),
+					(err: Error, results: UserSession[]) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve(results);
+						}
+					});
+			});
+
+			return p;
+		}
+
+		getOnlineUserByAppId().then((usersSession) => {
+			return usersSession;
+		}).then((value) => {
+			return next(null, { code: Code.OK, data: { success: true, value } });
+		}).catch((err) => {
+			return next(null, { code: Code.FAIL, message: err });
+		});
+	}
+
 	/**
 	 * New client entry chat server.
 	 *
@@ -312,7 +354,7 @@ class Handler {
 				});
 			}
 		});
-	};
+	}
 
 	/**
 	* Requesting for voice call to target user.
@@ -336,7 +378,7 @@ class Handler {
 				next(err, res);
 			}
 			else {
-				let onVoiceCall = {
+				const onVoiceCall = {
 					route: Code.sharedEvents.onVoiceCall,
 					data: {
 						from: uid,
@@ -344,7 +386,7 @@ class Handler {
 					}
 				};
 
-				let uidsGroup = new Array();
+				const uidsGroup = new Array();
 				self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (e, user) => {
 					if (!user) {
 						const msg = "target userId is not a list of onlineUser Please use notification server instead.";
@@ -370,10 +412,10 @@ class Handler {
 	* Call this function when want to send hangupCall signaling to other.
 	*/
 	public hangupCall(msg, session, next) {
-		let myId = msg.userId;
-		let contactId = msg.contactId;
-		let token = msg.token;
-		let self = this;
+		const myId = msg.userId;
+		const contactId = msg.contactId;
+		const token = msg.token;
+		const self = this;
 
 		if (!myId || !contactId || !token) {
 			next(null, { code: Code.FAIL, message: "some parametor has a problem." });
@@ -386,14 +428,14 @@ class Handler {
 				next(err, res);
 			}
 			else {
-				let onHangupCall = {
+				const onHangupCall = {
 					route: Code.sharedEvents.onHangupCall,
 					data: {
 						from: myId,
-						contactId
-					}
+						contactId,
+					},
 				};
-				let uidsGroup = new Array();
+				const uidsGroup = new Array();
 				self.app.rpc.auth.authRemote.getOnlineUser(session, contactId, (e, user) => {
 					if (!user) {
 						const msg = "target userId is not a list of onlineUser Please use notification server instead.";
@@ -403,7 +445,7 @@ class Handler {
 					else {
 						const group = {
 							uid: user.uid,
-							sid: user.serverId
+							sid: user.serverId,
 						};
 						uidsGroup.push(group);
 						channelService.pushMessageByUids(onHangupCall.route, onHangupCall.data, uidsGroup);
@@ -420,8 +462,8 @@ class Handler {
 	* This function tell caller to end call.
 	*/
 	public theLineIsBusy(msg, session, next) {
-		let contactId = msg.contactId;
-		let userId = session.uid;
+		const contactId = msg.contactId;
+		const userId = session.uid;
 
 		if (!contactId || !userId) {
 			const message = "Some params is invalid.";
@@ -492,9 +534,10 @@ function mutateUserPayload(userSession: UserSession, payload: any) {
 
 	return userSession;
 }
+
 function addOnlineUser(app, session, user: IUserData) {
-	let userSession = new User.UserSession();
-	let userTransaction = new User.UserTransaction();
+	const userSession = new User.UserSession();
+	const userTransaction = new User.UserTransaction();
 
 	userSession.uid = user._id;
 	userSession.username = user.username;
@@ -510,24 +553,24 @@ function addOnlineUser(app, session, user: IUserData) {
 	app.rpc.auth.authRemote.addOnlineUser(session, userSession, pushNewOnline);
 	app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
 
-	let param = {
+	const param = {
 		route: Code.sharedEvents.onUserLogin,
 		data: userTransaction,
 	};
 
 	function pushNewOnline() {
-		app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: Array<UserSession>) => {
+		app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: UserSession[]) => {
 			if (!err) {
 				console.log("online by app-id", userSessions.length);
 
-				let uids = getUsersGroup(userSessions);
+				const uids = getUsersGroup(userSessions);
 				channelService.pushMessageByUids(param.route, param.data, uids);
 			}
 		});
 	}
 }
 
-const addChatUser = function (app, session, user: User.UserSession, sid, rid, next) {
+const addChatUser = (app, session, user: User.UserSession, sid, rid, next) => {
 	// put user into channel
 	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 };
@@ -538,7 +581,7 @@ const addChatUser = function (app, session, user: User.UserSession, sid, rid, ne
  * @param {Object} session current session object
  *
  */
-const onUserLeave = function (app, session) {
+const onUserLeave = (app, session) => {
 	if (!session || !session.uid) {
 		return;
 	}
@@ -548,5 +591,4 @@ const onUserLeave = function (app, session) {
 
 		logOut(app, session, null);
 	});
-
 };

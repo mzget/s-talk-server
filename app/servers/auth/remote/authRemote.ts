@@ -14,11 +14,11 @@ let channelService: IChannelService;
 
 const userNotFound = "Authentication failed. User not found.";
 
-module.exports = function (app) {
+module.exports = function(app) {
     return new AuthenRemote(app);
 };
 
-const AuthenRemote = function (app) {
+const AuthenRemote = function(app) {
     this.app = app;
 
     channelService = app.get("channelService");
@@ -53,12 +53,12 @@ remote.removeOnlineUser = (userId: string, cb) => {
     cb();
 };
 remote.updateUser = (user: UserSession, cb: Function) => {
-    accountService.updateUser(user).then(value => cb(undefined, value)).catch(error => cb(error, undefined));
-}
+    accountService.updateUser(user).then((value) => cb(undefined, value)).catch((error) => cb(error, undefined));
+};
 remote.getOnlineUser = (userId: string, callback: (err: Error, user: UserSession | null) => void) => {
     accountService.getOnlineUser(userId, callback);
 };
-remote.getOnlineUserByAppId = (appId: string, callback: (err: Error, users: Array<UserSession> | null) => void) => {
+remote.getOnlineUserByAppId = (appId: string, callback: (err: Error, users: UserSession[] | null) => void) => {
     accountService.getOnlineUserByAppId(appId, callback);
 };
 remote.getOnlineUsers = (callback: (err, user) => void) => {
@@ -78,7 +78,7 @@ remote.addUserTransaction = (userTransac: UserTransaction, cb) => {
     cb();
 };
 
-remote.getUserTransaction = function (uid: string, cb: Function) {
+remote.getUserTransaction = function(uid: string, cb: Function) {
     if (!!accountService.userTransaction) {
         cb(null, accountService.userTransaction[uid]);
     }

@@ -33,14 +33,14 @@ export class AccountService {
             cb(null, user);
         }
         else {
-            let errMsg = "Specific uid is not online.";
+            const errMsg = "Specific uid is not online.";
             cb(errMsg, null);
         }
     }
-    getOnlineUserByAppId(appId: string, cb: (err: any, users: Array<UserSession> | null) => void) {
+    public getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[] | null) => void) {
         let results = new Array<UserSession>();
 
-        this.onlineUsers.forEach(value => {
+        this.onlineUsers.forEach((value) => {
             if (value.applicationId === appId) {
                 results.push(value);
             }
@@ -60,7 +60,7 @@ export class AccountService {
 
         callback();
     }
-    async updateUser(user: UserSession) {
+    public async updateUser(user: UserSession) {
         if (!this.onlineUsers)
             this.onlineUsers = new Map();
 
@@ -96,7 +96,7 @@ export class AccountService {
      * @param {String} channelName channel name
      * @return {Number} see code.js
      */
-    add(uid, playerName, channelName) {
+    public add(uid, playerName, channelName) {
         let sid = this.getSidByUid(uid, this.app);
         if (!sid) {
             return Code.CHAT.FA_UNKNOWN_CONNECTOR;
@@ -123,7 +123,7 @@ export class AccountService {
      * @param  {String} uid         user id
      * @param  {String} channelName channel name
      */
-    leave(uid, channelName) {
+    public leave(uid, channelName) {
         let record = this.uidMap[uid];
         let channel = this.app.get("channelService").getChannel(channelName, true);
 
@@ -141,7 +141,7 @@ export class AccountService {
      *
      * @param  {String} uid user id
      */
-    kick(uid) {
+    public kick(uid) {
         let channelNames = this.channelMap[uid];
         let record = this.uidMap[uid];
 
@@ -166,7 +166,7 @@ export class AccountService {
      * @param  {Object}   msg         message json object
      * @param  {Function} cb          callback function
      */
-    pushByChannel(channelName, msg, cb) {
+    public pushByChannel(channelName, msg, cb) {
         let channel = this.app.get("channelService").getChannel(channelName);
         if (!channel) {
             cb(new Error("channel " + channelName + " dose not exist"));
@@ -183,7 +183,7 @@ export class AccountService {
      * @param  {Object}   msg        message json object
      * @param  {Function} cb         callback
      */
-    pushByPlayerName(playerName, msg, cb) {
+    public pushByPlayerName(playerName, msg, cb) {
         let record = this.nameMap[playerName];
         if (!record) {
             cb(null, Code.CHAT.FA_USER_NOT_ONLINE);
@@ -196,7 +196,7 @@ export class AccountService {
     /**
      * Add records for the specified user
      */
-    addRecord = function (service, uid, name, sid, channelName) {
+    public addRecord = function (service, uid, name, sid, channelName) {
         let record = { uid: uid, name: name, sid: sid };
         service.uidMap[uid] = record;
         service.nameMap[name] = record;
@@ -210,14 +210,14 @@ export class AccountService {
     /**
      * Cehck whether the user has already in the channel
      */
-    checkDuplicate = function (service, uid, channelName): boolean {
+    public checkDuplicate = function (service, uid, channelName): boolean {
         return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
     };
 
     /**
      * Remove records for the specified user and channel pair
      */
-    removeRecord = function (service, uid, channelName) {
+    public removeRecord = function (service, uid, channelName) {
         delete service.channelMap[uid][channelName];
         //    if (utils.size(service.channelMap[uid])) {
         //        return;
@@ -230,7 +230,7 @@ export class AccountService {
     /**
      * Clear all records of the user
      */
-    clearRecords = function (service, uid) {
+    public clearRecords = function (service, uid) {
         delete service.channelMap[uid];
 
         let record = service.uidMap[uid];
@@ -245,7 +245,7 @@ export class AccountService {
     /**
      * Get the connector server id assosiated with the uid
      */
-    getSidByUid = function (uid, app) {
+    public getSidByUid = function (uid, app) {
         let connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
         if (connector) {
             return connector.id;
