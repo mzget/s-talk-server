@@ -89,13 +89,13 @@ class AccountService {
             cb(null, user);
         }
         else {
-            let errMsg = "Specific uid is not online.";
+            const errMsg = "Specific uid is not online.";
             cb(errMsg, null);
         }
     }
     getOnlineUserByAppId(appId, cb) {
         let results = new Array();
-        this.onlineUsers.forEach(value => {
+        this.onlineUsers.forEach((value) => {
             if (value.applicationId === appId) {
                 results.push(value);
             }
