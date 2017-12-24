@@ -13,7 +13,7 @@ import withValidation from "../../../utils/ValidationSchema";
 
 import { X_API_KEY, X_APP_ID, X_API_VERSION } from "../../../Const";
 import { Config } from "../../../../config/config";
-import { getUsersGroup } from "../../../util/ChannelHelper";
+import { getUsersGroup, withoutUser } from "../../../util/ChannelHelper";
 import ChannelService, { IUserGroup } from "../../../util/ChannelService";
 import { UserSession, UserTransaction } from "../../../model/User";
 const tokenService = new TokenService();
@@ -73,7 +73,7 @@ class Handler {
 				session.bind(user._id);
 				session.set(X_APP_ID, appId);
 				session.set(X_API_KEY, apiKey);
-				session.pushAll(() => { console.log("Push..."); });
+				session.pushAll(() => { console.log("PushAll session."); });
 				session.on("closed", onUserLeave.bind(null, self.app));
 
 				// channelService.broadcast("connector", param.route, param.data);
@@ -508,15 +508,14 @@ const logOut = (app, session, next) => {
 				data: user,
 			};
 
-			app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID),
-				(err2: Error, userSessions: UserSession[]) => {
-					if (!err2) {
-						console.log("online by app-id", userSessions.length);
+			app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err2: Error, userSessions: UserSession[]) => {
+				if (!err2) {
+					console.log("online by app-id", userSessions.length);
 
-						const uids = getUsersGroup(userSessions);
-						channelService.pushMessageByUids(param.route, param.data, uids);
-					}
-				});
+					const uids = withoutUser(getUsersGroup(userSessions), session.uid);
+					channelService.pushMessageByUids(param.route, param.data, uids);
+				}
+			});
 		}
 
 		// !-- log user out.
@@ -563,7 +562,7 @@ function addOnlineUser(app, session, user: IUserData) {
 			if (!err) {
 				console.log("online by app-id", userSessions.length);
 
-				const uids = getUsersGroup(userSessions);
+				const uids = withoutUser(getUsersGroup(userSessions), session.uid);
 				channelService.pushMessageByUids(param.route, param.data, uids);
 			}
 		});

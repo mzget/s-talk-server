@@ -14,4 +14,8 @@ export function getUsersGroup(users: Array<UserSession>) {
     return usersGroup;
 }
 
+export function withoutUser(usersGroups: UserGroup[], uid: string) {
+    return usersGroups.filter(user => user.uid != uid);
+}
+
 export default getUsersGroup;
