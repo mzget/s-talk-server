@@ -8,4 +8,8 @@ function getUsersGroup(users) {
     return usersGroup;
 }
 exports.getUsersGroup = getUsersGroup;
+function withoutUser(usersGroups, uid) {
+    return usersGroups.filter(user => user.uid != uid);
+}
+exports.withoutUser = withoutUser;
 exports.default = getUsersGroup;

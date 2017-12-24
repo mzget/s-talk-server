@@ -54,7 +54,7 @@ class Handler {
                 session.bind(user._id);
                 session.set(Const_1.X_APP_ID, appId);
                 session.set(Const_1.X_API_KEY, apiKey);
-                session.pushAll(() => { console.log("Push..."); });
+                session.pushAll(() => { console.log("PushAll session."); });
                 session.on("closed", onUserLeave.bind(null, self.app));
                 // channelService.broadcast("connector", param.route, param.data);
                 addOnlineUser(self.app, session, msg.user);
@@ -438,7 +438,7 @@ const logOut = (app, session, next) => {
             app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err2, userSessions) => {
                 if (!err2) {
                     console.log("online by app-id", userSessions.length);
-                    const uids = ChannelHelper_1.getUsersGroup(userSessions);
+                    const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
                     channelService.pushMessageByUids(param.route, param.data, uids);
                 }
             });
@@ -476,7 +476,7 @@ function addOnlineUser(app, session, user) {
         app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, userSessions) => {
             if (!err) {
                 console.log("online by app-id", userSessions.length);
-                const uids = ChannelHelper_1.getUsersGroup(userSessions);
+                const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
                 channelService.pushMessageByUids(param.route, param.data, uids);
             }
         });
