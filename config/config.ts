@@ -17,7 +17,7 @@ hooks.set("survey1234", {
 });
 const getHookApi = (appKey: string) => {
   return hooks.get(appKey);
-}
+};
 
 const devConfig = {
   apiKeys: ["chitchat1234", "alcohol1234", "survey1234", "ooca1234"],
