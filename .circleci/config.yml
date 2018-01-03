@@ -36,35 +36,29 @@ jobs:
       # run tests!
       - run: npm test
 
-machine:
-  services:
-    - docker
+  deploy:
+    steps: 
+      - checkout
+      - setup_remote_docker
+      # start proprietary DB using private Docker image
+      # with credentials stored in the UI
+      - run: |
+          docker login -u mzget -p dockerP@ssw0rd
 
-dependencies:
-  override:
-    - docker info
-    - docker build --rm=false -t mzget/stalk-platform .
+      # build the application image
+      - run: docker build -t mzget/stalk-platform .
 
-test:
-  override:
-    - docker run --name stalk-platform -p 3020-3021:3020-3021 -d mzget/stalk-platform; sleep 10
-    - curl --retry 10 --retry-delay 5 -v ws://localhost:3020
+      # deploy the image
+      - run: docker push mzget/stalk-platform
 
-deployment:
-  hub:
-    branch: master
-    commands:
-      - docker login -e nattapon.r@live.com -u mzget -p $dockerP@ssw0rd
-      - docker push mzget/stalk-platform
-
-# workflows:
-#   version: 2
-#   build-deploy:
-#     jobs:
-#       - build
-#       - deploy:
-#           requires:
-#             - build
-#           filters:
-#             branches:
-#               only: master
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build:
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
