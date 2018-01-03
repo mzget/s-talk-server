@@ -6,7 +6,7 @@ import * as path from "path";
 import { AccountService } from "./app/services/accountService";
 
 process.env.TZ = "UTC";
-process.env.NODE_ENV = "production";
+process.env.NODE_ENV = "development";
 process.on("uncaughtException", (err: any) => {
     console.error(" Caught exception: " + err.stack);
 });
