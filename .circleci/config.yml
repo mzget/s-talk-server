@@ -37,6 +37,7 @@ jobs:
       - run: npm test
 
   deploy:
+    machine: true
     steps: 
       - checkout
       - setup_remote_docker
