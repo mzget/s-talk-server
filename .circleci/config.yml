@@ -36,6 +36,23 @@ jobs:
       # run tests!
       - run: npm test
 
+  deploy-dev:
+    machine: true
+    steps: 
+      - checkout
+      # - setup_remote_docker
+      # start proprietary DB using private Docker image
+      # with credentials stored in the UI
+      - run: |
+          docker login -u mzget -p dockerP@ssw0rd
+
+      # build the application image
+      - run: docker build -t mzget/stalk-platform-dev .
+
+      # deploy the image
+      - run: docker push mzget/stalk-platform-dev
+
+
   deploy:
     machine: true
     steps: 
@@ -63,3 +80,9 @@ workflows:
           filters:
             branches:
               only: master
+      - deploy-dev:
+          requires:
+            - build
+          filters:
+            branches:
+              only: develop
