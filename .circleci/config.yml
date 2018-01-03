@@ -57,14 +57,14 @@ deployment:
       - docker login -e nattapon.r@live.com -u mzget -p $dockerP@ssw0rd
       - docker push mzget/stalk-platform
 
-workflows:
-  version: 2
-  build-deploy:
-    jobs:
-      - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
+# workflows:
+#   version: 2
+#   build-deploy:
+#     jobs:
+#       - build
+#       - deploy:
+#           requires:
+#             - build
+#           filters:
+#             branches:
+#               only: master
