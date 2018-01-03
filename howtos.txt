@@ -1,5 +1,9 @@
 - docker build -t mzget/stalk-platform .
+// for dev.
+- docker run --name stalk-platform -p 3020-3021:3020-3021 -d mzget/stalk-platform-dev
+// for master.
 - docker run --name stalk-platform -p 3020-3021:3020-3021 -d mzget/stalk-platform
+// exec container.
 - docker exec -it stalk-platform /bin/bash
 
 // With volume
