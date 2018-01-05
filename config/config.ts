@@ -1,6 +1,6 @@
-﻿let devApi = "http://localhost:9000";
-let dev2Api = "http://203.150.95.146:9000";
-let masterApi = "http://203.148.250.152:3002";
+﻿const devApi = "http://localhost:9000";
+const dev2Api = "http://203.150.95.146:9000";
+const masterApi = "http://203.148.250.152:3002";
 
 interface IStalkHookApi {
   apikey: string;
@@ -17,7 +17,7 @@ hooks.set("survey1234", {
 });
 hooks.set("JC212224", {
   apikey: "JC212224",
-  onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
+  onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
 });
 const getHookApi = (appKey: string) => {
   return hooks.get(appKey);
