@@ -324,8 +324,7 @@ class Handler {
 			if (err) {
 				console.warn(err);
 				next(err, res);
-			}
-			else {
+			} else {
 				let onVideoCall = {
 					route: Code.sharedEvents.onVideoCall,
 					data: {
@@ -333,11 +332,11 @@ class Handler {
 						peerId: myRtcId
 					}
 				};
-				let uidsGroup = new Array();
+				const uidsGroup = new Array();
 
 				self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (err, user) => {
 					if (!err) {
-						let group = {
+						const group = {
 							uid: user.uid,
 							sid: user.serverId
 						};
@@ -345,9 +344,8 @@ class Handler {
 						channelService.pushMessageByUids(onVideoCall.route, onVideoCall.data, uidsGroup);
 
 						next(null, { code: Code.OK });
-					}
-					else {
-						let msg = "target userId is not a list of onlineUser Please use notification server instead.";
+					} else {
+						const msg = "target userId is not a list of onlineUser Please use notification server instead.";
 						console.warn(msg);
 						next(null, { code: Code.FAIL, message: msg });
 					}
@@ -376,8 +374,7 @@ class Handler {
 			if (err) {
 				console.warn(err);
 				next(err, res);
-			}
-			else {
+			} else {
 				const onVoiceCall = {
 					route: Code.sharedEvents.onVoiceCall,
 					data: {
@@ -392,8 +389,7 @@ class Handler {
 						const msg = "target userId is not a list of onlineUser Please use notification server instead.";
 						console.warn(msg);
 						next(null, { code: Code.FAIL, message: msg });
-					}
-					else {
+					} else {
 						const group = {
 							uid: user.uid,
 							sid: user.serverId
@@ -422,12 +418,11 @@ class Handler {
 			return;
 		}
 
-		tokenService.ensureAuthorized(token, function (err, res) {
+		tokenService.ensureAuthorized(token, function(err, res) {
 			if (err) {
 				console.warn(err);
 				next(err, res);
-			}
-			else {
+			} else {
 				const onHangupCall = {
 					route: Code.sharedEvents.onHangupCall,
 					data: {
@@ -441,8 +436,7 @@ class Handler {
 						const msg = "target userId is not a list of onlineUser Please use notification server instead.";
 						console.warn(msg);
 						next(null, { code: Code.FAIL, message: msg });
-					}
-					else {
+					} else {
 						const group = {
 							uid: user.uid,
 							sid: user.serverId,
@@ -480,8 +474,7 @@ class Handler {
 			if (!user) {
 				const msg = "The contactId is not online.";
 				console.warn(msg);
-			}
-			else {
+			} else {
 				const uidsGroup = new Array();
 				const userInfo = {
 					uid: user.uid,
