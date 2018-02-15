@@ -55,13 +55,6 @@
         "port": 4052,
         "clientPort": 3021,
         "frontend": true
-      },
-      {
-        "id": "connector-server-2",
-        "host": "127.0.0.1",
-        "port": 4053,
-        "clientPort": 3022,
-        "frontend": true
       }
     ],
     "chat": [
@@ -69,11 +62,6 @@
         "id": "chat-server-1",
         "host": "127.0.0.1",
         "port": 3023
-      },
-      {
-        "id": "chat-server-2",
-        "host": "127.0.0.1",
-        "port": 3024
       }
     ],
     "push": [
@@ -81,11 +69,6 @@
         "id": "push-server-1",
         "host": "127.0.0.1",
         "port": 3025
-      },
-      {
-        "id": "push-server-2",
-        "host": "127.0.0.1",
-        "port": 3026
       }
     ],
     "auth": [
