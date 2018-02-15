@@ -14,7 +14,7 @@ hooks.set("survey1234", {
 });
 hooks.set("jc212224", {
     apikey: "jc212224",
-    onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
+    onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
 });
 const getHookApi = (appKey) => {
     return hooks.get(appKey);
