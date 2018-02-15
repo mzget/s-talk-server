@@ -1,0 +1,11 @@
+{
+    "apps": [
+        {
+            "name": "stalk-platform",
+            "script": "app.js",
+            "instances": 2,
+            "exec_mode": "cluster",
+            "watch": false
+        }
+    ]
+}

@@ -1,4 +1,4 @@
-﻿const pomelo = require("pomelo");
+﻿import pomelo = require("pomelo");
 import routeUtil from "./app/util/routeUtil";
 import mongodb = require("mongodb");
 import * as fs from "fs";
