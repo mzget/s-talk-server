@@ -3,8 +3,7 @@
         {
             "name": "stalk-platform",
             "script": "app.js",
-            "instances": 2,
-            "exec_mode": "cluster",
+            "instances": 1,
             "watch": false
         }
     ]
