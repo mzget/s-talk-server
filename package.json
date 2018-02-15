@@ -7,7 +7,7 @@
     "test": "jest",
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "deploy": "sudo pm2 start app.js --name stalk-platform"
+    "deploy": "sudo pm2 start app.js --name stalk-platform --watch"
   },
   "dependencies": {
     "async": "^2.6.0",
