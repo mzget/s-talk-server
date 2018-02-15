@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-let devApi = "http://localhost:9000";
-let dev2Api = "http://203.150.95.146:9000";
-let masterApi = "http://203.148.250.152:3002";
+const devApi = "http://localhost:9000";
+const dev2Api = "http://203.150.95.146:9000";
+const masterApi = "http://203.148.250.152:3002";
 const hooks = new Map();
 hooks.set("alcohol1234", {
     apikey: "alcohol1234",
@@ -12,15 +12,15 @@ hooks.set("survey1234", {
     apikey: "survey1234",
     onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
 });
-hooks.set("JC212224", {
-    apikey: "JC212224",
+hooks.set("jc212224", {
+    apikey: "jc212224",
     onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
 });
 const getHookApi = (appKey) => {
     return hooks.get(appKey);
 };
 const devConfig = {
-    apiKeys: ["chitchat1234", "alcohol1234", "survey1234", "ooca1234", "JC212224"],
+    apiKeys: ["chitchat1234", "alcohol1234", "survey1234", "ooca1234", "jc212224"],
     api: {
         apikey: "chitchat1234",
         host: `${dev2Api}`,
