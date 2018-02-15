@@ -7,7 +7,12 @@
     "rules": {
         "object-literal-sort-keys": false,
         "no-console": false,
-        "ordered-imports": false
+        "ordered-imports": false,
+        "no-var-requires": false,
+        "indent": [
+            true,
+            "spaces", 2
+        ]
     },
     "rulesDirectory": []
 }

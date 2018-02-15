@@ -280,10 +280,10 @@ class Handler {
                         peerId: myRtcId
                     }
                 };
-                let uidsGroup = new Array();
+                const uidsGroup = new Array();
                 self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (err, user) => {
                     if (!err) {
-                        let group = {
+                        const group = {
                             uid: user.uid,
                             sid: user.serverId
                         };
@@ -292,7 +292,7 @@ class Handler {
                         next(null, { code: Code_1.default.OK });
                     }
                     else {
-                        let msg = "target userId is not a list of onlineUser Please use notification server instead.";
+                        const msg = "target userId is not a list of onlineUser Please use notification server instead.";
                         console.warn(msg);
                         next(null, { code: Code_1.default.FAIL, message: msg });
                     }

@@ -61,7 +61,7 @@ remote.addUserTransaction = (userTransac, cb) => {
     }
     cb();
 };
-remote.getUserTransaction = function (uid, cb) {
+remote.getUserTransaction = (uid, cb) => {
     if (!!accountService.userTransaction) {
         cb(null, accountService.userTransaction[uid]);
     }

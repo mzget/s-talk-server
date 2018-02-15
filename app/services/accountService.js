@@ -23,7 +23,7 @@ class AccountService {
          * Add records for the specified user
          */
         this.addRecord = function (service, uid, name, sid, channelName) {
-            let record = { uid: uid, name: name, sid: sid };
+            const record = { uid, name, sid };
             service.uidMap[uid] = record;
             service.nameMap[name] = record;
             let item = service.channelMap[uid];
@@ -54,7 +54,7 @@ class AccountService {
          */
         this.clearRecords = function (service, uid) {
             delete service.channelMap[uid];
-            let record = service.uidMap[uid];
+            const record = service.uidMap[uid];
             if (!record) {
                 return;
             }
@@ -65,7 +65,7 @@ class AccountService {
          * Get the connector server id assosiated with the uid
          */
         this.getSidByUid = function (uid, app) {
-            let connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
+            const connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
             if (connector) {
                 return connector.id;
             }
@@ -77,15 +77,17 @@ class AccountService {
         this.channelMap = {};
     }
     OnlineUsers() {
-        if (!this.onlineUsers)
+        if (!this.onlineUsers) {
             this.onlineUsers = new Map();
+        }
         return this.onlineUsers;
     }
     getOnlineUser(userId, cb) {
-        if (!this.onlineUsers)
+        if (!this.onlineUsers) {
             this.onlineUsers = new Map();
+        }
         if (this.onlineUsers.has(userId)) {
-            let user = this.onlineUsers.get(userId);
+            const user = this.onlineUsers.get(userId);
             cb(null, user);
         }
         else {
@@ -94,7 +96,7 @@ class AccountService {
         }
     }
     getOnlineUserByAppId(appId, cb) {
-        let results = new Array();
+        const results = new Array();
         this.onlineUsers.forEach((value) => {
             if (value.applicationId === appId) {
                 results.push(value);
@@ -103,8 +105,9 @@ class AccountService {
         cb(null, results);
     }
     addOnlineUser(user, callback) {
-        if (!this.onlineUsers)
+        if (!this.onlineUsers) {
             this.onlineUsers = new Map();
+        }
         if (!this.onlineUsers.has(user.uid)) {
             this.onlineUsers.set(user.uid, user);
         }
@@ -115,8 +118,9 @@ class AccountService {
     }
     updateUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.onlineUsers)
+            if (!this.onlineUsers) {
                 this.onlineUsers = new Map();
+            }
             this.onlineUsers.set(user.uid, user);
             return yield Array.from(this.onlineUsers.values());
         });
@@ -125,8 +129,9 @@ class AccountService {
         this.onlineUsers.delete(userId);
     }
     get userTransaction() {
-        if (!this._userTransaction)
+        if (!this._userTransaction) {
             this._userTransaction = {};
+        }
         return this._userTransaction;
     }
     /**
@@ -138,14 +143,14 @@ class AccountService {
      * @return {Number} see code.js
      */
     add(uid, playerName, channelName) {
-        let sid = this.getSidByUid(uid, this.app);
+        const sid = this.getSidByUid(uid, this.app);
         if (!sid) {
             return Code_1.default.CHAT.FA_UNKNOWN_CONNECTOR;
         }
         if (this.checkDuplicate(this, uid, channelName)) {
             return Code_1.default.OK;
         }
-        let channel = this.app.get("channelService").getChannel(channelName, true);
+        const channel = this.app.get("channelService").getChannel(channelName, true);
         if (!channel) {
             return Code_1.default.CHAT.FA_CHANNEL_CREATE;
         }
@@ -160,8 +165,8 @@ class AccountService {
      * @param  {String} channelName channel name
      */
     leave(uid, channelName) {
-        let record = this.uidMap[uid];
-        let channel = this.app.get("channelService").getChannel(channelName, true);
+        const record = this.uidMap[uid];
+        const channel = this.app.get("channelService").getChannel(channelName, true);
         if (channel && record) {
             channel.leave(uid, record.sid);
         }
@@ -175,12 +180,12 @@ class AccountService {
      * @param  {String} uid user id
      */
     kick(uid) {
-        let channelNames = this.channelMap[uid];
-        let record = this.uidMap[uid];
+        const channelNames = this.channelMap[uid];
+        const record = this.uidMap[uid];
         if (channelNames && record) {
             // remove user from channels
             let channel;
-            for (let name in channelNames) {
+            for (const name in channelNames) {
                 channel = this.app.get("channelService").getChannel(name);
                 if (channel) {
                     channel.leave(uid, record.sid);
@@ -197,7 +202,7 @@ class AccountService {
      * @param  {Function} cb          callback function
      */
     pushByChannel(channelName, msg, cb) {
-        let channel = this.app.get("channelService").getChannel(channelName);
+        const channel = this.app.get("channelService").getChannel(channelName);
         if (!channel) {
             cb(new Error("channel " + channelName + " dose not exist"));
             return;
@@ -212,7 +217,7 @@ class AccountService {
      * @param  {Function} cb         callback
      */
     pushByPlayerName(playerName, msg, cb) {
-        let record = this.nameMap[playerName];
+        const record = this.nameMap[playerName];
         if (!record) {
             cb(null, Code_1.default.CHAT.FA_USER_NOT_ONLINE);
             return;
