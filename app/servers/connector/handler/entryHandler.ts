@@ -11,6 +11,7 @@ import * as R from "ramda";
 
 import withValidation from "../../../utils/ValidationSchema";
 
+import { IRemoteServer } from "../../auth/remote/authRemote";
 import { X_API_KEY, X_APP_ID, X_API_VERSION } from "../../../Const";
 import { Config } from "../../../../config/config";
 import { getUsersGroup, withoutUser } from "../../../util/ChannelHelper";
@@ -27,10 +28,10 @@ interface IUserData {
 
 module.exports = (app) => {
 	console.info("instanctiate connector handler.");
-	return new Handler(app);
+	return new EntryHandler(app);
 };
 
-class Handler {
+class EntryHandler {
 	private app;
 
 	constructor(app) {
@@ -418,7 +419,7 @@ class Handler {
 			return;
 		}
 
-		tokenService.ensureAuthorized(token, function(err, res) {
+		tokenService.ensureAuthorized(token, function (err, res) {
 			if (err) {
 				console.warn(err);
 				next(err, res);
@@ -489,7 +490,7 @@ class Handler {
 	}
 }
 
-const handler = Handler.prototype;
+const handler = EntryHandler.prototype;
 
 const logOut = (app, session, next) => {
 	app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
@@ -541,9 +542,10 @@ function addOnlineUser(app, session, user: IUserData) {
 	userTransaction.username = user.username;
 
 	console.log("add to onlineUsers list : ", userSession.username);
+	const authRemote = app.rpc.auth.authRemote as IRemoteServer;
 
-	app.rpc.auth.authRemote.addOnlineUser(session, userSession, pushNewOnline);
-	app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+	authRemote.addOnlineUser(session, userSession, pushNewOnline);
+	authRemote.addUserTransaction(session, userTransaction, null);
 
 	const param = {
 		route: Code.sharedEvents.onUserLogin,
@@ -551,7 +553,7 @@ function addOnlineUser(app, session, user: IUserData) {
 	};
 
 	function pushNewOnline() {
-		app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: UserSession[]) => {
+		authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: UserSession[]) => {
 			if (!err) {
 				console.log("online by app-id", userSessions.length);
 

@@ -16,9 +16,9 @@ const tokenService = new tokenService_1.default();
 let channelService;
 module.exports = (app) => {
     console.info("instanctiate connector handler.");
-    return new Handler(app);
+    return new EntryHandler(app);
 };
-class Handler {
+class EntryHandler {
     constructor(app) {
         this.app = app;
         channelService = app.get("channelService");
@@ -426,7 +426,7 @@ class Handler {
         next(null, { code: Code_1.default.OK });
     }
 }
-const handler = Handler.prototype;
+const handler = EntryHandler.prototype;
 const logOut = (app, session, next) => {
     app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
         if (!err && user !== null) {
@@ -466,14 +466,15 @@ function addOnlineUser(app, session, user) {
     userTransaction.uid = user._id;
     userTransaction.username = user.username;
     console.log("add to onlineUsers list : ", userSession.username);
-    app.rpc.auth.authRemote.addOnlineUser(session, userSession, pushNewOnline);
-    app.rpc.auth.authRemote.addUserTransaction(session, userTransaction, null);
+    const authRemote = app.rpc.auth.authRemote;
+    authRemote.addOnlineUser(session, userSession, pushNewOnline);
+    authRemote.addUserTransaction(session, userTransaction, null);
     const param = {
         route: Code_1.default.sharedEvents.onUserLogin,
         data: userTransaction,
     };
     function pushNewOnline() {
-        app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, userSessions) => {
+        authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, userSessions) => {
             if (!err) {
                 console.log("online by app-id", userSessions.length);
                 const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
