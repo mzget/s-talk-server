@@ -1,9 +1,11 @@
 ﻿import pomelo = require("pomelo");
-import routeUtil from "./app/util/routeUtil";
 import mongodb = require("mongodb");
 import * as fs from "fs";
 import * as path from "path";
+import routeUtil from "./app/util/routeUtil";
 import { AccountService } from "./app/services/accountService";
+
+import webserver from "./webserver";
 
 // process.env.TZ = "UTC";
 // process.env.NODE_ENV = "production";
@@ -109,6 +111,12 @@ app.configure("production|development", "auth", () => {
 
 app.configure("production|development", "chat", () => {
     console.log("start chat server");
+});
+
+app.configure("production|development", "master", () => {
+    console.log("start master server");
+
+    webserver();
 });
 
 // start app
