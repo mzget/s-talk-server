@@ -1,10 +1,13 @@
 import * as express from "express";
 
-function createWebServer() {
-    const expressApp = express();
+import { DefaultRouter } from "./routes";
 
-    expressApp.get("/", (req, res) => res.send("Hello World!"));
-    expressApp.listen(3000, () => console.log("Example app listening on port 3000!"));
+function createWebServer() {
+    const app = express();
+
+
+    app.use(DefaultRouter);
+    app.listen(3000, () => console.log("Web Server listening on port 3000!"));
 }
 
 export default createWebServer;
