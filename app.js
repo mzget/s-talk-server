@@ -5,8 +5,8 @@ const routeUtil_1 = require("./app/util/routeUtil");
 const fs = require("fs");
 const path = require("path");
 const accountService_1 = require("./app/services/accountService");
-process.env.TZ = "UTC";
-process.env.NODE_ENV = "production";
+// process.env.TZ = "UTC";
+// process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err) => {
     console.error(" Caught exception: " + err.stack);
 });
@@ -29,7 +29,7 @@ InitDatabaseConnection().then(db => {
  * Init app for client.
  */
 const app = pomelo.createApp();
-app.set("name", "stalk-node-server");
+app.set("name", "stalk-platform");
 // app configure
 app.configure("development", () => {
     // filter configures

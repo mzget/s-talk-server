@@ -5,8 +5,8 @@ import * as fs from "fs";
 import * as path from "path";
 import { AccountService } from "./app/services/accountService";
 
-process.env.TZ = "UTC";
-process.env.NODE_ENV = "production";
+// process.env.TZ = "UTC";
+// process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err: any) => {
     console.error(" Caught exception: " + err.stack);
 });
@@ -32,7 +32,7 @@ InitDatabaseConnection().then(db => {
  * Init app for client.
  */
 const app = pomelo.createApp();
-app.set("name", "stalk-node-server");
+app.set("name", "stalk-platform");
 
 // app configure
 app.configure("development", () => {
