@@ -5,14 +5,17 @@ const dev2Api = "http://203.150.95.146:9000";
 const masterApi = "http://203.148.250.152:3002";
 const hooks = new Map();
 hooks.set("alcohol1234", {
+    appname: "tas",
     apikey: "alcohol1234",
     onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
 });
 hooks.set("survey1234", {
+    appname: "survey",
     apikey: "survey1234",
     onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
 });
 hooks.set("jc212224", {
+    appname: "jc",
     apikey: "jc212224",
     onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
 });

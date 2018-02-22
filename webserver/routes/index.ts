@@ -2,7 +2,7 @@ import express = require("express");
 const path = require("path");
 const router = express.Router();
 
-import { Config } from "../../config/config";
+import { Config, getWebhook } from "../../config/config";
 
 /* GET home page. */
 router.get("/", (req, res, next) => {
@@ -11,6 +11,17 @@ router.get("/", (req, res, next) => {
 
 router.get("/apikeys", (req, res, next) => {
     res.status(200).send({ title: process.env.npm_package_name, keys: Config.apiKeys });
+});
+
+router.get("/app/:key", (req, res, next) => {
+    const key = req.params.key;
+    const appInfo = getWebhook(key);
+    if (appInfo) {
+        res.status(200).send({ title: process.env.npm_package_name, appInfo });
+    }
+    else {
+        res.status(200).send({ title: process.env.npm_package_name, message: `not found : ${key}` });
+    }
 });
 
 export const DefaultRouter = router;
