@@ -12,15 +12,15 @@ hooks.set("survey1234", {
     apikey: "survey1234",
     onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
 });
-hooks.set("JC212224", {
-    apikey: "JC212224",
+hooks.set("jc212224", {
+    apikey: "jc212224",
     onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
 });
 const getHookApi = (appKey) => {
     return hooks.get(appKey);
 };
 const devConfig = {
-    apiKeys: ["chitchat1234", "alcohol1234", "survey1234", "ooca1234", "JC212224"],
+    apiKeys: ["chitchat1234", "alcohol1234", "survey1234", "ooca1234", "jc212224"],
     api: {
         apikey: "chitchat1234",
         host: `${dev2Api}`,

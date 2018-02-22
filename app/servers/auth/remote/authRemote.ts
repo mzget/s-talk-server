@@ -52,7 +52,7 @@ remote.removeOnlineUser = (userId: string, cb) => {
     accountService.removeOnlineUser(userId);
     cb();
 };
-remote.updateUser = (user: UserSession, cb: Function) => {
+remote.updateUser = (user: UserSession, cb: () => void) => {
     accountService.updateUser(user).then((value) => cb(undefined, value)).catch((error) => cb(error, undefined));
 };
 remote.getOnlineUser = (userId: string, callback: (err: Error, user: UserSession | null) => void) => {
@@ -70,19 +70,17 @@ remote.addUserTransaction = (userTransac: UserTransaction, cb) => {
         if (!accountService.userTransaction[userTransac.uid]) {
             accountService.userTransaction[userTransac.uid] = userTransac;
         }
-    }
-    else {
+    } else {
         console.warn("chatService.userTransaction is null.");
     }
 
     cb();
 };
 
-remote.getUserTransaction = function(uid: string, cb: Function) {
+remote.getUserTransaction = (uid: string, cb: () => void) => {
     if (!!accountService.userTransaction) {
         cb(null, accountService.userTransaction[uid]);
-    }
-    else {
+    } else {
         cb(new Error("No have userTransaction"), null);
     }
 };

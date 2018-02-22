@@ -1,4 +1,4 @@
-﻿const pomelo = require("pomelo");
+﻿import pomelo = require("pomelo");
 import routeUtil from "./app/util/routeUtil";
 import mongodb = require("mongodb");
 import * as fs from "fs";
@@ -6,7 +6,7 @@ import * as path from "path";
 import { AccountService } from "./app/services/accountService";
 
 process.env.TZ = "UTC";
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err: any) => {
     console.error(" Caught exception: " + err.stack);
 });

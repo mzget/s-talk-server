@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const accountService_1 = require("./app/services/accountService");
 process.env.TZ = "UTC";
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err) => {
     console.error(" Caught exception: " + err.stack);
 });
