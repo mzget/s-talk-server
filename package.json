@@ -27,7 +27,7 @@
     "@types/joi": "^10.6.1",
     "@types/jsonwebtoken": "^7.2.5",
     "@types/mongodb": "^2.2.18",
-    "@types/node": "^8.5.2",
+    "@types/node": "^8.9.4",
     "@types/promise": "^7.1.30",
     "@types/ramda": "^0.24.18",
     "@types/request": "0.0.42",
