@@ -18,10 +18,6 @@ class AccountService {
         this.uidMap = {};
         this.nameMap = {};
         this.channelMap = {};
-        /**
-         * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
-         */
-        this.onlineUsers = new Map();
         this._userTransaction = {};
         /**
          * Add records for the specified user
@@ -80,11 +76,22 @@ class AccountService {
         this.nameMap = {};
         this.channelMap = {};
     }
+    /**
+     * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
+     */
     OnlineUsers() {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
-        return this.onlineUsers;
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = new Array();
+            const onlines = yield RedisClient_1.hgetallAsync(exports.online_user);
+            for (const key in onlines) {
+                if (onlines.hasOwnProperty(key)) {
+                    const value = onlines[key];
+                    const userSession = JSON.parse(value);
+                    results.push(userSession);
+                }
+            }
+            return yield results;
+        });
     }
     getOnlineUser(userId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -99,7 +106,7 @@ class AccountService {
             }
         });
     }
-    getOnlineUserByAppId(appId, cb) {
+    getOnlineUserByAppId(appId) {
         return __awaiter(this, void 0, void 0, function* () {
             const results = new Array();
             const onlines = yield RedisClient_1.hgetallAsync(exports.online_user);
@@ -112,7 +119,7 @@ class AccountService {
                     }
                 }
             }
-            cb(null, results);
+            return Promise.resolve(results);
         });
     }
     addOnlineUser(user, callback) {
@@ -123,11 +130,13 @@ class AccountService {
     }
     updateUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.onlineUsers) {
-                this.onlineUsers = new Map();
-            }
-            this.onlineUsers.set(user.uid, user);
-            return yield Array.from(this.onlineUsers.values());
+            const p = new Promise((resolve, reject) => {
+                RedisClient_1.default.hmset(exports.online_user, user.uid, JSON.stringify(user), (err, reply) => {
+                    console.warn("update onlineUser", err, reply);
+                    resolve(this.OnlineUsers());
+                });
+            });
+            return yield p;
         });
     }
     removeOnlineUser(userId) {
@@ -142,15 +151,16 @@ class AccountService {
         return this._userTransaction;
     }
     addUserTransaction(userTransac) {
-        if (!this._userTransaction) {
-            this._userTransaction = {};
-        }
         RedisClient_1.default.hset(exports.transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
             console.warn("set transaction_user", err, reply);
         });
     }
     getUserTransaction(uid) {
-        return this._userTransaction[uid];
+        return __awaiter(this, void 0, void 0, function* () {
+            const transac = yield RedisClient_1.hgetAsync(exports.transaction_user, uid);
+            const userTransaction = JSON.parse(transac);
+            return userTransaction;
+        });
     }
     /**
      * Add player into the channel

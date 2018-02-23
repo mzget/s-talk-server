@@ -13,6 +13,7 @@ const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
 const config_1 = require("../../../../config/config");
 const pushService = new MPushService.ParsePushService();
 let channelService;
+let accountService;
 module.exports = function (app) {
     return new Handler(app);
 };
@@ -20,6 +21,7 @@ const Handler = function (app) {
     console.info("ChatHandler construc...");
     this.app = app;
     channelService = this.app.get("channelService");
+    accountService = this.app.get("accountService");
 };
 const handler = Handler.prototype;
 /**
@@ -54,7 +56,7 @@ handler.send = function (msg, session, next) {
             delete msg.uuid;
             delete msg.status;
             let _msg = Object.assign({}, msg);
-            messageService.pushByUids(_msg, null).then(value => {
+            messageService.pushByUids(_msg, undefined).then(value => {
                 // <!-- send callback to user who send chat msg.
                 let params = {
                     uuid: client_uuid,
@@ -172,14 +174,12 @@ function pushToTarget(app, session, message, clientUUID) {
     let targets = message.data.target;
     if (Array.isArray(targets)) {
         async.map(targets, (item, cb) => {
-            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
-                if (err2 || user === null) {
-                    offlineMembers.push(item);
-                }
-                else {
-                    onlineMembers.push(user);
-                }
-                cb(null, item);
+            accountService.getOnlineUser(item).then((user) => {
+                onlineMembers.push(user);
+                cb(undefined, item);
+            }).catch(err => {
+                offlineMembers.push(item);
+                cb(undefined, item);
             });
         }, (err, results) => {
             // <!-- Push new message to online users.
@@ -205,14 +205,9 @@ function pushToTarget(app, session, message, clientUUID) {
     else if (targets == "*") {
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
-        app.rpc.auth.authRemote.getOnlineUsers(session, (err, users) => {
-            if (!!users) {
-                for (const userId in users) {
-                    if (users.hasOwnProperty(userId)) {
-                        const onlineUser = users[userId];
-                        onlineMembers.push(onlineUser);
-                    }
-                }
+        accountService.OnlineUsers().then((users) => {
+            if (users && users.length > 0) {
+                onlineMembers = users.slice();
                 async.each(onlineMembers, function iterator(val, cb) {
                     let group = {
                         uid: val.uid,
@@ -229,7 +224,7 @@ function pushToTarget(app, session, message, clientUUID) {
                     }
                 });
             }
-        });
+        }).catch(console.warn);
     }
 }
 function pushMessage(app, session, room, message, clientUUID, target) {
@@ -237,14 +232,12 @@ function pushMessage(app, session, room, message, clientUUID, target) {
     let offlineMembers = new Array();
     // @ Try to push message to other ...
     async.map(room.members, (item, resultCallback) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
-            if (err2 || user === null) {
-                offlineMembers.push(item._id);
-            }
-            else {
-                onlineMembers.push(user);
-            }
-            resultCallback(null, item);
+        accountService.getOnlineUser(item._id).then((user) => {
+            onlineMembers.push(user);
+            resultCallback(undefined, item);
+        }).catch(err => {
+            offlineMembers.push(item._id);
+            resultCallback(undefined, item);
         });
     }, (err, results) => {
         console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);

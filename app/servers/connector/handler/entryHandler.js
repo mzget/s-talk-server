@@ -94,25 +94,15 @@ class EntryHandler {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         const p = new Promise((resolve, rejected) => {
-            self.app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, userSession) => {
-                if (err) {
-                    rejected(err);
-                }
-                else {
-                    resolve(userSession);
-                }
+            accountService.getOnlineUser(session.uid).then((userSession) => {
+                resolve(userSession);
+            }).catch(err => {
+                rejected(err);
             });
         });
         function updateUser(user) {
             const p2 = new Promise((resolve, reject) => {
-                self.app.rpc.auth.authRemote.updateUser(session, user, (err, results) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve(results);
-                    }
-                });
+                accountService.updateUser(user).then(resolve).catch(reject);
             });
             return p2;
         }
@@ -140,13 +130,10 @@ class EntryHandler {
         }
         function getOnlineUserByAppId() {
             const p = new Promise((resolve, reject) => {
-                self.app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, results) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve(results);
-                    }
+                accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((results) => {
+                    resolve(results);
+                }).catch(err => {
+                    reject(err);
                 });
             });
             return p;
@@ -238,7 +225,7 @@ class EntryHandler {
         if (result.error) {
             return next(null, { code: Code_1.default.FAIL, message: result.error });
         }
-        self.app.rpc.auth.authRemote.getUserTransaction(session, uid, (err, userTransaction) => {
+        accountService.getUserTransaction(uid).then((userTransaction) => {
             self.app.rpc.chat.chatRemote.kick(session, userTransaction, sid, rid, function (err, res) {
                 session.set("rid", null);
                 session.push("rid", function (err) {
@@ -253,7 +240,7 @@ class EntryHandler {
                     next(null, { code: Code_1.default.OK });
                 }
             });
-        });
+        }).catch(console.warn);
     }
     /**
     * Requesting video call to target user.
@@ -327,21 +314,18 @@ class EntryHandler {
                     }
                 };
                 const uidsGroup = new Array();
-                self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (e, user) => {
-                    if (!user) {
-                        const msg = "target userId is not a list of onlineUser Please use notification server instead.";
-                        console.warn(msg);
-                        next(null, { code: Code_1.default.FAIL, message: msg });
-                    }
-                    else {
-                        const group = {
-                            uid: user.uid,
-                            sid: user.serverId
-                        };
-                        uidsGroup.push(group);
-                        channelService.pushMessageByUids(onVoiceCall.route, onVoiceCall.data, uidsGroup);
-                        next(null, { code: Code_1.default.OK });
-                    }
+                accountService.getOnlineUser(targetId).then((user) => {
+                    const group = {
+                        uid: user.uid,
+                        sid: user.serverId
+                    };
+                    uidsGroup.push(group);
+                    channelService.pushMessageByUids(onVoiceCall.route, onVoiceCall.data, uidsGroup);
+                    next(null, { code: Code_1.default.OK });
+                }).catch(err => {
+                    const msg = "target userId is not a list of onlineUser Please use notification server instead.";
+                    console.warn(msg);
+                    next(null, { code: Code_1.default.FAIL, message: msg });
                 });
             }
         });
@@ -372,21 +356,18 @@ class EntryHandler {
                     },
                 };
                 const uidsGroup = new Array();
-                self.app.rpc.auth.authRemote.getOnlineUser(session, contactId, (e, user) => {
-                    if (!user) {
-                        const msg = "target userId is not a list of onlineUser Please use notification server instead.";
-                        console.warn(msg);
-                        next(null, { code: Code_1.default.FAIL, message: msg });
-                    }
-                    else {
-                        const group = {
-                            uid: user.uid,
-                            sid: user.serverId,
-                        };
-                        uidsGroup.push(group);
-                        channelService.pushMessageByUids(onHangupCall.route, onHangupCall.data, uidsGroup);
-                        next(null, { code: Code_1.default.OK });
-                    }
+                accountService.getOnlineUser(contactId).then((user) => {
+                    const group = {
+                        uid: user.uid,
+                        sid: user.serverId,
+                    };
+                    uidsGroup.push(group);
+                    channelService.pushMessageByUids(onHangupCall.route, onHangupCall.data, uidsGroup);
+                    next(null, { code: Code_1.default.OK });
+                }).catch(err => {
+                    const msg = "target userId is not a list of onlineUser Please use notification server instead.";
+                    console.warn(msg);
+                    next(null, { code: Code_1.default.FAIL, message: msg });
                 });
             }
         });
@@ -407,45 +388,38 @@ class EntryHandler {
             route: Code_1.default.sharedEvents.onTheLineIsBusy,
             data: { from: userId },
         };
-        this.app.rpc.auth.authRemote.getOnlineUser(session, contactId, (e, user) => {
-            if (!user) {
-                const msg = "The contactId is not online.";
-                console.warn(msg);
-            }
-            else {
-                const uidsGroup = new Array();
-                const userInfo = {
-                    uid: user.uid,
-                    sid: user.serverId,
-                };
-                uidsGroup.push(userInfo);
-                channelService.pushMessageByUids(param.route, param.data, uidsGroup);
-            }
+        accountService.getOnlineUser(contactId).then((user) => {
+            const uidsGroup = new Array();
+            const userInfo = {
+                uid: user.uid,
+                sid: user.serverId,
+            };
+            uidsGroup.push(userInfo);
+            channelService.pushMessageByUids(param.route, param.data, uidsGroup);
+        }).catch(err => {
+            const msg = "The contactId is not online.";
+            console.warn(msg);
         });
         next(null, { code: Code_1.default.OK });
     }
 }
 const handler = EntryHandler.prototype;
 const logOut = (app, session, next) => {
-    app.rpc.auth.authRemote.getOnlineUser(session, session.uid, (err, user) => {
-        if (!err && user !== null) {
-            console.log("logged out Success", user);
-            const param = {
-                route: Code_1.default.sharedEvents.onUserLogout,
-                data: user,
-            };
-            app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err2, userSessions) => {
-                if (!err2) {
-                    console.log("online by app-id", userSessions.length);
-                    const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
-                    channelService.pushMessageByUids(param.route, param.data, uids);
-                }
-            });
-        }
+    accountService.getOnlineUser(session.uid).then((user) => {
+        console.log("logged out Success", user);
+        const param = {
+            route: Code_1.default.sharedEvents.onUserLogout,
+            data: user,
+        };
+        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID).then((userSessions) => {
+            console.log("online by app-id", userSessions.length);
+            const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
+            channelService.pushMessageByUids(param.route, param.data, uids);
+        })).catch(console.warn);
         // !-- log user out.
         // Don't care what result of callback.
-        app.rpc.auth.authRemote.removeOnlineUser(session, session.uid, null);
-    });
+        accountService.removeOnlineUser(session.uid);
+    }).catch(console.warn);
     if (next !== null) {
         next();
     }
@@ -472,13 +446,11 @@ function addOnlineUser(app, session, user) {
         data: userTransaction,
     };
     function pushNewOnline() {
-        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID), (err, userSessions) => {
-            if (!err) {
-                console.log("online by app-id", userSessions.length);
-                const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
-                channelService.pushMessageByUids(param.route, param.data, uids);
-            }
-        });
+        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
+            console.log("online by app-id", userSessions.length);
+            const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
+            channelService.pushMessageByUids(param.route, param.data, uids);
+        }).catch(console.warn);
     }
 }
 const addChatUser = (app, session, user, sid, rid, next) => {

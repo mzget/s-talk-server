@@ -21,13 +21,19 @@ export class AccountService {
     /**
      * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
      */
-    private onlineUsers = new Map<string, UserSession>();
-    public OnlineUsers() {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
+    public async OnlineUsers() {
+        const results = new Array<UserSession>();
+
+        const onlines = await hgetallAsync(online_user);
+        for (const key in onlines) {
+            if (onlines.hasOwnProperty(key)) {
+                const value = onlines[key];
+                const userSession = JSON.parse(value) as UserSession;
+                results.push(userSession);
+            }
         }
 
-        return this.onlineUsers;
+        return await results;
     }
     public async getOnlineUser(userId: string) {
         const online = await hgetAsync(online_user, userId) as UserSession;
@@ -41,7 +47,7 @@ export class AccountService {
         }
     }
 
-    public async getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[]) => void) {
+    public async getOnlineUserByAppId(appId: string) {
         const results = new Array<UserSession>();
 
         const onlines = await hgetallAsync(online_user);
@@ -55,7 +61,7 @@ export class AccountService {
             }
         }
 
-        cb(null, results);
+        return Promise.resolve(results);
     }
 
     public addOnlineUser(user: UserSession, callback: Function) {
@@ -66,13 +72,14 @@ export class AccountService {
         });
     }
     public async updateUser(user: UserSession) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
+        const p = new Promise((resolve: (data: Promise<UserSession[]>) => void, reject) => {
+            redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
+                console.warn("update onlineUser", err, reply);
+                resolve(this.OnlineUsers());
+            });
+        });
 
-        this.onlineUsers.set(user.uid, user);
-
-        return await Array.from(this.onlineUsers.values());
+        return await p;
     }
     public removeOnlineUser(userId: string) {
         redisClient.hdel(online_user, userId, (err, reply) => {
@@ -90,16 +97,16 @@ export class AccountService {
     }
 
     addUserTransaction(userTransac: UserTransaction) {
-        if (!this._userTransaction) {
-            this._userTransaction = {};
-        }
-
         redisClient.hset(transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
             console.warn("set transaction_user", err, reply);
         });
     }
-    getUserTransaction(uid: string) {
-        return this._userTransaction[uid];
+
+    async  getUserTransaction(uid: string) {
+        const transac = await hgetAsync(transaction_user, uid);
+        const userTransaction = JSON.parse(transac) as UserTransaction;
+
+        return userTransaction;
     }
 
     constructor(app: any) {
