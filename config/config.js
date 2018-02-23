@@ -47,7 +47,7 @@ const devConfig = {
         secret: "ahoostudio_session_secret",
     },
     redis_port: 6379,
-    redis_host: "https://chitchats.ga",
+    redis_host: "chitchats.ga",
 };
 function getConfig() {
     // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;

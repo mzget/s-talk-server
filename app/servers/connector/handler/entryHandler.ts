@@ -96,7 +96,7 @@ class EntryHandler {
 		session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
 
 		// !-- log user out.
-		this.app.rpc.auth.authRemote.removeOnlineUser(session, msg.uid, null);
+		accountService.removeOnlineUser(msg.uid);
 
 		next(null, { message: "kicked! " + msg.uid });
 	}
@@ -337,21 +337,19 @@ class EntryHandler {
 				};
 				const uidsGroup = new Array();
 
-				self.app.rpc.auth.authRemote.getOnlineUser(session, targetId, (err, user) => {
-					if (!err) {
-						const group = {
-							uid: user.uid,
-							sid: user.serverId
-						};
-						uidsGroup.push(group);
-						channelService.pushMessageByUids(onVideoCall.route, onVideoCall.data, uidsGroup);
+				accountService.getOnlineUser(targetId).then(user => {
+					const group = {
+						uid: user.uid,
+						sid: user.serverId
+					};
+					uidsGroup.push(group);
+					channelService.pushMessageByUids(onVideoCall.route, onVideoCall.data, uidsGroup);
 
-						next(null, { code: Code.OK });
-					} else {
-						const msg = "target userId is not a list of onlineUser Please use notification server instead.";
-						console.warn(msg);
-						next(null, { code: Code.FAIL, message: msg });
-					}
+					next(null, { code: Code.OK });
+				}).catch(err => {
+					const msg = "target userId is not a list of onlineUser Please use notification server instead.";
+					console.warn(msg);
+					next(null, { code: Code.FAIL, message: msg });
 				});
 			}
 		});

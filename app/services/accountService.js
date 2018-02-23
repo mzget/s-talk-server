@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
-const redis = require("redis");
-const client = redis.createClient();
+const RedisClient_1 = require("./RedisClient");
 const dispatcher = require("../util/dispatcher");
+exports.online_user = "online_user";
+exports.transaction_user = "transaction_user";
 class AccountService {
     constructor(app) {
         this.uidMap = {};
@@ -85,39 +86,40 @@ class AccountService {
         }
         return this.onlineUsers;
     }
-    getOnlineUser(userId, cb) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
-        if (this.onlineUsers.has(userId)) {
-            const user = this.onlineUsers.get(userId);
-            cb(null, user);
-        }
-        else {
-            const errMsg = "Specific uid is not online.";
-            cb(errMsg, null);
-        }
-    }
-    getOnlineUserByAppId(appId, cb) {
-        const results = new Array();
-        this.onlineUsers.forEach((value) => {
-            if (value.applicationId === appId) {
-                results.push(value);
+    getOnlineUser(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const online = yield RedisClient_1.hgetAsync(exports.online_user, userId);
+            console.log(online);
+            if (online) {
+                return Promise.resolve(online);
+            }
+            else {
+                const errMsg = "Specific uid is not online.";
+                return Promise.reject(errMsg);
             }
         });
-        cb(null, results);
+    }
+    getOnlineUserByAppId(appId, cb) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = new Array();
+            const onlines = yield RedisClient_1.hgetallAsync(exports.online_user);
+            for (const key in onlines) {
+                if (onlines.hasOwnProperty(key)) {
+                    const value = onlines[key];
+                    const userSession = JSON.parse(value);
+                    if (userSession.applicationId === appId) {
+                        results.push(userSession);
+                    }
+                }
+            }
+            cb(null, results);
+        });
     }
     addOnlineUser(user, callback) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
-        if (!this.onlineUsers.has(user.uid)) {
-            this.onlineUsers.set(user.uid, user);
-        }
-        else {
-            console.warn("onlineUsers dict already has value.!");
-        }
-        callback();
+        RedisClient_1.default.hmset(exports.online_user, user.uid, JSON.stringify(user), (err, reply) => {
+            console.warn("set onlineUser", err, reply);
+            callback();
+        });
     }
     updateUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -129,7 +131,9 @@ class AccountService {
         });
     }
     removeOnlineUser(userId) {
-        this.onlineUsers.delete(userId);
+        RedisClient_1.default.hdel(exports.online_user, userId, (err, reply) => {
+            console.warn("del onlineUser", err, reply);
+        });
     }
     get userTransaction() {
         if (!this._userTransaction) {
@@ -141,8 +145,9 @@ class AccountService {
         if (!this._userTransaction) {
             this._userTransaction = {};
         }
-        this._userTransaction[userTransac.uid] = userTransac;
-        return this._userTransaction;
+        RedisClient_1.default.hset(exports.transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+            console.warn("set transaction_user", err, reply);
+        });
     }
     getUserTransaction(uid) {
         return this._userTransaction[uid];
@@ -236,6 +241,9 @@ class AccountService {
             return;
         }
         //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
+    }
+    removeAllKeys() {
+        RedisClient_1.default.flushall();
     }
 }
 exports.AccountService = AccountService;

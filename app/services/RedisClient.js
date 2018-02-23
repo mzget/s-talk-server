@@ -19,4 +19,7 @@ RedisClient.on("error", function (err) {
 // bluebird.promisifyAll(RedisClient);
 // bluebird.promisifyAll(redis.Multi.prototype);
 exports.getAsync = promisify(RedisClient.get).bind(RedisClient);
+exports.hgetAsync = promisify(RedisClient.hget).bind(RedisClient);
+exports.hmgetAsync = promisify(RedisClient.hmget).bind(RedisClient);
+exports.hgetallAsync = promisify(RedisClient.hgetall).bind(RedisClient);
 exports.default = RedisClient;

@@ -1,10 +1,12 @@
 ﻿import Code from "../../shared/Code";
 import User, { UserSession, UserTransaction } from "../model/User";
 import Room = require("../model/Room");
-import redis = require("redis");
-const client = redis.createClient();
+import redisClient, { hgetAsync, hgetallAsync } from "./RedisClient";
 
 const dispatcher = require("../util/dispatcher");
+
+export const online_user = "online_user";
+export const transaction_user = "transaction_user";
 
 interface IUsersMap {
     [uid: string]: UserTransaction;
@@ -27,44 +29,41 @@ export class AccountService {
 
         return this.onlineUsers;
     }
-    public getOnlineUser(userId: string, cb: (err: any, user: UserSession | null) => void) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
+    public async getOnlineUser(userId: string) {
+        const online = await hgetAsync(online_user, userId) as UserSession;
+        console.log(online);
 
-        if (this.onlineUsers.has(userId)) {
-            const user = this.onlineUsers.get(userId) as UserSession;
-            cb(null, user);
+        if (online) {
+            return Promise.resolve(online);
         } else {
             const errMsg = "Specific uid is not online.";
-            cb(errMsg, null);
+            return Promise.reject(errMsg);
         }
     }
 
-    public getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[]) => void) {
+    public async getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[]) => void) {
         const results = new Array<UserSession>();
 
-        this.onlineUsers.forEach((value) => {
-            if (value.applicationId === appId) {
-                results.push(value);
+        const onlines = await hgetallAsync(online_user);
+        for (const key in onlines) {
+            if (onlines.hasOwnProperty(key)) {
+                const value = onlines[key];
+                const userSession = JSON.parse(value) as UserSession;
+                if (userSession.applicationId === appId) {
+                    results.push(userSession);
+                }
             }
-        });
+        }
 
         cb(null, results);
     }
 
     public addOnlineUser(user: UserSession, callback: Function) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
+        redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
+            console.warn("set onlineUser", err, reply);
 
-        if (!this.onlineUsers.has(user.uid)) {
-            this.onlineUsers.set(user.uid, user);
-        } else {
-            console.warn("onlineUsers dict already has value.!");
-        }
-
-        callback();
+            callback();
+        });
     }
     public async updateUser(user: UserSession) {
         if (!this.onlineUsers) {
@@ -76,7 +75,9 @@ export class AccountService {
         return await Array.from(this.onlineUsers.values());
     }
     public removeOnlineUser(userId: string) {
-        this.onlineUsers.delete(userId);
+        redisClient.hdel(online_user, userId, (err, reply) => {
+            console.warn("del onlineUser", err, reply);
+        });
     }
 
     private _userTransaction: IUsersMap = {};
@@ -93,9 +94,9 @@ export class AccountService {
             this._userTransaction = {};
         }
 
-        this._userTransaction[userTransac.uid] = userTransac;
-
-        return this._userTransaction;
+        redisClient.hset(transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+            console.warn("set transaction_user", err, reply);
+        });
     }
     getUserTransaction(uid: string) {
         return this._userTransaction[uid];
@@ -272,4 +273,8 @@ export class AccountService {
         }
         return null;
     };
+
+    removeAllKeys() {
+        redisClient.flushall();
+    }
 }

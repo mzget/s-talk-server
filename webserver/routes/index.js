@@ -21,10 +21,4 @@ router.get("/app/:key", (req, res, next) => {
         res.status(200).send({ title: process.env.npm_package_name, message: `not found : ${key}` });
     }
 });
-router.get("/onlineUsers", (req, res, next) => {
-    const app = req["pomelo"];
-    const accountService = app.get("accountService");
-    console.log(accountService.OnlineUsers());
-    res.status(200).send({ title: process.env.npm_package_name });
-});
 exports.DefaultRouter = router;
