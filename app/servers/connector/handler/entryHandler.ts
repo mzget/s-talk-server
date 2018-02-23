@@ -484,12 +484,12 @@ const logOut = (app, session, next) => {
 			data: user,
 		};
 
-		accountService.getOnlineUserByAppId(session.get(X_APP_ID).then((userSessions: UserSession[]) => {
+		accountService.getOnlineUserByAppId(session.get(X_APP_ID)).then((userSessions: UserSession[]) => {
 			console.log("online by app-id", userSessions.length);
 
 			const uids = withoutUser(getUsersGroup(userSessions), session.uid);
 			channelService.pushMessageByUids(param.route, param.data, uids);
-		})).catch(console.warn);
+		}).catch(console.warn);
 
 		// !-- log user out.
 		// Don't care what result of callback.

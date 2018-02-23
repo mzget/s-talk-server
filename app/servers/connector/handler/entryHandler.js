@@ -411,11 +411,11 @@ const logOut = (app, session, next) => {
             route: Code_1.default.sharedEvents.onUserLogout,
             data: user,
         };
-        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID).then((userSessions) => {
+        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
             console.log("online by app-id", userSessions.length);
             const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
             channelService.pushMessageByUids(param.route, param.data, uids);
-        })).catch(console.warn);
+        }).catch(console.warn);
         // !-- log user out.
         // Don't care what result of callback.
         accountService.removeOnlineUser(session.uid);

@@ -8,6 +8,7 @@ const config_1 = require("../../../../config/config");
 const ValidationSchema_1 = require("../../../utils/ValidationSchema");
 const Joi = require("joi");
 let channelService;
+let accountService;
 module.exports = function (app) {
     return new Handler(app);
 };
@@ -15,6 +16,7 @@ const Handler = function (app) {
     console.info("pushHandler construc...");
     this.app = app;
     channelService = this.app.get("channelService");
+    accountService = this.app.get("accountService");
 };
 const handler = Handler.prototype;
 handler.push = function (msg, session, next) {
@@ -51,24 +53,20 @@ function pushMessage(app, session, body) {
             route: Code_1.default.sharedEvents.ON_PUSH,
             data: { event: body.event, message: body.message }
         };
-        app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, userSessions) => {
-            if (!err) {
-                console.log("online by app-id", userSessions.length);
-                let uids = ChannelHelper_1.getUsersGroup(userSessions);
-                channelService.pushMessageByUids(param.route, param.data, uids);
-            }
-        });
+        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
+            console.log("online by app-id", userSessions.length);
+            let uids = ChannelHelper_1.getUsersGroup(userSessions);
+            channelService.pushMessageByUids(param.route, param.data, uids);
+        }).catch(console.warn);
         // channelService.broadcast("connector", onPush.route, onPush.data);
     }
     else if (body.members instanceof Array) {
         async.map(body.members, (item, resultCallback) => {
-            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err, user) {
-                if (err || user === null) {
-                    offlineMembers.push(item);
-                }
-                else {
-                    onlineMembers.push(user);
-                }
+            accountService.getOnlineUser(item).then((user) => {
+                onlineMembers.push(user);
+                resultCallback(undefined, item);
+            }).catch(err => {
+                offlineMembers.push(item);
                 resultCallback(undefined, item);
             });
         }, (err, results) => {

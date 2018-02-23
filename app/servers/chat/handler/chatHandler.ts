@@ -463,19 +463,10 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
     }
     else {
         new Promise((resolve, reject) => {
-            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
-                console.warn("getUserTransaction", err, userTrans);
-                if (!!err || !userTrans) {
-                    console.warn(err);
-
-                    reject(err);
-                }
-                else {
-                    pushTitle = userTrans.username;
-
-                    resolve(pushTitle);
-                }
-            });
+            accountService.getUserTransaction(sender).then((userTrans) => {
+                pushTitle = userTrans.username;
+                resolve(pushTitle);
+            }).catch(reject);
         }).then(value => {
             alertMessage = value + " sent you message.";
             call();

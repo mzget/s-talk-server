@@ -87,22 +87,26 @@ export class AccountService {
         });
     }
 
-    private _userTransaction: IUsersMap = {};
-    public get userTransaction(): IUsersMap {
-        if (!this._userTransaction) {
-            this._userTransaction = {};
+    public async userTransaction() {
+        const results = new Array<UserTransaction>();
+        const transacs = await hgetallAsync(transaction_user);
+        for (const key in transacs) {
+            if (transacs.hasOwnProperty(key)) {
+                const transac = JSON.parse(transacs[key]) as UserTransaction;
+                results.push(transac);
+            }
         }
 
-        return this._userTransaction;
+        return await results;
     }
 
     addUserTransaction(userTransac: UserTransaction) {
-        redisClient.hset(transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+        redisClient.hmset(transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
             console.warn("set transaction_user", err, reply);
         });
     }
 
-    async  getUserTransaction(uid: string) {
+    async getUserTransaction(uid: string) {
         const transac = await hgetAsync(transaction_user, uid);
         const userTransaction = JSON.parse(transac) as UserTransaction;
 

@@ -18,7 +18,6 @@ class AccountService {
         this.uidMap = {};
         this.nameMap = {};
         this.channelMap = {};
-        this._userTransaction = {};
         /**
          * Add records for the specified user
          */
@@ -144,14 +143,21 @@ class AccountService {
             console.warn("del onlineUser", err, reply);
         });
     }
-    get userTransaction() {
-        if (!this._userTransaction) {
-            this._userTransaction = {};
-        }
-        return this._userTransaction;
+    userTransaction() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = new Array();
+            const transacs = yield RedisClient_1.hgetallAsync(exports.transaction_user);
+            for (const key in transacs) {
+                if (transacs.hasOwnProperty(key)) {
+                    const transac = JSON.parse(transacs[key]);
+                    results.push(transac);
+                }
+            }
+            return yield results;
+        });
     }
     addUserTransaction(userTransac) {
-        RedisClient_1.default.hset(exports.transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+        RedisClient_1.default.hmset(exports.transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
             console.warn("set transaction_user", err, reply);
         });
     }
