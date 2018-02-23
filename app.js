@@ -1,10 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const pomelo = require("pomelo");
-const routeUtil_1 = require("./app/util/routeUtil");
 const fs = require("fs");
 const path = require("path");
+const routeUtil_1 = require("./app/util/routeUtil");
 const accountService_1 = require("./app/services/accountService");
+const webserver_1 = require("./webserver");
 // process.env.TZ = "UTC";
 // process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err) => {
@@ -37,6 +38,7 @@ app.configure("development", () => {
     //    app.filter(pomelo.filters.serial(5000));
     // route configures
     app.route("chat", routeUtil_1.default);
+    app.set("accountService", new accountService_1.AccountService(app));
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     app.set("connectorConfig", {
         connector: pomelo.connectors.hybridconnector,
@@ -58,6 +60,7 @@ app.configure("production", () => {
     //    app.filter(pomelo.filters.serial(5000));
     // route configures
     app.route("chat", routeUtil_1.default);
+    app.set("accountService", new accountService_1.AccountService(app));
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     // let certsFolder = path.join(__dirname, "/certs");
     // fs.readdirSync(certsFolder).forEach(file => {
@@ -91,10 +94,13 @@ app.configure("production", () => {
 // Configure for auth server
 app.configure("production|development", "auth", () => {
     console.log("start auth server");
-    app.set("accountService", new accountService_1.AccountService(app));
 });
 app.configure("production|development", "chat", () => {
     console.log("start chat server");
+});
+app.configure("production|development", "master", () => {
+    console.log("start master server");
+    webserver_1.default(app);
 });
 // start app
 app.start();

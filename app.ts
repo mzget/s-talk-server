@@ -1,9 +1,11 @@
 ﻿import pomelo = require("pomelo");
-import routeUtil from "./app/util/routeUtil";
 import mongodb = require("mongodb");
 import * as fs from "fs";
 import * as path from "path";
+import routeUtil from "./app/util/routeUtil";
 import { AccountService } from "./app/services/accountService";
+
+import webserver from "./webserver";
 
 // process.env.TZ = "UTC";
 // process.env.NODE_ENV = "production";
@@ -42,6 +44,7 @@ app.configure("development", () => {
 
     // route configures
     app.route("chat", routeUtil);
+    app.set("accountService", new AccountService(app));
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     app.set("connectorConfig", {
@@ -66,6 +69,7 @@ app.configure("production", () => {
 
     // route configures
     app.route("chat", routeUtil);
+    app.set("accountService", new AccountService(app));
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
@@ -104,11 +108,16 @@ app.configure("production", () => {
 // Configure for auth server
 app.configure("production|development", "auth", () => {
     console.log("start auth server");
-    app.set("accountService", new AccountService(app));
 });
 
 app.configure("production|development", "chat", () => {
     console.log("start chat server");
+});
+
+app.configure("production|development", "master", () => {
+    console.log("start master server");
+
+    webserver(app);
 });
 
 // start app

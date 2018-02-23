@@ -1,8 +1,12 @@
 ﻿import Code from "../../shared/Code";
 import User, { UserSession, UserTransaction } from "../model/User";
 import Room = require("../model/Room");
+import redisClient, { hgetAsync, hgetallAsync } from "./RedisClient";
 
 const dispatcher = require("../util/dispatcher");
+
+export const online_user = "online_user";
+export const transaction_user = "transaction_user";
 
 interface IUsersMap {
     [uid: string]: UserTransaction;
@@ -17,70 +21,96 @@ export class AccountService {
     /**
      * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
      */
-    private onlineUsers = new Map<string, UserSession>();
-    public OnlineUsers() {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
-
-        return this.onlineUsers;
-    }
-    public getOnlineUser(userId: string, cb: (err: any, user: UserSession | null) => void) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
-
-        if (this.onlineUsers.has(userId)) {
-            const user = this.onlineUsers.get(userId) as UserSession;
-            cb(null, user);
-        } else {
-            const errMsg = "Specific uid is not online.";
-            cb(errMsg, null);
-        }
-    }
-    public getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[] | null) => void) {
+    public async OnlineUsers() {
         const results = new Array<UserSession>();
 
-        this.onlineUsers.forEach((value) => {
-            if (value.applicationId === appId) {
-                results.push(value);
+        const onlines = await hgetallAsync(online_user);
+        for (const key in onlines) {
+            if (onlines.hasOwnProperty(key)) {
+                const value = onlines[key];
+                const userSession = JSON.parse(value) as UserSession;
+                results.push(userSession);
             }
-        });
-        cb(null, results);
+        }
+
+        return await results;
     }
-    public addOnlineUser(user: UserSession, callback: Function) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
+    public async getOnlineUser(userId: string) {
+        const online = await hgetAsync(online_user, userId) as UserSession;
+        console.log(online);
 
-        if (!this.onlineUsers.has(user.uid)) {
-            this.onlineUsers.set(user.uid, user);
+        if (online) {
+            return Promise.resolve(online);
         } else {
-            console.warn("onlineUsers dict already has value.!");
+            const errMsg = "Specific uid is not online.";
+            return Promise.reject(errMsg);
+        }
+    }
+
+    public async getOnlineUserByAppId(appId: string) {
+        const results = new Array<UserSession>();
+
+        const onlines = await hgetallAsync(online_user);
+        for (const key in onlines) {
+            if (onlines.hasOwnProperty(key)) {
+                const value = onlines[key];
+                const userSession = JSON.parse(value) as UserSession;
+                if (userSession.applicationId === appId) {
+                    results.push(userSession);
+                }
+            }
         }
 
-        callback();
+        return Promise.resolve(results);
+    }
+
+    public addOnlineUser(user: UserSession, callback: Function) {
+        redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
+            console.warn("set onlineUser", err, reply);
+
+            callback();
+        });
     }
     public async updateUser(user: UserSession) {
-        if (!this.onlineUsers) {
-            this.onlineUsers = new Map();
-        }
+        const p = new Promise((resolve: (data: Promise<UserSession[]>) => void, reject) => {
+            redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
+                console.warn("update onlineUser", err, reply);
+                resolve(this.OnlineUsers());
+            });
+        });
 
-        this.onlineUsers.set(user.uid, user);
-
-        return await Array.from(this.onlineUsers.values());
+        return await p;
     }
     public removeOnlineUser(userId: string) {
-        this.onlineUsers.delete(userId);
+        redisClient.hdel(online_user, userId, (err, reply) => {
+            console.warn("del onlineUser", err, reply);
+        });
     }
 
-    private _userTransaction: IUsersMap;
-    public get userTransaction(): IUsersMap {
-        if (!this._userTransaction) {
-            this._userTransaction = {};
+    public async userTransaction() {
+        const results = new Array<UserTransaction>();
+        const transacs = await hgetallAsync(transaction_user);
+        for (const key in transacs) {
+            if (transacs.hasOwnProperty(key)) {
+                const transac = JSON.parse(transacs[key]) as UserTransaction;
+                results.push(transac);
+            }
         }
 
-        return this._userTransaction;
+        return await results;
+    }
+
+    addUserTransaction(userTransac: UserTransaction) {
+        redisClient.hmset(transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+            console.warn("set transaction_user", err, reply);
+        });
+    }
+
+    async getUserTransaction(uid: string) {
+        const transac = await hgetAsync(transaction_user, uid);
+        const userTransaction = JSON.parse(transac) as UserTransaction;
+
+        return userTransaction;
     }
 
     constructor(app: any) {
@@ -198,7 +228,7 @@ export class AccountService {
     /**
      * Add records for the specified user
      */
-    public addRecord = function(service, uid, name, sid, channelName) {
+    public addRecord = function (service, uid, name, sid, channelName) {
         const record = { uid, name, sid };
         service.uidMap[uid] = record;
         service.nameMap[name] = record;
@@ -212,14 +242,14 @@ export class AccountService {
     /**
      * Cehck whether the user has already in the channel
      */
-    public checkDuplicate = function(service, uid, channelName): boolean {
+    public checkDuplicate = function (service, uid, channelName): boolean {
         return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
     };
 
     /**
      * Remove records for the specified user and channel pair
      */
-    public removeRecord = function(service, uid, channelName) {
+    public removeRecord = function (service, uid, channelName) {
         delete service.channelMap[uid][channelName];
         //    if (utils.size(service.channelMap[uid])) {
         //        return;
@@ -232,7 +262,7 @@ export class AccountService {
     /**
      * Clear all records of the user
      */
-    public clearRecords = function(service, uid) {
+    public clearRecords = function (service, uid) {
         delete service.channelMap[uid];
 
         const record = service.uidMap[uid];
@@ -247,11 +277,15 @@ export class AccountService {
     /**
      * Get the connector server id assosiated with the uid
      */
-    public getSidByUid = function(uid, app) {
+    public getSidByUid = function (uid, app) {
         const connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
         if (connector) {
             return connector.id;
         }
         return null;
     };
+
+    removeAllKeys() {
+        redisClient.flushall();
+    }
 }

@@ -3,21 +3,35 @@ const dev2Api = "http://203.150.95.146:9000";
 const masterApi = "http://203.148.250.152:3002";
 
 interface IStalkHookApi {
+  appname: string;
+  appId: string;
   apikey: string;
   onPushByUids: string;
 }
 const hooks = new Map<string, IStalkHookApi>();
 hooks.set("alcohol1234", {
+  appname: "tas",
+  appId: "",
   apikey: "alcohol1234",
   onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
 });
 hooks.set("survey1234", {
+  appname: "survey",
+  appId: "",
   apikey: "survey1234",
   onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
 });
 hooks.set("jc212224", {
+  appname: "jc",
+  appId: "",
   apikey: "jc212224",
   onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
+});
+hooks.set("ooca", {
+  appname: "ooca",
+  appId: "ooca",
+  apikey: "ooca1234",
+  onPushByUids: "",
 });
 const getHookApi = (appKey: string) => {
   return hooks.get(appKey);
@@ -45,6 +59,8 @@ const devConfig = {
     expire: "1 days",
     secret: "ahoostudio_session_secret",
   },
+  redis_port: 6379,
+  redis_host: "chitchats.ga",
 };
 
 function getConfig() {
@@ -57,6 +73,9 @@ function getConfig() {
 export function getWebhook(appKey: string = "alcohol1234") {
   const webhook = getHookApi(appKey);
   return webhook;
+}
+export function appInfo(appName: string) {
+  return hooks.get(appName);
 }
 
 export const Config = getConfig();

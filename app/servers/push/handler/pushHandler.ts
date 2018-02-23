@@ -8,8 +8,10 @@ import User, { UserSession } from "../../../model/User";
 import * as Room from "../../../model/Room";
 import { Config } from "../../../../config/config";
 import withValidation from "../../../utils/ValidationSchema";
+import { AccountService } from "../../../services/accountService";
 import Joi = require("joi");
 let channelService: ChannelService;
+let accountService: AccountService;
 
 interface IPushMessage {
     event: string;
@@ -25,6 +27,7 @@ const Handler = function (app) {
     console.info("pushHandler construc...");
     this.app = app;
     channelService = this.app.get("channelService");
+    accountService = this.app.get("accountService");
 };
 
 const handler = Handler.prototype;
@@ -70,26 +73,22 @@ function pushMessage(app, session, body: IPushMessage) {
             data: { event: body.event, message: body.message }
         };
 
-        app.rpc.auth.authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: Array<UserSession>) => {
-            if (!err) {
-                console.log("online by app-id", userSessions.length);
+        accountService.getOnlineUserByAppId(session.get(X_APP_ID)).then((userSessions: Array<UserSession>) => {
+            console.log("online by app-id", userSessions.length);
 
-                let uids = getUsersGroup(userSessions);
-                channelService.pushMessageByUids(param.route, param.data, uids);
-            }
-        });
+            let uids = getUsersGroup(userSessions);
+            channelService.pushMessageByUids(param.route, param.data, uids);
+        }).catch(console.warn);
+
         // channelService.broadcast("connector", onPush.route, onPush.data);
     }
     else if (body.members instanceof Array) {
         async.map(body.members, (item, resultCallback) => {
-            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err, user) {
-                if (err || user === null) {
-                    offlineMembers.push(item);
-                }
-                else {
-                    onlineMembers.push(user);
-                }
-
+            accountService.getOnlineUser(item).then((user) => {
+                onlineMembers.push(user);
+                resultCallback(undefined, item);
+            }).catch(err => {
+                offlineMembers.push(item);
                 resultCallback(undefined, item);
             });
         }, (err, results) => {

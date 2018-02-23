@@ -5,16 +5,28 @@ const dev2Api = "http://203.150.95.146:9000";
 const masterApi = "http://203.148.250.152:3002";
 const hooks = new Map();
 hooks.set("alcohol1234", {
+    appname: "tas",
+    appId: "",
     apikey: "alcohol1234",
     onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
 });
 hooks.set("survey1234", {
+    appname: "survey",
+    appId: "",
     apikey: "survey1234",
     onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
 });
 hooks.set("jc212224", {
+    appname: "jc",
+    appId: "",
     apikey: "jc212224",
     onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
+});
+hooks.set("ooca", {
+    appname: "ooca",
+    appId: "ooca",
+    apikey: "ooca1234",
+    onPushByUids: "",
 });
 const getHookApi = (appKey) => {
     return hooks.get(appKey);
@@ -40,6 +52,8 @@ const devConfig = {
         expire: "1 days",
         secret: "ahoostudio_session_secret",
     },
+    redis_port: 6379,
+    redis_host: "chitchats.ga",
 };
 function getConfig() {
     // let conf = (process.env.NODE_ENV === `production`) ? masterConfig : config;
@@ -51,4 +65,8 @@ function getWebhook(appKey = "alcohol1234") {
     return webhook;
 }
 exports.getWebhook = getWebhook;
+function appInfo(appName) {
+    return hooks.get(appName);
+}
+exports.appInfo = appInfo;
 exports.Config = getConfig();

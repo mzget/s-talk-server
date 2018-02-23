@@ -6,6 +6,7 @@ import MPushService = require("../../../services/ParsePushService");
 import * as chatroomService from "../../../services/chatroomService";
 import * as messageService from "../../../services/messageService";
 import * as userService from "../../../services/userService";
+import { AccountService } from "../../../services/accountService";
 
 import mongodb = require("mongodb");
 type ObjectID = mongodb.ObjectID;
@@ -21,6 +22,7 @@ import ChannelService from "../../../util/ChannelService";
 import { Config } from "../../../../config/config";
 const pushService = new MPushService.ParsePushService();
 let channelService: ChannelService;
+let accountService: AccountService;
 
 module.exports = function (app) {
     return new Handler(app);
@@ -30,6 +32,7 @@ const Handler = function (app) {
     console.info("ChatHandler construc...");
     this.app = app;
     channelService = this.app.get("channelService");
+    accountService = this.app.get("accountService");
 };
 
 const handler = Handler.prototype;
@@ -72,7 +75,7 @@ handler.send = function (msg, session, next) {
 
             let _msg = { ...msg } as Message;
 
-            messageService.pushByUids(_msg, null).then(value => {
+            messageService.pushByUids(_msg, undefined).then(value => {
                 // <!-- send callback to user who send chat msg.
                 let params = {
                     uuid: client_uuid,
@@ -209,15 +212,13 @@ function pushToTarget(app, session, message: { route: string, data: Message }, c
 
     if (Array.isArray(targets)) {
         async.map(targets, (item, cb) => {
-            app.rpc.auth.authRemote.getOnlineUser(session, item, function (err2, user) {
-                if (err2 || user === null) {
-                    offlineMembers.push(item);
-                }
-                else {
-                    onlineMembers.push(user);
-                }
+            accountService.getOnlineUser(item).then((user) => {
+                onlineMembers.push(user);
 
-                cb(null, item);
+                cb(undefined, item);
+            }).catch(err => {
+                offlineMembers.push(item);
+                cb(undefined, item);
             });
         }, (err, results) => {
             // <!-- Push new message to online users.
@@ -245,15 +246,9 @@ function pushToTarget(app, session, message: { route: string, data: Message }, c
     else if (targets == "*") {
         // <!-- Push new message to online users.
         let uidsGroup = new Array();
-        app.rpc.auth.authRemote.getOnlineUsers(session, (err, users: User.IOnlineUser) => {
-            if (!!users) {
-                for (const userId in users) {
-                    if (users.hasOwnProperty(userId)) {
-                        const onlineUser = users[userId] as User.UserSession;
-
-                        onlineMembers.push(onlineUser);
-                    }
-                }
+        accountService.OnlineUsers().then((users) => {
+            if (users && users.length > 0) {
+                onlineMembers = users.slice();
 
                 async.each(onlineMembers, function iterator(val, cb) {
                     let group = {
@@ -273,7 +268,7 @@ function pushToTarget(app, session, message: { route: string, data: Message }, c
                     }
                 });
             }
-        });
+        }).catch(console.warn);
     }
 }
 
@@ -283,15 +278,13 @@ function pushMessage(app, session, room: Room, message: Message, clientUUID: str
 
     // @ Try to push message to other ...
     async.map(room.members, (item, resultCallback) => {
-        app.rpc.auth.authRemote.getOnlineUser(session, item._id, function (err2, user) {
-            if (err2 || user === null) {
-                offlineMembers.push(item._id);
-            }
-            else {
-                onlineMembers.push(user);
-            }
+        accountService.getOnlineUser(item._id).then((user) => {
+            onlineMembers.push(user);
 
-            resultCallback(null, item);
+            resultCallback(undefined, item);
+        }).catch(err => {
+            offlineMembers.push(item._id);
+            resultCallback(undefined, item);
         });
     }, (err, results) => {
         console.log("online %s: offline %s: room.members %s:", onlineMembers.length, offlineMembers.length, room.members.length);
@@ -470,19 +463,10 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
     }
     else {
         new Promise((resolve, reject) => {
-            app.rpc.auth.authRemote.getUserTransaction(session, sender, function (err, userTrans) {
-                console.warn("getUserTransaction", err, userTrans);
-                if (!!err || !userTrans) {
-                    console.warn(err);
-
-                    reject(err);
-                }
-                else {
-                    pushTitle = userTrans.username;
-
-                    resolve(pushTitle);
-                }
-            });
+            accountService.getUserTransaction(sender).then((userTrans) => {
+                pushTitle = userTrans.username;
+                resolve(pushTitle);
+            }).catch(reject);
         }).then(value => {
             alertMessage = value + " sent you message.";
             call();
