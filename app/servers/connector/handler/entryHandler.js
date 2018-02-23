@@ -56,7 +56,7 @@ class EntryHandler {
                 session.bind(user._id);
                 session.set(Const_1.X_APP_ID, appId);
                 session.set(Const_1.X_API_KEY, apiKey);
-                session.pushAll(() => { console.log("PushAll session."); });
+                session.pushAll(() => { console.log("PushAll new session"); });
                 session.on("closed", onUserLeave.bind(null, self.app));
                 // channelService.broadcast("connector", param.route, param.data);
                 addOnlineUser(self.app, session, msg.user);
@@ -431,23 +431,24 @@ function mutateUserPayload(userSession, payload) {
 function addOnlineUser(app, session, user) {
     const userSession = new User.UserSession();
     const userTransaction = new User.UserTransaction();
+    const appId = session.get(Const_1.X_APP_ID);
     userSession.uid = user._id;
     userSession.username = user.username;
     userSession.serverId = session.frontendId;
-    userSession.applicationId = session.get(Const_1.X_APP_ID);
+    userSession.applicationId = appId;
     userSession.payload = user.payload;
     userTransaction.uid = user._id;
     userTransaction.username = user.username;
     accountService.addOnlineUser(userSession, pushNewOnline);
     accountService.addUserTransaction(userTransaction);
-    console.log("add to onlineUsers list : ", userSession.username);
     const param = {
         route: Code_1.default.sharedEvents.onUserLogin,
         data: userTransaction,
     };
     function pushNewOnline() {
-        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
-            console.log("online by app-id", userSessions.length);
+        accountService.getOnlineUserByAppId(appId).then((userSessions) => {
+            console.log("add to onlineUsers list : ", userSession.username);
+            console.log("onlines by app-id", appId, userSessions.length);
             const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
             channelService.pushMessageByUids(param.route, param.data, uids);
         }).catch(console.warn);

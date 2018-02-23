@@ -76,7 +76,7 @@ class EntryHandler {
 				session.bind(user._id);
 				session.set(X_APP_ID, appId);
 				session.set(X_API_KEY, apiKey);
-				session.pushAll(() => { console.log("PushAll session."); });
+				session.pushAll(() => { console.log("PushAll new session"); });
 				session.on("closed", onUserLeave.bind(null, self.app));
 
 				// channelService.broadcast("connector", param.route, param.data);
@@ -510,11 +510,12 @@ function mutateUserPayload(userSession: UserSession, payload: any) {
 function addOnlineUser(app, session, user: IUserData) {
 	const userSession = new User.UserSession();
 	const userTransaction = new User.UserTransaction();
+	const appId = session.get(X_APP_ID);
 
 	userSession.uid = user._id;
 	userSession.username = user.username;
 	userSession.serverId = session.frontendId;
-	userSession.applicationId = session.get(X_APP_ID);
+	userSession.applicationId = appId;
 	userSession.payload = user.payload;
 
 	userTransaction.uid = user._id;
@@ -522,7 +523,6 @@ function addOnlineUser(app, session, user: IUserData) {
 
 	accountService.addOnlineUser(userSession, pushNewOnline);
 	accountService.addUserTransaction(userTransaction);
-	console.log("add to onlineUsers list : ", userSession.username);
 
 	const param = {
 		route: Code.sharedEvents.onUserLogin,
@@ -530,8 +530,9 @@ function addOnlineUser(app, session, user: IUserData) {
 	};
 
 	function pushNewOnline() {
-		accountService.getOnlineUserByAppId(session.get(X_APP_ID)).then((userSessions: UserSession[]) => {
-			console.log("online by app-id", userSessions.length);
+		accountService.getOnlineUserByAppId(appId).then((userSessions: UserSession[]) => {
+			console.log("add to onlineUsers list : ", userSession.username);
+			console.log("onlines by app-id", appId, userSessions.length);
 
 			const uids = withoutUser(getUsersGroup(userSessions), session.uid);
 			channelService.pushMessageByUids(param.route, param.data, uids);
