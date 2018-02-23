@@ -12,7 +12,7 @@ function createWebServer(pomeloServer: any) {
     });
     app.use(DefaultRouter);
     app.use(UsersRouter);
-    app.listen(3004, () => console.log("Web Server listening on port 3004!"));
+    app.listen(3003, () => console.log("Web Server listening on port 3003!"));
 }
 
 export default createWebServer;

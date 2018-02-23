@@ -22,6 +22,12 @@ hooks.set("jc212224", {
     apikey: "jc212224",
     onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
 });
+hooks.set("ooca", {
+    appname: "ooca",
+    appId: "ooca",
+    apikey: "ooca1234",
+    onPushByUids: "",
+});
 const getHookApi = (appKey) => {
     return hooks.get(appKey);
 };
@@ -59,4 +65,8 @@ function getWebhook(appKey = "alcohol1234") {
     return webhook;
 }
 exports.getWebhook = getWebhook;
+function appInfo(appName) {
+    return hooks.get(appName);
+}
+exports.appInfo = appInfo;
 exports.Config = getConfig();
