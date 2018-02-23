@@ -9,6 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
+const redis = require("redis");
+const client = redis.createClient();
 const dispatcher = require("../util/dispatcher");
 class AccountService {
     constructor(app) {
@@ -19,6 +21,7 @@ class AccountService {
          * onLineUsers the dict keep UID of user who online pair with OnlineUser data structure.
          */
         this.onlineUsers = new Map();
+        this._userTransaction = {};
         /**
          * Add records for the specified user
          */
@@ -133,6 +136,16 @@ class AccountService {
             this._userTransaction = {};
         }
         return this._userTransaction;
+    }
+    addUserTransaction(userTransac) {
+        if (!this._userTransaction) {
+            this._userTransaction = {};
+        }
+        this._userTransaction[userTransac.uid] = userTransac;
+        return this._userTransaction;
+    }
+    getUserTransaction(uid) {
+        return this._userTransaction[uid];
     }
     /**
      * Add player into the channel

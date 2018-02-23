@@ -11,14 +11,15 @@ import * as R from "ramda";
 
 import withValidation from "../../../utils/ValidationSchema";
 
-import { IRemoteServer } from "../../auth/remote/authRemote";
 import { X_API_KEY, X_APP_ID, X_API_VERSION } from "../../../Const";
 import { Config } from "../../../../config/config";
 import { getUsersGroup, withoutUser } from "../../../util/ChannelHelper";
 import ChannelService, { IUserGroup } from "../../../util/ChannelService";
+import { AccountService } from "../../../services/accountService";
 import { UserSession, UserTransaction } from "../../../model/User";
 const tokenService = new TokenService();
 let channelService: ChannelService;
+let accountService: AccountService;
 
 interface IUserData {
 	_id: string;
@@ -37,6 +38,7 @@ class EntryHandler {
 	constructor(app) {
 		this.app = app;
 		channelService = app.get("channelService");
+		accountService = app.get("accountService");
 	}
 
 	public login(msg, session, next) {
@@ -541,11 +543,9 @@ function addOnlineUser(app, session, user: IUserData) {
 	userTransaction.uid = user._id;
 	userTransaction.username = user.username;
 
+	accountService.addOnlineUser(userSession, pushNewOnline);
+	accountService.addUserTransaction(userTransaction);
 	console.log("add to onlineUsers list : ", userSession.username);
-	const authRemote = app.rpc.auth.authRemote as IRemoteServer;
-
-	authRemote.addOnlineUser(session, userSession, pushNewOnline);
-	authRemote.addUserTransaction(session, userTransaction, null);
 
 	const param = {
 		route: Code.sharedEvents.onUserLogin,
@@ -553,7 +553,7 @@ function addOnlineUser(app, session, user: IUserData) {
 	};
 
 	function pushNewOnline() {
-		authRemote.getOnlineUserByAppId(session, session.get(X_APP_ID), (err: Error, userSessions: UserSession[]) => {
+		accountService.getOnlineUserByAppId(session.get(X_APP_ID), (err: any, userSessions: UserSession[]) => {
 			if (!err) {
 				console.log("online by app-id", userSessions.length);
 
@@ -580,9 +580,9 @@ const onUserLeave = (app, session) => {
 		return;
 	}
 
-	app.rpc.auth.authRemote.getUserTransaction(session, session.uid, (err, userTransaction: User.UserTransaction) => {
-		app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
+	const userTransaction = accountService.getUserTransaction(session.uid);
 
-		logOut(app, session, null);
-	});
+	app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
+
+	logOut(app, session, null);
 };

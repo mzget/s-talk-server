@@ -44,6 +44,7 @@ app.configure("development", () => {
 
     // route configures
     app.route("chat", routeUtil);
+    app.set("accountService", new AccountService(app));
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
     app.set("connectorConfig", {
@@ -68,6 +69,7 @@ app.configure("production", () => {
 
     // route configures
     app.route("chat", routeUtil);
+    app.set("accountService", new AccountService(app));
 
     //    app.set('pushSchedulerConfig', { scheduler: pomelo.pushSchedulers.buffer});
 
@@ -106,7 +108,6 @@ app.configure("production", () => {
 // Configure for auth server
 app.configure("production|development", "auth", () => {
     console.log("start auth server");
-    app.set("accountService", new AccountService(app));
 });
 
 app.configure("production|development", "chat", () => {
@@ -116,7 +117,7 @@ app.configure("production|development", "chat", () => {
 app.configure("production|development", "master", () => {
     console.log("start master server");
 
-    webserver();
+    webserver(app);
 });
 
 // start app

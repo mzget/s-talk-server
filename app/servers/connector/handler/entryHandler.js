@@ -14,6 +14,7 @@ const config_1 = require("../../../../config/config");
 const ChannelHelper_1 = require("../../../util/ChannelHelper");
 const tokenService = new tokenService_1.default();
 let channelService;
+let accountService;
 module.exports = (app) => {
     console.info("instanctiate connector handler.");
     return new EntryHandler(app);
@@ -22,6 +23,7 @@ class EntryHandler {
     constructor(app) {
         this.app = app;
         channelService = app.get("channelService");
+        accountService = app.get("accountService");
     }
     login(msg, session, next) {
         const self = this;
@@ -465,16 +467,15 @@ function addOnlineUser(app, session, user) {
     userSession.payload = user.payload;
     userTransaction.uid = user._id;
     userTransaction.username = user.username;
+    accountService.addOnlineUser(userSession, pushNewOnline);
+    accountService.addUserTransaction(userTransaction);
     console.log("add to onlineUsers list : ", userSession.username);
-    const authRemote = app.rpc.auth.authRemote;
-    authRemote.addOnlineUser(session, userSession, pushNewOnline);
-    authRemote.addUserTransaction(session, userTransaction, null);
     const param = {
         route: Code_1.default.sharedEvents.onUserLogin,
         data: userTransaction,
     };
     function pushNewOnline() {
-        authRemote.getOnlineUserByAppId(session, session.get(Const_1.X_APP_ID), (err, userSessions) => {
+        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID), (err, userSessions) => {
             if (!err) {
                 console.log("online by app-id", userSessions.length);
                 const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
@@ -497,8 +498,7 @@ const onUserLeave = (app, session) => {
     if (!session || !session.uid) {
         return;
     }
-    app.rpc.auth.authRemote.getUserTransaction(session, session.uid, (err, userTransaction) => {
-        app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
-        logOut(app, session, null);
-    });
+    const userTransaction = accountService.getUserTransaction(session.uid);
+    app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
+    logOut(app, session, null);
 };

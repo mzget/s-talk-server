@@ -19,6 +19,7 @@
     "mongodb": "^2.2.33",
     "pomelo": "^2.2.5",
     "ramda": "^0.24.1",
+    "redis": "^2.8.0",
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5"
   },
@@ -32,6 +33,7 @@
     "@types/node": "^8.9.4",
     "@types/promise": "^7.1.30",
     "@types/ramda": "^0.24.18",
+    "@types/redis": "^2.8.5",
     "@types/request": "0.0.42",
     "@types/request-promise-native": "^1.0.10",
     "jest": "^21.2.1",

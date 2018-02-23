@@ -1,6 +1,8 @@
 ﻿import Code from "../../shared/Code";
 import User, { UserSession, UserTransaction } from "../model/User";
 import Room = require("../model/Room");
+import redis = require("redis");
+const client = redis.createClient();
 
 const dispatcher = require("../util/dispatcher");
 
@@ -38,7 +40,8 @@ export class AccountService {
             cb(errMsg, null);
         }
     }
-    public getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[] | null) => void) {
+
+    public getOnlineUserByAppId(appId: string, cb: (err: any, users: UserSession[]) => void) {
         const results = new Array<UserSession>();
 
         this.onlineUsers.forEach((value) => {
@@ -46,8 +49,10 @@ export class AccountService {
                 results.push(value);
             }
         });
+
         cb(null, results);
     }
+
     public addOnlineUser(user: UserSession, callback: Function) {
         if (!this.onlineUsers) {
             this.onlineUsers = new Map();
@@ -74,13 +79,26 @@ export class AccountService {
         this.onlineUsers.delete(userId);
     }
 
-    private _userTransaction: IUsersMap;
+    private _userTransaction: IUsersMap = {};
     public get userTransaction(): IUsersMap {
         if (!this._userTransaction) {
             this._userTransaction = {};
         }
 
         return this._userTransaction;
+    }
+
+    addUserTransaction(userTransac: UserTransaction) {
+        if (!this._userTransaction) {
+            this._userTransaction = {};
+        }
+
+        this._userTransaction[userTransac.uid] = userTransac;
+
+        return this._userTransaction;
+    }
+    getUserTransaction(uid: string) {
+        return this._userTransaction[uid];
     }
 
     constructor(app: any) {
@@ -198,7 +216,7 @@ export class AccountService {
     /**
      * Add records for the specified user
      */
-    public addRecord = function(service, uid, name, sid, channelName) {
+    public addRecord = function (service, uid, name, sid, channelName) {
         const record = { uid, name, sid };
         service.uidMap[uid] = record;
         service.nameMap[name] = record;
@@ -212,14 +230,14 @@ export class AccountService {
     /**
      * Cehck whether the user has already in the channel
      */
-    public checkDuplicate = function(service, uid, channelName): boolean {
+    public checkDuplicate = function (service, uid, channelName): boolean {
         return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
     };
 
     /**
      * Remove records for the specified user and channel pair
      */
-    public removeRecord = function(service, uid, channelName) {
+    public removeRecord = function (service, uid, channelName) {
         delete service.channelMap[uid][channelName];
         //    if (utils.size(service.channelMap[uid])) {
         //        return;
@@ -232,7 +250,7 @@ export class AccountService {
     /**
      * Clear all records of the user
      */
-    public clearRecords = function(service, uid) {
+    public clearRecords = function (service, uid) {
         delete service.channelMap[uid];
 
         const record = service.uidMap[uid];
@@ -247,7 +265,7 @@ export class AccountService {
     /**
      * Get the connector server id assosiated with the uid
      */
-    public getSidByUid = function(uid, app) {
+    public getSidByUid = function (uid, app) {
         const connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
         if (connector) {
             return connector.id;
