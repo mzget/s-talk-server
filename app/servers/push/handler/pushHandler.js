@@ -10,40 +10,41 @@ const Joi = require("joi");
 let channelService;
 let accountService;
 module.exports = function (app) {
-    return new Handler(app);
+    return new PushHandler(app);
 };
-const Handler = function (app) {
-    console.info("pushHandler construc...");
-    this.app = app;
-    channelService = this.app.get("channelService");
-    accountService = this.app.get("accountService");
-};
-const handler = Handler.prototype;
-handler.push = function (msg, session, next) {
-    let self = this;
-    let schema = ValidationSchema_1.default({
-        payload: Joi.object({
-            event: Joi.string().required(),
-            message: Joi.string().required(),
-            members: Joi.any(),
-        }).required(),
-    });
-    const result = Joi.validate(msg, schema);
-    if (result.error) {
-        return next(null, { code: Code_1.default.FAIL, message: result.error });
+class PushHandler {
+    constructor(app) {
+        console.info("pushHandler construc...");
+        this.app = app;
+        channelService = this.app.get("channelService");
+        accountService = this.app.get("accountService");
     }
-    let timeout_id = setTimeout(function () {
-        next(null, { code: Code_1.default.RequestTimeout, message: "Push message timeout..." });
-    }, config_1.Config.timeout);
-    // <!-- send callback to user who send push msg.
-    let sessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
-    let params = {
-        session: sessionInfo
-    };
-    next(null, { code: Code_1.default.OK, data: params });
-    clearTimeout(timeout_id);
-    pushMessage(self.app, session, msg.payload);
-};
+    push(msg, session, next) {
+        let self = this;
+        let schema = ValidationSchema_1.default({
+            payload: Joi.object({
+                event: Joi.string().required(),
+                message: Joi.string().required(),
+                members: Joi.any(),
+            }).required(),
+        });
+        const result = Joi.validate(msg, schema);
+        if (result.error) {
+            return next(null, { code: Code_1.default.FAIL, message: result.error });
+        }
+        let timeout_id = setTimeout(function () {
+            next(null, { code: Code_1.default.RequestTimeout, message: "Push message timeout..." });
+        }, config_1.Config.timeout);
+        // <!-- send callback to user who send push msg.
+        let sessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
+        let params = {
+            session: sessionInfo
+        };
+        next(null, { code: Code_1.default.OK, data: params });
+        clearTimeout(timeout_id);
+        pushMessage(self.app, session, msg.payload);
+    }
+}
 function pushMessage(app, session, body) {
     let onlineMembers = new Array();
     let offlineMembers = new Array();

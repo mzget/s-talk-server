@@ -20,47 +20,51 @@ interface IPushMessage {
 }
 
 module.exports = function (app) {
-    return new Handler(app);
+    return new PushHandler(app);
 };
 
-const Handler = function (app) {
-    console.info("pushHandler construc...");
-    this.app = app;
-    channelService = this.app.get("channelService");
-    accountService = this.app.get("accountService");
-};
+class PushHandler {
+    app: any;
 
-const handler = Handler.prototype;
+    constructor(app: any) {
+        console.info("pushHandler construc...");
 
-handler.push = function (msg, session, next) {
-    let self = this;
-    let schema = withValidation({
-        payload: Joi.object({
-            event: Joi.string().required(),
-            message: Joi.string().required(),
-            members: Joi.any(),
-        }).required(),
-    });
-
-    const result = Joi.validate(msg, schema);
-    if (result.error) {
-        return next(null, { code: Code.FAIL, message: result.error });
+        this.app = app;
+        channelService = this.app.get("channelService");
+        accountService = this.app.get("accountService");
     }
 
-    let timeout_id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "Push message timeout..." });
-    }, Config.timeout);
+    push(msg, session, next) {
+        let self = this;
+        let schema = withValidation({
+            payload: Joi.object({
+                event: Joi.string().required(),
+                message: Joi.string().required(),
+                members: Joi.any(),
+            }).required(),
+        });
 
-    // <!-- send callback to user who send push msg.
-    let sessionInfo: SessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
-    let params = {
-        session: sessionInfo
-    };
-    next(null, { code: Code.OK, data: params });
-    clearTimeout(timeout_id);
+        const result = Joi.validate(msg, schema);
+        if (result.error) {
+            return next(null, { code: Code.FAIL, message: result.error });
+        }
 
-    pushMessage(self.app, session, msg.payload);
-};
+        let timeout_id = setTimeout(function () {
+            next(null, { code: Code.RequestTimeout, message: "Push message timeout..." });
+        }, Config.timeout);
+
+        // <!-- send callback to user who send push msg.
+        let sessionInfo: SessionInfo = { id: session.id, frontendId: session.frontendId, uid: session.uid };
+        let params = {
+            session: sessionInfo
+        };
+        next(null, { code: Code.OK, data: params });
+        clearTimeout(timeout_id);
+
+        pushMessage(self.app, session, msg.payload);
+    }
+}
+
 
 function pushMessage(app, session, body: IPushMessage) {
     let onlineMembers = new Array<UserSession>();
