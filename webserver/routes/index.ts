@@ -11,7 +11,7 @@ router.get("/", (req, res, next) => {
 });
 
 router.get("/apikeys", (req, res, next) => {
-    res.status(200).send({ title: process.env.npm_package_name, keys: Config.apiKeys });
+    res.status(200).send({ title: process.env.npm_package_name, keys: Config.appIds });
 });
 
 router.get("/app/:key", (req, res, next) => {

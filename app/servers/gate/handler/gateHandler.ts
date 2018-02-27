@@ -1,8 +1,8 @@
 import Code from "../../../../shared/Code";
 import TokenService from "../../../services/tokenService";
 import dispatcher from "../../../util/dispatcher";
-import { Config } from "../../../../config/config";
-import { X_API_KEY } from "../../../Const";
+import { Config, appInfo } from "../../../../config/config";
+import { X_API_KEY, X_APP_ID } from "../../../Const";
 import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 import * as R from "ramda";
@@ -42,11 +42,17 @@ class GateHandler {
 
 		let uid = msg["uid"];
 		let apiKey = msg[X_API_KEY];
+		let appId = msg[X_APP_ID];
 
-		let pass = R.contains(apiKey, Config.apiKeys);
-		if (pass == false) {
+		let pass = R.contains(appId, Config.appIds);
+		let app = appInfo(appId);
+		if (!app) {
+			return next(null, { code: Code.FAIL, message: "Not found application registered" });
+		}
+		if (app.apikey != apiKey || pass == false) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
+
 		// get all connectors
 		let connectors = this.app.getServersByType("connector");
 		if (!connectors || connectors.length === 0) {

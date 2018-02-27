@@ -35,8 +35,13 @@ class GateHandler {
         }
         let uid = msg["uid"];
         let apiKey = msg[Const_1.X_API_KEY];
-        let pass = R.contains(apiKey, config_1.Config.apiKeys);
-        if (pass == false) {
+        let appId = msg[Const_1.X_APP_ID];
+        let pass = R.contains(appId, config_1.Config.appIds);
+        let app = config_1.appInfo(appId);
+        if (!app) {
+            return next(null, { code: Code_1.default.FAIL, message: "Not found application registered" });
+        }
+        if (app.apikey != apiKey || pass == false) {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         // get all connectors

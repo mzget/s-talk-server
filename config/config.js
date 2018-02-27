@@ -28,11 +28,17 @@ hooks.set("ooca", {
     apikey: "ooca1234",
     onPushByUids: "",
 });
+hooks.set("ooca-dev", {
+    appname: "ooca-dev",
+    appId: "ooca-dev",
+    apikey: "ooca1234",
+    onPushByUids: "",
+});
 const getHookApi = (appKey) => {
     return hooks.get(appKey);
 };
 const devConfig = {
-    apiKeys: ["chitchat1234", "alcohol1234", "survey1234", "ooca1234", "jc212224"],
+    appIds: ["chitchat1234", "alcohol1234", "survey1234", "ooca", "ooca-dev", "jc212224"],
     api: {
         apikey: "chitchat1234",
         host: `${dev2Api}`,
@@ -65,8 +71,8 @@ function getWebhook(appKey = "alcohol1234") {
     return webhook;
 }
 exports.getWebhook = getWebhook;
-function appInfo(appName) {
-    return hooks.get(appName);
+function appInfo(appId) {
+    return hooks.get(appId);
 }
 exports.appInfo = appInfo;
 exports.Config = getConfig();

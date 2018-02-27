@@ -61,7 +61,7 @@ class EntryHandler {
 		const apiKey = msg[X_API_KEY];
 		const appId = msg[X_APP_ID];
 		const appVersion = msg[X_API_VERSION];
-		if (R.contains(apiKey, Config.apiKeys) === false) {
+		if (R.contains(apiKey, Config.appIds) === false) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
@@ -120,7 +120,7 @@ class EntryHandler {
 		const apiKey = msg[X_API_KEY];
 		const appId = msg[X_APP_ID];
 		const appVersion = msg[X_API_VERSION];
-		if (R.contains(apiKey, Config.apiKeys) === false) {
+		if (R.contains(apiKey, Config.appIds) === false) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
@@ -162,7 +162,7 @@ class EntryHandler {
 		const apiKey = msg[X_API_KEY];
 		const appId = msg[X_APP_ID];
 		const appVersion = msg[X_API_VERSION];
-		if (R.contains(apiKey, Config.apiKeys) === false) {
+		if (R.contains(apiKey, Config.appIds) === false) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
