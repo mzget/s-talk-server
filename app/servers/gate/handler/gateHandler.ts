@@ -5,7 +5,6 @@ import { Config, appInfo } from "../../../../config/config";
 import { X_API_KEY, X_APP_ID } from "../../../Const";
 import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
-import * as R from "ramda";
 
 import withValidation from "../../../utils/ValidationSchema";
 
@@ -21,6 +20,7 @@ class GateHandler {
 	constructor(app) {
 		this.app = app;
 	}
+
 	/**
 	 * Gate handler that dispatch user to connectors.
 	 *
@@ -62,7 +62,6 @@ class GateHandler {
 		let res = dispatcher(uid, connectors);
 		next(null, { code: Code.OK, host: res.host, port: res.clientPort });
 	};
-
 
 	authenGateway(msg, session, next) {
 		tokenService.ensureAuthorized(msg.token, function (err, res) {

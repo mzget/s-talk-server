@@ -7,7 +7,6 @@ const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
 const joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
-const R = require("ramda");
 const ValidationSchema_1 = require("../../../utils/ValidationSchema");
 const Const_1 = require("../../../Const");
 const config_1 = require("../../../../config/config");
@@ -94,7 +93,11 @@ class EntryHandler {
         const apiKey = msg[Const_1.X_API_KEY];
         const appId = msg[Const_1.X_APP_ID];
         const appVersion = msg[Const_1.X_API_VERSION];
-        if (R.contains(apiKey, config_1.Config.appIds) === false) {
+        const app = config_1.appInfo(appId);
+        if (!app) {
+            return next(null, { code: Code_1.default.FAIL, message: "Not found application registered" });
+        }
+        if (app.apikey !== apiKey) {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         const p = new Promise((resolve, rejected) => {
@@ -129,7 +132,11 @@ class EntryHandler {
         const apiKey = msg[Const_1.X_API_KEY];
         const appId = msg[Const_1.X_APP_ID];
         const appVersion = msg[Const_1.X_API_VERSION];
-        if (R.contains(apiKey, config_1.Config.appIds) === false) {
+        const app = config_1.appInfo(appId);
+        if (!app) {
+            return next(null, { code: Code_1.default.FAIL, message: "Not found application registered" });
+        }
+        if (app.apikey !== apiKey) {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         function getOnlineUserByAppId() {

@@ -125,7 +125,11 @@ class EntryHandler {
 		const apiKey = msg[X_API_KEY];
 		const appId = msg[X_APP_ID];
 		const appVersion = msg[X_API_VERSION];
-		if (R.contains(apiKey, Config.appIds) === false) {
+		const app = appInfo(appId);
+		if (!app) {
+			return next(null, { code: Code.FAIL, message: "Not found application registered" });
+		}
+		if (app.apikey !== apiKey) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
@@ -167,7 +171,12 @@ class EntryHandler {
 		const apiKey = msg[X_API_KEY];
 		const appId = msg[X_APP_ID];
 		const appVersion = msg[X_API_VERSION];
-		if (R.contains(apiKey, Config.appIds) === false) {
+
+		const app = appInfo(appId);
+		if (!app) {
+			return next(null, { code: Code.FAIL, message: "Not found application registered" });
+		}
+		if (app.apikey !== apiKey) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
