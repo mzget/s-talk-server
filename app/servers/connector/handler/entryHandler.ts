@@ -11,8 +11,8 @@ import * as R from "ramda";
 
 import withValidation from "../../../utils/ValidationSchema";
 
-import { X_API_KEY, X_APP_ID, X_API_VERSION } from "../../../Const";
-import { Config } from "../../../../config/config";
+import { X_API_KEY, X_APP_ID, X_API_VERSION, } from "../../../Const";
+import { Config, appInfo } from "../../../../config/config";
 import { getUsersGroup, withoutUser } from "../../../util/ChannelHelper";
 import ChannelService, { IUserGroup } from "../../../util/ChannelService";
 import { AccountService } from "../../../services/accountService";
@@ -61,7 +61,12 @@ class EntryHandler {
 		const apiKey = msg[X_API_KEY];
 		const appId = msg[X_APP_ID];
 		const appVersion = msg[X_API_VERSION];
-		if (R.contains(apiKey, Config.appIds) === false) {
+
+		const app = appInfo(appId);
+		if (!app) {
+			return next(null, { code: Code.FAIL, message: "Not found application registered" });
+		}
+		if (app.apikey !== apiKey) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 

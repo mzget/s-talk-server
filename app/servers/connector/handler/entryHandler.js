@@ -42,7 +42,11 @@ class EntryHandler {
         const apiKey = msg[Const_1.X_API_KEY];
         const appId = msg[Const_1.X_APP_ID];
         const appVersion = msg[Const_1.X_API_VERSION];
-        if (R.contains(apiKey, config_1.Config.appIds) === false) {
+        const app = config_1.appInfo(appId);
+        if (!app) {
+            return next(null, { code: Code_1.default.FAIL, message: "Not found application registered" });
+        }
+        if (app.apikey !== apiKey) {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         console.log("Login", user);

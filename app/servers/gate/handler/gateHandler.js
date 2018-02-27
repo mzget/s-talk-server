@@ -7,7 +7,6 @@ const config_1 = require("../../../../config/config");
 const Const_1 = require("../../../Const");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
-const R = require("ramda");
 const ValidationSchema_1 = require("../../../utils/ValidationSchema");
 const tokenService = new tokenService_1.default();
 module.exports = function (app) {
@@ -36,12 +35,11 @@ class GateHandler {
         let uid = msg["uid"];
         let apiKey = msg[Const_1.X_API_KEY];
         let appId = msg[Const_1.X_APP_ID];
-        let pass = R.contains(appId, config_1.Config.appIds);
         let app = config_1.appInfo(appId);
         if (!app) {
             return next(null, { code: Code_1.default.FAIL, message: "Not found application registered" });
         }
-        if (app.apikey != apiKey || pass == false) {
+        if (app.apikey != apiKey) {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         // get all connectors

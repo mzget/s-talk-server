@@ -44,12 +44,11 @@ class GateHandler {
 		let apiKey = msg[X_API_KEY];
 		let appId = msg[X_APP_ID];
 
-		let pass = R.contains(appId, Config.appIds);
 		let app = appInfo(appId);
 		if (!app) {
 			return next(null, { code: Code.FAIL, message: "Not found application registered" });
 		}
-		if (app.apikey != apiKey || pass == false) {
+		if (app.apikey != apiKey) {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
