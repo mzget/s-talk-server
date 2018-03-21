@@ -102,7 +102,7 @@ class EntryHandler {
         }
         const p = new Promise((resolve, rejected) => {
             accountService.getOnlineUser(session.uid).then((userSession) => {
-                console.log("LOGGER", userSession);
+                console.log("LOGGER", "old session", userSession);
                 resolve(userSession);
             }).catch(err => {
                 rejected(err);
@@ -115,8 +115,9 @@ class EntryHandler {
             return p2;
         }
         p.then((userSession) => {
+            console.log("LOGGER", "new payload", msg.user.payload);
             const user = mutateUserPayload(userSession, msg.user.payload);
-            console.log("LOGGER", user);
+            console.log("LOGGER", "new session", user);
             return updateUser(user);
         }).then((value) => {
             return next(null, { code: Code_1.default.OK, data: { success: true, value } });
