@@ -34,7 +34,7 @@ InitDatabaseConnection().then(db => {
  * Init app for client.
  */
 const app = pomelo.createApp();
-app.set("name", "stalk-platform");
+app.set("name", process.env.npm_package_name);
 
 // app configure
 app.configure("development", () => {

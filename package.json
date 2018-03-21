@@ -1,5 +1,5 @@
 {
-  "name": "stalk-platform",
+  "name": "s-talk-server",
   "main": "app.js",
   "version": "0.0.1",
   "private": false,
@@ -37,7 +37,7 @@
     "@types/request": "0.0.42",
     "@types/request-promise-native": "^1.0.10",
     "jest": "^21.2.1",
-    "typescript": "^2.6.2"
+    "typescript": "^2.7.2"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
   "repository": {
