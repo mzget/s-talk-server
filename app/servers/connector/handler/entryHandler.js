@@ -117,9 +117,10 @@ class EntryHandler {
             try {
                 console.log("LOGGER", "old session", userSession);
                 console.log("LOGGER", "new payload", msg.user.payload);
-                userSession["payload"] = msg.user.payload;
-                console.log("LOGGER", "new session", userSession);
-                return updateUser(userSession);
+                const newSession = JSON.parse(userSession);
+                newSession["payload"] = msg.user.payload;
+                console.log("LOGGER", "new session", newSession);
+                return updateUser(newSession);
             }
             catch (ex) {
                 console.warn("ERROR", "new session", ex);
