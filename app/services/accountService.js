@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
+const User_1 = require("../model/User");
 const RedisClient_1 = require("./RedisClient");
 const dispatcher = require("../util/dispatcher");
 exports.ONLINE_USER = "online_user";
@@ -95,8 +96,11 @@ class AccountService {
     getOnlineUser(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const online = yield RedisClient_1.hgetAsync(exports.ONLINE_USER, userId);
-            console.log("getOnlineUser", online);
-            if (online) {
+            if (typeof online == "string") {
+                const userSession = JSON.parse(online);
+                return Promise.resolve(userSession);
+            }
+            else if (online instanceof User_1.UserSession) {
                 return Promise.resolve(online);
             }
             else {

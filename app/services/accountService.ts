@@ -36,10 +36,12 @@ export class AccountService {
         return await results;
     }
     public async getOnlineUser(userId: string) {
-        const online = await hgetAsync(ONLINE_USER, userId) as UserSession;
-        console.log("getOnlineUser", online);
-
-        if (online) {
+        const online = await hgetAsync(ONLINE_USER, userId);
+        if (typeof online == "string") {
+            const userSession = JSON.parse(online) as UserSession;
+            return Promise.resolve(userSession);
+        }
+        else if (online instanceof UserSession) {
             return Promise.resolve(online);
         } else {
             const errMsg = "Specific uid is not online.";
