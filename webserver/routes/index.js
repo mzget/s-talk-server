@@ -8,8 +8,8 @@ const config_1 = require("../../config/config");
 router.get("/", (req, res, next) => {
     res.status(200).send({ title: process.env.npm_package_name, env: process.env.NODE_ENV, version: process.env.npm_package_version });
 });
-router.get("/apikeys", (req, res, next) => {
-    res.status(200).send({ title: process.env.npm_package_name, keys: config_1.Config.appIds });
+router.get("/appIds", (req, res, next) => {
+    res.status(200).send({ title: process.env.npm_package_name, appIds: config_1.Config.appIds });
 });
 router.get("/app/:key", (req, res, next) => {
     const key = req.params.key;
