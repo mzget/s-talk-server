@@ -150,11 +150,12 @@ class EntryHandler {
 
 		p.then((userSession: any) => {
 			try {
-				const newSession = JSON.parse(userSession);
+				const newSession = userSession;
 				newSession["payload"] = msg.user.payload;
 				return updateUser(newSession);
 			}
 			catch (ex) {
+				console.warn(ex.message);
 				throw ex;
 			}
 		}).then((value) => {
