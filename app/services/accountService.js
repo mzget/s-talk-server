@@ -11,8 +11,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const RedisClient_1 = require("./RedisClient");
 const dispatcher = require("../util/dispatcher");
-exports.online_user = "online_user";
-exports.transaction_user = "transaction_user";
+exports.ONLINE_USER = "online_user";
+exports.TRANSACTION_USER = "transaction_user";
 class AccountService {
     constructor(app) {
         this.uidMap = {};
@@ -81,7 +81,7 @@ class AccountService {
     OnlineUsers() {
         return __awaiter(this, void 0, void 0, function* () {
             const results = new Array();
-            const onlines = yield RedisClient_1.hgetallAsync(exports.online_user);
+            const onlines = yield RedisClient_1.hgetallAsync(exports.ONLINE_USER);
             for (const key in onlines) {
                 if (onlines.hasOwnProperty(key)) {
                     const value = onlines[key];
@@ -94,8 +94,8 @@ class AccountService {
     }
     getOnlineUser(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const online = yield RedisClient_1.hgetAsync(exports.online_user, userId);
-            console.log(online);
+            const online = yield RedisClient_1.hgetAsync(exports.ONLINE_USER, userId);
+            console.log("getOnlineUser", online);
             if (online) {
                 return Promise.resolve(online);
             }
@@ -108,7 +108,7 @@ class AccountService {
     getOnlineUserByAppId(appId) {
         return __awaiter(this, void 0, void 0, function* () {
             const results = new Array();
-            const onlines = yield RedisClient_1.hgetallAsync(exports.online_user);
+            const onlines = yield RedisClient_1.hgetallAsync(exports.ONLINE_USER);
             for (const key in onlines) {
                 if (onlines.hasOwnProperty(key)) {
                     const value = onlines[key];
@@ -122,7 +122,7 @@ class AccountService {
         });
     }
     addOnlineUser(user, callback) {
-        RedisClient_1.default.hmset(exports.online_user, user.uid, JSON.stringify(user), (err, reply) => {
+        RedisClient_1.default.hmset(exports.ONLINE_USER, user.uid, JSON.stringify(user), (err, reply) => {
             console.warn("set onlineUser", err, reply);
             callback();
         });
@@ -130,7 +130,7 @@ class AccountService {
     updateUser(user) {
         return __awaiter(this, void 0, void 0, function* () {
             const p = new Promise((resolve, reject) => {
-                RedisClient_1.default.hmset(exports.online_user, user.uid, JSON.stringify(user), (err, reply) => {
+                RedisClient_1.default.hmset(exports.ONLINE_USER, user.uid, JSON.stringify(user), (err, reply) => {
                     console.warn("save onlineUser", err, reply);
                     resolve(this.OnlineUsers());
                 });
@@ -139,14 +139,14 @@ class AccountService {
         });
     }
     removeOnlineUser(userId) {
-        RedisClient_1.default.hdel(exports.online_user, userId, (err, reply) => {
+        RedisClient_1.default.hdel(exports.ONLINE_USER, userId, (err, reply) => {
             console.warn("del onlineUser", err, reply);
         });
     }
     userTransaction() {
         return __awaiter(this, void 0, void 0, function* () {
             const results = new Array();
-            const transacs = yield RedisClient_1.hgetallAsync(exports.transaction_user);
+            const transacs = yield RedisClient_1.hgetallAsync(exports.TRANSACTION_USER);
             for (const key in transacs) {
                 if (transacs.hasOwnProperty(key)) {
                     const transac = JSON.parse(transacs[key]);
@@ -157,13 +157,13 @@ class AccountService {
         });
     }
     addUserTransaction(userTransac) {
-        RedisClient_1.default.hmset(exports.transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+        RedisClient_1.default.hmset(exports.TRANSACTION_USER, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
             console.warn("set transaction_user", err, reply);
         });
     }
     getUserTransaction(uid) {
         return __awaiter(this, void 0, void 0, function* () {
-            const transac = yield RedisClient_1.hgetAsync(exports.transaction_user, uid);
+            const transac = yield RedisClient_1.hgetAsync(exports.TRANSACTION_USER, uid);
             const userTransaction = JSON.parse(transac);
             return userTransaction;
         });
