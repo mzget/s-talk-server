@@ -114,10 +114,16 @@ class EntryHandler {
             return p2;
         }
         p.then((userSession) => {
-            const user = mutateUserPayload(userSession, msg.user.payload);
-            return updateUser(user);
+            try {
+                const newSession = JSON.parse(userSession);
+                newSession["payload"] = msg.user.payload;
+                return updateUser(newSession);
+            }
+            catch (ex) {
+                throw ex;
+            }
         }).then((value) => {
-            return next(null, { code: Code_1.default.OK, data: { success: true } });
+            return next(null, { code: Code_1.default.OK, data: { success: true, value } });
         }).catch((err) => {
             return next(null, { code: Code_1.default.FAIL, message: err });
         });
@@ -435,10 +441,6 @@ const logOut = (app, session, next) => {
         next();
     }
 };
-function mutateUserPayload(userSession, payload) {
-    userSession.payload = payload;
-    return userSession;
-}
 function addOnlineUser(app, session, user) {
     const userSession = new User.UserSession();
     const userTransaction = new User.UserTransaction();

@@ -148,11 +148,17 @@ class EntryHandler {
 			return p2;
 		}
 
-		p.then((userSession) => {
-			const user = mutateUserPayload(userSession, msg.user.payload);
-			return updateUser(user);
+		p.then((userSession: any) => {
+			try {
+				const newSession = JSON.parse(userSession);
+				newSession["payload"] = msg.user.payload;
+				return updateUser(newSession);
+			}
+			catch (ex) {
+				throw ex;
+			}
 		}).then((value) => {
-			return next(null, { code: Code.OK, data: { success: true } });
+			return next(null, { code: Code.OK, data: { success: true, value } });
 		}).catch((err) => {
 			return next(null, { code: Code.FAIL, message: err });
 		});
@@ -514,12 +520,6 @@ const logOut = (app, session, next) => {
 		next();
 	}
 };
-
-function mutateUserPayload(userSession: UserSession, payload: any) {
-	userSession.payload = payload;
-
-	return userSession;
-}
 
 function addOnlineUser(app, session, user: IUserData) {
 	const userSession = new User.UserSession();
