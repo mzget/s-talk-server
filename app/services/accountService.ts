@@ -74,7 +74,7 @@ export class AccountService {
     public async updateUser(user: UserSession) {
         const p = new Promise((resolve: (data: Promise<UserSession[]>) => void, reject) => {
             redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
-                console.warn("update onlineUser", err, reply);
+                console.warn("save onlineUser", err, reply);
                 resolve(this.OnlineUsers());
             });
         });

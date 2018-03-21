@@ -131,7 +131,7 @@ class AccountService {
         return __awaiter(this, void 0, void 0, function* () {
             const p = new Promise((resolve, reject) => {
                 RedisClient_1.default.hmset(exports.online_user, user.uid, JSON.stringify(user), (err, reply) => {
-                    console.warn("update onlineUser", err, reply);
+                    console.warn("save onlineUser", err, reply);
                     resolve(this.OnlineUsers());
                 });
             });

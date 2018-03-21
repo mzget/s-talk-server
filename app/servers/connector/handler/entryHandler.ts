@@ -150,15 +150,11 @@ class EntryHandler {
 
 		p.then((userSession: any) => {
 			try {
-				console.log("LOGGER", "old session", userSession);
-				console.log("LOGGER", "new payload", msg.user.payload);
 				const newSession = JSON.parse(userSession);
 				newSession["payload"] = msg.user.payload;
-				console.log("LOGGER", "new session", newSession);
 				return updateUser(newSession);
 			}
 			catch (ex) {
-				console.warn("ERROR", "new session", ex);
 				throw ex;
 			}
 		}).then((value) => {
@@ -524,12 +520,6 @@ const logOut = (app, session, next) => {
 		next();
 	}
 };
-
-function mutateUserPayload(userSession: UserSession, payload: any) {
-	userSession.payload = JSON.parse(JSON.stringify(payload));
-
-	return userSession;
-}
 
 function addOnlineUser(app, session, user: IUserData) {
 	const userSession = new User.UserSession();
