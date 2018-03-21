@@ -7,8 +7,6 @@ import { AccountService } from "./app/services/accountService";
 
 import webserver from "./webserver";
 
-// process.env.TZ = "UTC";
-// process.env.NODE_ENV = "production";
 process.on("uncaughtException", (err: any) => {
     console.error(" Caught exception: " + err.stack);
 });
@@ -34,7 +32,7 @@ InitDatabaseConnection().then(db => {
  * Init app for client.
  */
 const app = pomelo.createApp();
-app.set("name", "stalk-platform");
+app.set("name", process.env.npm_package_name);
 
 // app configure
 app.configure("development", () => {
