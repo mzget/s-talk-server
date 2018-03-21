@@ -7,7 +7,7 @@
     "test": "jest",
     "start": "node app.js",
     "dev": "nodemon app.js --env development",
-    "deploy": "NODE_ENV=production pm2 start app.js --name stalk-platform --env production"
+    "deploy": "NODE_ENV=production pm2 start app.js --name stalk-server --env production"
   },
   "dependencies": {
     "async": "^2.6.0",
