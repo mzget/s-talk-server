@@ -64,6 +64,7 @@ function pushMessage(app, session, body) {
     else if (body.members instanceof Array) {
         async.map(body.members, (item, resultCallback) => {
             accountService.getOnlineUser(item).then((user) => {
+                console.warn("");
                 onlineMembers.push(user);
                 resultCallback(undefined, item);
             }).catch(err => {

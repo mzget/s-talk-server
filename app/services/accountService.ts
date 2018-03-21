@@ -5,8 +5,8 @@ import redisClient, { hgetAsync, hgetallAsync } from "./RedisClient";
 
 const dispatcher = require("../util/dispatcher");
 
-export const online_user = "online_user";
-export const transaction_user = "transaction_user";
+export const ONLINE_USER = "online_user";
+export const TRANSACTION_USER = "transaction_user";
 
 interface IUsersMap {
     [uid: string]: UserTransaction;
@@ -24,7 +24,7 @@ export class AccountService {
     public async OnlineUsers() {
         const results = new Array<UserSession>();
 
-        const onlines = await hgetallAsync(online_user);
+        const onlines = await hgetallAsync(ONLINE_USER);
         for (const key in onlines) {
             if (onlines.hasOwnProperty(key)) {
                 const value = onlines[key];
@@ -36,10 +36,12 @@ export class AccountService {
         return await results;
     }
     public async getOnlineUser(userId: string) {
-        const online = await hgetAsync(online_user, userId) as UserSession;
-        console.log(online);
-
-        if (online) {
+        const online = await hgetAsync(ONLINE_USER, userId);
+        if (typeof online == "string") {
+            const userSession = JSON.parse(online) as UserSession;
+            return Promise.resolve(userSession);
+        }
+        else if (online instanceof UserSession) {
             return Promise.resolve(online);
         } else {
             const errMsg = "Specific uid is not online.";
@@ -50,7 +52,7 @@ export class AccountService {
     public async getOnlineUserByAppId(appId: string) {
         const results = new Array<UserSession>();
 
-        const onlines = await hgetallAsync(online_user);
+        const onlines = await hgetallAsync(ONLINE_USER);
         for (const key in onlines) {
             if (onlines.hasOwnProperty(key)) {
                 const value = onlines[key];
@@ -65,7 +67,7 @@ export class AccountService {
     }
 
     public addOnlineUser(user: UserSession, callback: Function) {
-        redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
+        redisClient.hmset(ONLINE_USER, user.uid, JSON.stringify(user), (err, reply) => {
             console.warn("set onlineUser", err, reply);
 
             callback();
@@ -73,7 +75,7 @@ export class AccountService {
     }
     public async updateUser(user: UserSession) {
         const p = new Promise((resolve: (data: Promise<UserSession[]>) => void, reject) => {
-            redisClient.hmset(online_user, user.uid, JSON.stringify(user), (err, reply) => {
+            redisClient.hmset(ONLINE_USER, user.uid, JSON.stringify(user), (err, reply) => {
                 console.warn("save onlineUser", err, reply);
                 resolve(this.OnlineUsers());
             });
@@ -82,14 +84,14 @@ export class AccountService {
         return await p;
     }
     public removeOnlineUser(userId: string) {
-        redisClient.hdel(online_user, userId, (err, reply) => {
+        redisClient.hdel(ONLINE_USER, userId, (err, reply) => {
             console.warn("del onlineUser", err, reply);
         });
     }
 
     public async userTransaction() {
         const results = new Array<UserTransaction>();
-        const transacs = await hgetallAsync(transaction_user);
+        const transacs = await hgetallAsync(TRANSACTION_USER);
         for (const key in transacs) {
             if (transacs.hasOwnProperty(key)) {
                 const transac = JSON.parse(transacs[key]) as UserTransaction;
@@ -101,13 +103,13 @@ export class AccountService {
     }
 
     addUserTransaction(userTransac: UserTransaction) {
-        redisClient.hmset(transaction_user, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
+        redisClient.hmset(TRANSACTION_USER, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
             console.warn("set transaction_user", err, reply);
         });
     }
 
     async getUserTransaction(uid: string) {
-        const transac = await hgetAsync(transaction_user, uid);
+        const transac = await hgetAsync(TRANSACTION_USER, uid);
         const userTransaction = JSON.parse(transac) as UserTransaction;
 
         return userTransaction;
