@@ -148,7 +148,7 @@ class EntryHandler {
 			return p2;
 		}
 
-		p.then((userSession: any) => {
+		p.then((userSession) => {
 			try {
 				const newSession = userSession;
 				newSession["payload"] = msg.user.payload;
