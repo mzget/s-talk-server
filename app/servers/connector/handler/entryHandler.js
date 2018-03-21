@@ -115,10 +115,16 @@ class EntryHandler {
             return p2;
         }
         p.then((userSession) => {
-            console.log("LOGGER", "new payload", msg.user.payload);
-            const user = mutateUserPayload(userSession, msg.user.payload);
-            console.log("LOGGER", "new session", user);
-            return updateUser(user);
+            try {
+                console.log("LOGGER", "new payload", msg.user.payload);
+                const user = mutateUserPayload(userSession, msg.user.payload);
+                console.log("LOGGER", "new session", user);
+                return updateUser(user);
+            }
+            catch (ex) {
+                console.warn("ERROR", "new session", ex);
+                throw ex;
+            }
         }).then((value) => {
             return next(null, { code: Code_1.default.OK, data: { success: true, value } });
         }).catch((err) => {
