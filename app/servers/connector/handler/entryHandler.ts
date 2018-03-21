@@ -525,7 +525,7 @@ const logOut = (app, session, next) => {
 };
 
 function mutateUserPayload(userSession: UserSession, payload: any) {
-	userSession.payload = payload;
+	userSession.payload = JSON.parse(payload);
 
 	return userSession;
 }
