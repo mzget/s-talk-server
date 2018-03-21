@@ -12,9 +12,8 @@ process.on("uncaughtException", (err) => {
 /**
  * Logging database.
  */
-/*
-import { InitDatabaseConnection } from "./app/DbClient";
-InitDatabaseConnection().then(db => {
+const DbClient_1 = require("./app/DbClient");
+DbClient_1.InitDatabaseConnection().then(db => {
     db.stats().then(stat => {
         console.log("api status ready.", stat.db);
     }).catch(err => {
@@ -23,7 +22,6 @@ InitDatabaseConnection().then(db => {
 }).catch(err => {
     console.warn("Cannot connect database", err);
 });
-*/
 /**
  * Init app for client.
  */

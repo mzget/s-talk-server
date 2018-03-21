@@ -1,7 +1,7 @@
 {
   "name": "s-talk-server",
   "main": "app.js",
-  "version": "0.0.1",
+  "version": "3.0.0",
   "private": false,
   "scripts": {
     "test": "jest",
@@ -16,7 +16,7 @@
     "joi": "^10.6.0",
     "joi-objectid": "^2.0.0",
     "jsonwebtoken": "^8.1.0",
-    "mongodb": "^2.2.33",
+    "mongodb": "^2.2.35",
     "pomelo": "^2.2.5",
     "ramda": "^0.24.1",
     "redis": "^2.8.0",

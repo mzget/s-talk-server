@@ -15,7 +15,7 @@ import { Config } from "./config/config";
 /**
  * Logging database.
  */
-/*
+
 import { InitDatabaseConnection } from "./app/DbClient";
 InitDatabaseConnection().then(db => {
     db.stats().then(stat => {
@@ -26,7 +26,6 @@ InitDatabaseConnection().then(db => {
 }).catch(err => {
     console.warn("Cannot connect database", err);
 });
-*/
 
 /**
  * Init app for client.
