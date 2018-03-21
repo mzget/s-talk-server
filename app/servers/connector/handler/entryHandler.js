@@ -445,7 +445,7 @@ const logOut = (app, session, next) => {
     }
 };
 function mutateUserPayload(userSession, payload) {
-    userSession.payload = JSON.parse(payload);
+    userSession.payload = JSON.parse(JSON.stringify(payload));
     return userSession;
 }
 function addOnlineUser(app, session, user) {
