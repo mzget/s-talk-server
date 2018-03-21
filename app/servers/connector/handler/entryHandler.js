@@ -117,9 +117,10 @@ class EntryHandler {
         p.then((userSession) => {
             try {
                 console.log("LOGGER", "new payload", msg.user.payload);
-                const user = mutateUserPayload(userSession, msg.user.payload);
-                console.log("LOGGER", "new session", user);
-                return updateUser(user);
+                const newSession = Object.assign({}, userSession);
+                newSession["payload"] = msg.user.payload;
+                console.log("LOGGER", "new session", newSession);
+                return updateUser(newSession);
             }
             catch (ex) {
                 console.warn("ERROR", "new session", ex);
