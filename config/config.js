@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const database = require("./database.json");
 const devApi = "http://localhost:9000";
 const dev2Api = "http://203.150.95.146:9000";
 const masterApi = "http://203.148.250.152:3002";
@@ -76,3 +77,7 @@ function appInfo(appId) {
 }
 exports.appInfo = appInfo;
 exports.Config = getConfig();
+exports.DBConfig = {
+    mongo_uri: database.mongo_uri,
+    database_name: database.database_name
+};

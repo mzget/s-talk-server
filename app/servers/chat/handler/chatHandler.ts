@@ -15,9 +15,6 @@ import async = require("async");
 import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 
-import * as ChatRoomManager from "../../../controller/ChatRoomManager";
-const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
-
 import ChannelService from "../../../util/ChannelService";
 import { Config } from "../../../../config/config";
 const pushService = new MPushService.ParsePushService();
@@ -352,6 +349,7 @@ handler.getSyncDateTime = function (msg, session, next) {
 /**
 * Get older message for chat room.
 */
+/*
 handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void) {
     let self = this;
     let rid = msg.rid;
@@ -380,6 +378,7 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
         }
     });
 };
+*/
 
 /*
 * Get last limit query messages of specific user and room then return messages info.
@@ -389,6 +388,7 @@ handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void)
 * Return:
 { data: [ messageId, readers ] }
 */
+/*
 handler.getMessagesReaders = function (msg, session, next) {
     let uid = session.uid;
     let rid = session.get("rid");
@@ -426,6 +426,7 @@ handler.getMessagesReaders = function (msg, session, next) {
 
     next(null, { code: Code.OK });
 };
+*/
 
 /**
 * get log message content by message_id.
@@ -433,6 +434,7 @@ handler.getMessagesReaders = function (msg, session, next) {
 * @param {Object} session
 * @param  {Function} next next stemp callback that return records of message_id.
 */
+/*
 handler.getMessageContent = function (msg, session, next) {
     let messageId = msg.messageId;
     if (!messageId) {
@@ -451,6 +453,7 @@ handler.getMessageContent = function (msg, session, next) {
         }
     });
 };
+*/
 
 function simplePushNotification(app: any, session: any, offlineMembers: Array<string>, room: Room, sender: string): void {
     let pushTitle = room.name;

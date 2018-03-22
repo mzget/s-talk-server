@@ -1,9 +1,11 @@
-## Stalk-chat-server 
+## S-talk-server 
 
 A simple chat room experiment using pomelo framework and html5.
 The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries:
 - pomelo
 - crc
+
+[![CircleCI](https://circleci.com/gh/mzget/s-talk-server.svg?style=svg)](https://circleci.com/gh/mzget/s-talk-server)
 
 ## Viewing
 

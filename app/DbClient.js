@@ -11,24 +11,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb = require("mongodb");
 const MongoClient = mongodb.MongoClient;
 const config_1 = require("../config/config");
-let appDB = null;
+let appDB = undefined;
 exports.getAppDb = () => {
     return appDB;
 };
-exports.InitDatabaseConnection = () => __awaiter(this, void 0, void 0, function* () {
-    // let opt = { server: { poolSize: 100 } } as mongodb.MongoClientOptions;
-    appDB = yield MongoClient.connect(config_1.Config.chatDB);
-    appDB.on("close", function (err) {
-        console.error("close", err);
-    });
-    appDB.on("error", function (err) {
-        console.error("error", err);
-    });
-    appDB.on("timeout", function (err) {
-        console.error("timeout", err);
-    });
-    appDB.on("reconnect", function (server) {
-        console.log("reconnect", server);
-    });
-    return appDB;
+exports.InitDatabaseConnection = (dbname) => __awaiter(this, void 0, void 0, function* () {
+    try {
+        const opt = {
+            reconnectTries: Number.MAX_VALUE,
+            connectTimeoutMS: 60000,
+            socketTimeoutMS: 60000,
+        };
+        const client = yield MongoClient.connect(config_1.DBConfig.mongo_uri, opt);
+        appDB = client.db(dbname);
+        appDB.on("close", (err) => {
+            console.error("close", err);
+        });
+        appDB.on("error", (err) => {
+            console.error("error", err);
+        });
+        appDB.on("timeout", (err) => {
+            console.error("timeout", err);
+        });
+        appDB.on("reconnect", (server) => {
+            console.log("reconnect", server);
+        });
+        return Promise.resolve(appDB);
+    }
+    catch (ex) {
+        console.warn("DB connect", ex);
+        return Promise.reject(ex.message);
+    }
 });

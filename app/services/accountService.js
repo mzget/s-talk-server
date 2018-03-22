@@ -39,29 +39,6 @@ class AccountService {
             return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
         };
         /**
-         * Remove records for the specified user and channel pair
-         */
-        this.removeRecord = function (service, uid, channelName) {
-            delete service.channelMap[uid][channelName];
-            //    if (utils.size(service.channelMap[uid])) {
-            //        return;
-            //    }
-            // if user not in any channel then clear his records
-            this.clearRecords(service, uid);
-        };
-        /**
-         * Clear all records of the user
-         */
-        this.clearRecords = function (service, uid) {
-            delete service.channelMap[uid];
-            const record = service.uidMap[uid];
-            if (!record) {
-                return;
-            }
-            delete service.uidMap[uid];
-            delete service.nameMap[record.name];
-        };
-        /**
          * Get the connector server id assosiated with the uid
          */
         this.getSidByUid = function (uid, app) {
@@ -262,6 +239,31 @@ class AccountService {
         }
         //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
     }
+    /**
+     * Remove records for the specified user and channel pair
+     */
+    removeRecord(service, uid, channelName) {
+        delete service.channelMap[uid][channelName];
+        //    if (utils.size(service.channelMap[uid])) {
+        //        return;
+        //    }
+        // if user not in any channel then clear his records
+        this.clearRecords(service, uid);
+    }
+    ;
+    /**
+     * Clear all records of the user
+     */
+    clearRecords(service, uid) {
+        delete service.channelMap[uid];
+        const record = service.uidMap[uid];
+        if (!record) {
+            return;
+        }
+        delete service.uidMap[uid];
+        delete service.nameMap[record.name];
+    }
+    ;
     removeAllKeys() {
         RedisClient_1.default.flushall();
     }

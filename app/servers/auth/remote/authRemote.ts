@@ -7,8 +7,6 @@ import { Room } from "../../../model/Room";
 import IChannelService, { IUserGroup } from "../../../util/ChannelService";
 import { AccountService } from "../../../services/accountService";
 import * as chatroomService from "../../../services/chatroomService";
-import Mcontroller = require("../../../controller/ChatRoomManager");
-const chatRoomManager = Mcontroller.ChatRoomManager.getInstance();
 let accountService: AccountService;
 let channelService: IChannelService;
 

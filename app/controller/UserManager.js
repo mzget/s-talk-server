@@ -185,7 +185,6 @@ class UserManager {
         }
     }
 }
-UserManager._instance = null;
 exports.UserManager = UserManager;
 class UserDataAccessService {
     constructor() {
