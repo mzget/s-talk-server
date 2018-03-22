@@ -7,7 +7,7 @@ export interface IMembersStatus {
     uid: string;
     status: string;
 }
-export class Member {
+export interface Member {
     _id: string;
     role: MemberRole;
     joinTime: Date;
@@ -16,7 +16,7 @@ export class Member {
 }
 export enum RoomType { organizationGroup, projectBaseGroup, privateGroup, privateChat };
 export enum RoomStatus { active, disable, delete };
-export class Room {
+export interface Room {
     _id: string;
     nodeId: number;
     name: string;

@@ -10,6 +10,3 @@ var MessageType;
     MessageType[MessageType["Sticker"] = 5] = "Sticker";
 })(MessageType || (MessageType = {}));
 ;
-class MessageMeta {
-}
-exports.MessageMeta = MessageMeta;

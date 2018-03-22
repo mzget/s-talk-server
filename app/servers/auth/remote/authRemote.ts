@@ -1,7 +1,6 @@
 ﻿import mongodb = require("mongodb");
 import Code from "../../../../shared/Code";
 
-import { UserDataAccessService } from "../../../controller/UserManager";
 import User, { UserSession, IOnlineUser, UserTransaction } from "../../../model/User";
 import { Room } from "../../../model/Room";
 import IChannelService, { IUserGroup } from "../../../util/ChannelService";

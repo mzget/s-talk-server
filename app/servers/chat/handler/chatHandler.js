@@ -54,7 +54,7 @@ handler.send = function (msg, session, next) {
             delete msg.uuid;
             delete msg.status;
             let _msg = Object.assign({}, msg);
-            messageService.pushByUids(_msg, undefined).then(value => {
+            messageService.pushByUids(_msg, "").then(value => {
                 // <!-- send callback to user who send chat msg.
                 let params = {
                     uuid: client_uuid,
