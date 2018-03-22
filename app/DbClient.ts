@@ -13,6 +13,7 @@ export const InitDatabaseConnection = async (dbname: string) => {
             connectTimeoutMS: 60000,
             socketTimeoutMS: 60000,
         } as mongodb.MongoClientOptions;
+
         const client = await MongoClient.connect(DBConfig.mongo_uri, opt);
         appDB = client.db(dbname);
 

@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": false,
   "scripts": {
-    "test": "jest",
+    "test": "jest --watchAll",
     "start": "node app.js",
     "dev": "nodemon app.js --env development",
     "deploy": "NODE_ENV=production pm2 start app.js --name stalk-server --env production"
