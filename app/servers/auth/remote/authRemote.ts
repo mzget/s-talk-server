@@ -6,8 +6,6 @@ import { Room } from "../../../model/Room";
 import IChannelService, { IUserGroup } from "../../../util/ChannelService";
 import { AccountService } from "../../../services/accountService";
 import * as chatroomService from "../../../services/chatroomService";
-let accountService: AccountService;
-let channelService: IChannelService;
 
 const userNotFound = "Authentication failed. User not found.";
 
@@ -15,23 +13,15 @@ module.exports = function (app) {
     return new AuthenRemote(app);
 };
 
-const AuthenRemote = function (app) {
-    this.app = app;
+class AuthenRemote {
+    app: any;
+    accountService: AccountService;
+    channelService: IChannelService;
 
-    channelService = app.get("channelService");
-    if (app.getServerType() === "auth") {
-        accountService = app.get("accountService");
-        initServer();
+    constructor(app) {
+        this.app = app;
+
+        this.channelService = app.get("channelService");
+        this.accountService = app.get("accountService");
     }
-};
-
-const remote = AuthenRemote.prototype;
-
-/**
- * Init Server this function call when server start.
- * for load room members from database to cache in memmory before.
- */
-const initServer = () => {
-    // <!-- To reduce database retrive data. We store rooms Map data to server memory.
-    console.log("init AuthenServer.");
-};
+}

@@ -5,17 +5,14 @@ const config_1 = require("../../../../config/config");
 const ValidationSchema_1 = require("../../../utils/ValidationSchema");
 const PushMessage_1 = require("../../../utils/PushMessage");
 const Joi = require("joi");
-let channelService;
-let accountService;
 module.exports = function (app) {
     return new PushHandler(app);
 };
 class PushHandler {
     constructor(app) {
-        console.info("pushHandler construc...");
         this.app = app;
-        channelService = this.app.get("channelService");
-        accountService = this.app.get("accountService");
+        this.channelService = this.app.get("channelService");
+        this.accountService = this.app.get("accountService");
     }
     push(msg, session, next) {
         let self = this;
@@ -40,9 +37,9 @@ class PushHandler {
         };
         next(null, { code: Code_1.default.OK, data: params });
         clearTimeout(timeout_id);
-        PushMessage_1.pushMessage(self.app, session, msg.payload)(accountService).then(data => {
+        PushMessage_1.pushMessage(self.app, session, msg.payload)(this.accountService).then(data => {
             if (data) {
-                channelService.pushMessageByUids(data.param.route, data.param.data, data.uids);
+                this.channelService.pushMessageByUids(data.param.route, data.param.data, data.uids);
             }
             else {
                 console.warn("No push data");

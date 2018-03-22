@@ -9,11 +9,8 @@ import * as Room from "../../../model/Room";
 import { Config } from "../../../../config/config";
 import withValidation from "../../../utils/ValidationSchema";
 import { AccountService } from "../../../services/accountService";
-import { pushMessage, IPushMessage, withChannelService } from "../../../utils/PushMessage";
+import { pushMessage, IPushMessage } from "../../../utils/PushMessage";
 import Joi = require("joi");
-let channelService: ChannelService;
-let accountService: AccountService;
-
 
 module.exports = function (app) {
     return new PushHandler(app);
@@ -21,13 +18,13 @@ module.exports = function (app) {
 
 class PushHandler {
     app: any;
+    channelService: ChannelService;
+    accountService: AccountService;
 
     constructor(app: any) {
-        console.info("pushHandler construc...");
-
         this.app = app;
-        channelService = this.app.get("channelService");
-        accountService = this.app.get("accountService");
+        this.channelService = this.app.get("channelService");
+        this.accountService = this.app.get("accountService");
     }
 
     push(msg, session, next) {
@@ -57,9 +54,9 @@ class PushHandler {
         next(null, { code: Code.OK, data: params });
         clearTimeout(timeout_id);
 
-        pushMessage(self.app, session, msg.payload)(accountService).then(data => {
+        pushMessage(self.app, session, msg.payload)(this.accountService).then(data => {
             if (data) {
-                channelService.pushMessageByUids(data.param.route, data.param.data, data.uids);
+                this.channelService.pushMessageByUids(data.param.route, data.param.data, data.uids);
             } else {
                 console.warn("No push data");
             }
