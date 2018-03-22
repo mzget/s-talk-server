@@ -8,8 +8,6 @@ const userService = require("../../../services/userService");
 const async = require("async");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
-const ChatRoomManager = require("../../../controller/ChatRoomManager");
-const chatRoomManager = ChatRoomManager.ChatRoomManager.getInstance();
 const config_1 = require("../../../../config/config");
 const pushService = new MPushService.ParsePushService();
 let channelService;
@@ -297,30 +295,36 @@ handler.getSyncDateTime = function (msg, session, next) {
 /**
 * Get older message for chat room.
 */
-handler.getOlderMessageChunk = function (msg, session, next) {
+/*
+handler.getOlderMessageChunk = function (msg, session, next: (err, res) => void) {
     let self = this;
     let rid = msg.rid;
     let topEdgeMessageTime = msg.topEdgeMessageTime;
+
     if (!rid || !topEdgeMessageTime) {
-        next(null, { code: Code_1.default.FAIL, message: "rid or topEdgeMessageTime is missing." });
+        next(null, { code: Code.FAIL, message: "rid or topEdgeMessageTime is missing." });
         return;
     }
+
     let _timeOut = setTimeout(() => {
-        next(null, { code: Code_1.default.RequestTimeout, message: "getOlderMessageChunk request timeout." });
+        next(null, { code: Code.RequestTimeout, message: "getOlderMessageChunk request timeout." });
         return;
-    }, config_1.Config.timeout);
+    }, Config.timeout);
+
     chatRoomManager.getOlderMessageChunkOfRid(rid, topEdgeMessageTime, function (err, res) {
         console.info("getOlderMessageChunk:", res.length);
+
         if (!!res) {
             clearTimeout(_timeOut);
-            next(null, { code: Code_1.default.OK, data: res });
+            next(null, { code: Code.OK, data: res });
         }
         else {
             clearTimeout(_timeOut);
-            next(null, { code: Code_1.default.FAIL });
+            next(null, { code: Code.FAIL });
         }
     });
 };
+*/
 /*
 * Get last limit query messages of specific user and room then return messages info.
 * Require:
@@ -329,61 +333,71 @@ handler.getOlderMessageChunk = function (msg, session, next) {
 * Return:
 { data: [ messageId, readers ] }
 */
+/*
 handler.getMessagesReaders = function (msg, session, next) {
     let uid = session.uid;
     let rid = session.get("rid");
     let topEdgeMessageTime = msg.topEdgeMessageTime;
+
     let errMsg = "uid or rid is invalid. or may be some params i missing.";
     if (!uid || !rid || !topEdgeMessageTime) {
         console.error(errMsg);
-        next(null, { code: Code_1.default.FAIL, message: errMsg });
+        next(null, { code: Code.FAIL, message: errMsg });
+
         return;
     }
+
     let channel = channelService.getChannel(rid, false);
     chatRoomManager.getMessagesReaders(uid, rid, topEdgeMessageTime, function (err, res) {
         if (!err) {
             let onGetMessagesReaders = {
-                route: Code_1.default.sharedEvents.onGetMessagesReaders,
+                route: Code.sharedEvents.onGetMessagesReaders,
                 data: res
             };
+
             let memberInfo = channel.getMember(uid);
             if (!memberInfo) {
                 return;
             }
             else {
                 console.info("Push messages readers to owner msg.", memberInfo);
+
                 let uidsGroup = new Array();
                 uidsGroup.push(memberInfo);
                 channelService.pushMessageByUids(onGetMessagesReaders.route, onGetMessagesReaders, uidsGroup);
             }
         }
     });
-    next(null, { code: Code_1.default.OK });
+
+    next(null, { code: Code.OK });
 };
+*/
 /**
 * get log message content by message_id.
 * @param {message_id} msg message from client
 * @param {Object} session
 * @param  {Function} next next stemp callback that return records of message_id.
 */
+/*
 handler.getMessageContent = function (msg, session, next) {
     let messageId = msg.messageId;
     if (!messageId) {
         let err = "messageId connot be null or empty.";
         console.warn(err);
-        next(null, { code: Code_1.default.FAIL, message: err });
+        next(null, { code: Code.FAIL, message: err });
     }
+
     chatRoomManager.GetChatContent(messageId, function (err, result) {
         console.log("GetChatContent: ", result);
         if (result !== null) {
             let content = JSON.parse(JSON.stringify(result));
-            next(null, { code: Code_1.default.OK, data: content });
-        }
-        else {
-            next(null, { code: Code_1.default.FAIL, message: "have no a content for this message_id." });
+            next(null, { code: Code.OK, data: content });
+        } else {
+            next(null, { code: Code.FAIL, message: "have no a content for this message_id." });
         }
     });
 };
+*/
 function simplePushNotification(app, session, offlineMembers, room, sender) {
     let pushTitle = room.name;
     let alertMessage = "";

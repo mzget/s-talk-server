@@ -1,19 +1,20 @@
 import mongodb = require("mongodb");
 const MongoClient = mongodb.MongoClient;
-import { Config } from "../config/config";
+import { Config, DBConfig } from "../config/config";
 
-let appDB = undefined as any;
+let appDB = undefined as mongodb.Db | undefined;
 export const getAppDb = () => {
     return appDB;
 };
-export const InitDatabaseConnection = async () => {
+export const InitDatabaseConnection = async (dbname: string) => {
     try {
         const opt = {
             reconnectTries: Number.MAX_VALUE,
             connectTimeoutMS: 60000,
             socketTimeoutMS: 60000,
         } as mongodb.MongoClientOptions;
-        appDB = await MongoClient.connect(Config, opt);
+        const client = await MongoClient.connect(DBConfig.mongo_uri, opt);
+        appDB = client.db(dbname);
 
         appDB.on("close", (err: any) => {
             console.error("close", err);

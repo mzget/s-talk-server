@@ -9,11 +9,12 @@ const webserver_1 = require("./webserver");
 process.on("uncaughtException", (err) => {
     console.error(" Caught exception: " + err.stack);
 });
+const config_1 = require("./config/config");
 /**
  * Logging database.
  */
 const DbClient_1 = require("./app/DbClient");
-DbClient_1.InitDatabaseConnection().then(db => {
+DbClient_1.InitDatabaseConnection(config_1.DBConfig.database_name).then(db => {
     db.stats().then(stat => {
         console.log("api status ready.", stat.db);
     }).catch(err => {

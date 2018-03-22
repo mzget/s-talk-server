@@ -11,13 +11,13 @@ process.on("uncaughtException", (err: any) => {
     console.error(" Caught exception: " + err.stack);
 });
 
-import { Config } from "./config/config";
+import { Config, DBConfig } from "./config/config";
 /**
  * Logging database.
  */
 
 import { InitDatabaseConnection } from "./app/DbClient";
-InitDatabaseConnection().then(db => {
+InitDatabaseConnection(DBConfig.database_name).then(db => {
     db.stats().then(stat => {
         console.log("api status ready.", stat.db);
     }).catch(err => {

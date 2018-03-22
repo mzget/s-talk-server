@@ -1,4 +1,6 @@
-﻿const devApi = "http://localhost:9000";
+﻿const database = require("./database.json");
+
+const devApi = "http://localhost:9000";
 const dev2Api = "http://203.150.95.146:9000";
 const masterApi = "http://203.148.250.152:3002";
 
@@ -85,3 +87,7 @@ export function appInfo(appId: string) {
 }
 
 export const Config = getConfig();
+export const DBConfig = {
+  mongo_uri: database.mongo_uri,
+  database_name: database.database_name
+};

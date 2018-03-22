@@ -15,14 +15,15 @@ let appDB = undefined;
 exports.getAppDb = () => {
     return appDB;
 };
-exports.InitDatabaseConnection = () => __awaiter(this, void 0, void 0, function* () {
+exports.InitDatabaseConnection = (dbname) => __awaiter(this, void 0, void 0, function* () {
     try {
         const opt = {
             reconnectTries: Number.MAX_VALUE,
             connectTimeoutMS: 60000,
             socketTimeoutMS: 60000,
         };
-        appDB = yield MongoClient.connect(config_1.Config, opt);
+        const client = yield MongoClient.connect(config_1.DBConfig.mongo_uri, opt);
+        appDB = client.db(dbname);
         appDB.on("close", (err) => {
             console.error("close", err);
         });
