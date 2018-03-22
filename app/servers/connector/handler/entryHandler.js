@@ -1,28 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
-const User = require("../../../model/User");
 const tokenService_1 = require("../../../services/tokenService");
 const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
 const joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
 const ValidationSchema_1 = require("../../../utils/ValidationSchema");
-const Const_1 = require("../../../Const");
 const config_1 = require("../../../../config/config");
+const Const_1 = require("../../../Const");
 const ChannelHelper_1 = require("../../../util/ChannelHelper");
 const tokenService = new tokenService_1.default();
-let channelService;
-let accountService;
 module.exports = (app) => {
-    console.info("instanctiate connector handler.");
     return new EntryHandler(app);
 };
 class EntryHandler {
     constructor(app) {
         this.app = app;
-        channelService = app.get("channelService");
-        accountService = app.get("accountService");
+        this.channelService = app.get("channelService");
+        this.accountService = app.get("accountService");
+        this.closeSession = this.closeSession.bind(this);
     }
     login(msg, session, next) {
         const self = this;
@@ -60,21 +57,57 @@ class EntryHandler {
                 session.set(Const_1.X_APP_ID, appId);
                 session.set(Const_1.X_API_KEY, apiKey);
                 session.pushAll(() => { console.log("PushAll new session"); });
-                session.on("closed", onUserLeave.bind(null, self.app));
+                session.on("closed", self.onUserLeave.bind(null, self.app));
                 // channelService.broadcast("connector", param.route, param.data);
-                addOnlineUser(self.app, session, msg.user);
+                self.addOnlineUser(self.app, session, msg.user);
                 next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
             }
         });
     }
     logout(msg, session, next) {
-        logOut(this.app, session, null);
+        this.closeSession(this.app, session, null);
         next();
     }
+    closeSession(app, session, next) {
+        this.accountService.getOnlineUser(session.uid).then((user) => {
+            console.log("logged out Success", user);
+            const param = {
+                route: Code_1.default.sharedEvents.onUserLogout,
+                data: user,
+            };
+            this.accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
+                console.log("online by app-id", userSessions.length);
+                const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
+                this.channelService.pushMessageByUids(param.route, param.data, uids);
+            }).catch(console.warn);
+            // !-- log user out.
+            // Don't care what result of callback.
+            this.accountService.removeOnlineUser(session.uid);
+        }).catch(console.warn);
+        if (next !== null) {
+            next();
+        }
+    }
+    ;
+    /**
+     * User log out handler
+     * @param {Object} app current application
+     * @param {Object} session current session object
+     *
+     */
+    onUserLeave(app, session) {
+        if (!session || !session.uid) {
+            return;
+        }
+        const userTransaction = this.accountService.getUserTransaction(session.uid);
+        app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
+        this.closeSession(app, session, null);
+    }
+    ;
     kickMe(msg, session, next) {
         session.__sessionService__.kick(msg.uid, "kick by logout all session", null);
         // !-- log user out.
-        accountService.removeOnlineUser(msg.uid);
+        this.accountService.removeOnlineUser(msg.uid);
         next(null, { message: "kicked! " + msg.uid });
     }
     updateUser(msg, session, next) {
@@ -101,22 +134,22 @@ class EntryHandler {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
         const p = new Promise((resolve, rejected) => {
-            accountService.getOnlineUser(session.uid).then((userSession) => {
+            self.accountService.getOnlineUser(session.uid).then((userSession) => {
                 resolve(userSession);
-            }).catch(err => {
+            }).catch((err) => {
                 rejected(err);
             });
         });
         function updateUser(user) {
             const p2 = new Promise((resolve, reject) => {
-                accountService.updateUser(user).then(resolve).catch(reject);
+                self.accountService.updateUser(user).then(resolve).catch(reject);
             });
             return p2;
         }
         p.then((userSession) => {
             try {
                 const newSession = userSession;
-                newSession["payload"] = msg.user.payload;
+                newSession.payload = msg.user.payload;
                 return updateUser(newSession);
             }
             catch (ex) {
@@ -148,9 +181,9 @@ class EntryHandler {
         }
         function getOnlineUserByAppId() {
             const p = new Promise((resolve, reject) => {
-                accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((results) => {
+                self.accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((results) => {
                     resolve(results);
-                }).catch(err => {
+                }).catch((err) => {
                     reject(err);
                 });
             });
@@ -209,10 +242,10 @@ class EntryHandler {
                             console.error("set rid for session service failed! error is : %j", error.stack);
                         }
                     });
-                    const onlineUser = new User.UserSession();
+                    const onlineUser = {};
                     onlineUser.username = uname;
                     onlineUser.uid = uid;
-                    addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
+                    self.addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
                         clearTimeout(timeOutId);
                         next(null, { code: Code_1.default.OK, data: room });
                     });
@@ -243,7 +276,7 @@ class EntryHandler {
         if (result.error) {
             return next(null, { code: Code_1.default.FAIL, message: result.error });
         }
-        accountService.getUserTransaction(uid).then((userTransaction) => {
+        this.accountService.getUserTransaction(uid).then((userTransaction) => {
             self.app.rpc.chat.chatRemote.kick(session, userTransaction, sid, rid, function (err, res) {
                 session.set("rid", null);
                 session.push("rid", function (err) {
@@ -280,23 +313,23 @@ class EntryHandler {
                 next(err, res);
             }
             else {
-                let onVideoCall = {
+                const onVideoCall = {
                     route: Code_1.default.sharedEvents.onVideoCall,
                     data: {
                         from: uid,
                         peerId: myRtcId
-                    }
+                    },
                 };
                 const uidsGroup = new Array();
-                accountService.getOnlineUser(targetId).then(user => {
+                self.accountService.getOnlineUser(targetId).then((user) => {
                     const group = {
                         uid: user.uid,
-                        sid: user.serverId
+                        sid: user.serverId,
                     };
                     uidsGroup.push(group);
-                    channelService.pushMessageByUids(onVideoCall.route, onVideoCall.data, uidsGroup);
+                    self.channelService.pushMessageByUids(onVideoCall.route, onVideoCall.data, uidsGroup);
                     next(null, { code: Code_1.default.OK });
-                }).catch(err => {
+                }).catch((err) => {
                     const msg = "target userId is not a list of onlineUser Please use notification server instead.";
                     console.warn(msg);
                     next(null, { code: Code_1.default.FAIL, message: msg });
@@ -329,18 +362,18 @@ class EntryHandler {
                     data: {
                         from: uid,
                         peerId: myRtcId
-                    }
+                    },
                 };
                 const uidsGroup = new Array();
-                accountService.getOnlineUser(targetId).then((user) => {
+                self.accountService.getOnlineUser(targetId).then((user) => {
                     const group = {
                         uid: user.uid,
-                        sid: user.serverId
+                        sid: user.serverId,
                     };
                     uidsGroup.push(group);
-                    channelService.pushMessageByUids(onVoiceCall.route, onVoiceCall.data, uidsGroup);
+                    self.channelService.pushMessageByUids(onVoiceCall.route, onVoiceCall.data, uidsGroup);
                     next(null, { code: Code_1.default.OK });
-                }).catch(err => {
+                }).catch((err) => {
                     const msg = "target userId is not a list of onlineUser Please use notification server instead.";
                     console.warn(msg);
                     next(null, { code: Code_1.default.FAIL, message: msg });
@@ -374,15 +407,15 @@ class EntryHandler {
                     },
                 };
                 const uidsGroup = new Array();
-                accountService.getOnlineUser(contactId).then((user) => {
+                self.accountService.getOnlineUser(contactId).then((user) => {
                     const group = {
                         uid: user.uid,
                         sid: user.serverId,
                     };
                     uidsGroup.push(group);
-                    channelService.pushMessageByUids(onHangupCall.route, onHangupCall.data, uidsGroup);
+                    self.channelService.pushMessageByUids(onHangupCall.route, onHangupCall.data, uidsGroup);
                     next(null, { code: Code_1.default.OK });
-                }).catch(err => {
+                }).catch((err) => {
                     const msg = "target userId is not a list of onlineUser Please use notification server instead.";
                     console.warn(msg);
                     next(null, { code: Code_1.default.FAIL, message: msg });
@@ -406,83 +439,50 @@ class EntryHandler {
             route: Code_1.default.sharedEvents.onTheLineIsBusy,
             data: { from: userId },
         };
-        accountService.getOnlineUser(contactId).then((user) => {
+        this.accountService.getOnlineUser(contactId).then((user) => {
             const uidsGroup = new Array();
             const userInfo = {
                 uid: user.uid,
                 sid: user.serverId,
             };
             uidsGroup.push(userInfo);
-            channelService.pushMessageByUids(param.route, param.data, uidsGroup);
-        }).catch(err => {
+            this.channelService.pushMessageByUids(param.route, param.data, uidsGroup);
+        }).catch((err) => {
             const msg = "The contactId is not online.";
             console.warn(msg);
         });
         next(null, { code: Code_1.default.OK });
     }
-}
-const handler = EntryHandler.prototype;
-const logOut = (app, session, next) => {
-    accountService.getOnlineUser(session.uid).then((user) => {
-        console.log("logged out Success", user);
+    addOnlineUser(app, session, user) {
+        const self = this;
+        const userSession = {};
+        const userTransaction = {};
+        const appId = session.get(Const_1.X_APP_ID);
+        userSession.uid = user._id;
+        userSession.username = user.username;
+        userSession.serverId = session.frontendId;
+        userSession.applicationId = appId;
+        userSession.payload = user.payload;
+        userTransaction.uid = user._id;
+        userTransaction.username = user.username;
+        this.accountService.addOnlineUser(userSession, pushNewOnline);
+        this.accountService.addUserTransaction(userTransaction);
         const param = {
-            route: Code_1.default.sharedEvents.onUserLogout,
-            data: user,
+            route: Code_1.default.sharedEvents.onUserLogin,
+            data: userTransaction,
         };
-        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
-            console.log("online by app-id", userSessions.length);
-            const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
-            channelService.pushMessageByUids(param.route, param.data, uids);
-        }).catch(console.warn);
-        // !-- log user out.
-        // Don't care what result of callback.
-        accountService.removeOnlineUser(session.uid);
-    }).catch(console.warn);
-    if (next !== null) {
-        next();
+        function pushNewOnline() {
+            self.accountService.getOnlineUserByAppId(appId).then((userSessions) => {
+                console.log("add to onlineUsers list : ", userSession.username);
+                console.log("onlines by app-id", appId, userSessions.length);
+                const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
+                self.channelService.pushMessageByUids(param.route, param.data, uids);
+            }).catch(console.warn);
+        }
     }
-};
-function addOnlineUser(app, session, user) {
-    const userSession = new User.UserSession();
-    const userTransaction = new User.UserTransaction();
-    const appId = session.get(Const_1.X_APP_ID);
-    userSession.uid = user._id;
-    userSession.username = user.username;
-    userSession.serverId = session.frontendId;
-    userSession.applicationId = appId;
-    userSession.payload = user.payload;
-    userTransaction.uid = user._id;
-    userTransaction.username = user.username;
-    accountService.addOnlineUser(userSession, pushNewOnline);
-    accountService.addUserTransaction(userTransaction);
-    const param = {
-        route: Code_1.default.sharedEvents.onUserLogin,
-        data: userTransaction,
-    };
-    function pushNewOnline() {
-        accountService.getOnlineUserByAppId(appId).then((userSessions) => {
-            console.log("add to onlineUsers list : ", userSession.username);
-            console.log("onlines by app-id", appId, userSessions.length);
-            const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
-            channelService.pushMessageByUids(param.route, param.data, uids);
-        }).catch(console.warn);
+    addChatUser(app, session, user, sid, rid, next) {
+        // put user into channel
+        app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
     }
+    ;
 }
-const addChatUser = (app, session, user, sid, rid, next) => {
-    // put user into channel
-    app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
-};
-/**
- * User log out handler
- * @param {Object} app current application
- * @param {Object} session current session object
- *
- */
-const onUserLeave = (app, session) => {
-    if (!session || !session.uid) {
-        return;
-    }
-    const userTransaction = accountService.getUserTransaction(session.uid);
-    app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
-    logOut(app, session, null);
-};

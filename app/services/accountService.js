@@ -76,7 +76,7 @@ class AccountService {
                 const userSession = JSON.parse(online);
                 return Promise.resolve(userSession);
             }
-            else if (online instanceof UserSession) {
+            else if (online.uid) {
                 return Promise.resolve(online);
             }
             else {

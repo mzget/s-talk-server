@@ -48,11 +48,7 @@ function getRoom(roomId) {
 exports.getRoom = getRoom;
 function checkedCanAccessRoom(room, userId, callback) {
     let result = false;
-    result = room.members.some((value) => {
-        if (value._id === userId) {
-            return true;
-        }
-    });
-    callback(null, result);
+    result = room.members.some((value, id, arr) => value._id === userId);
+    callback(undefined, result);
 }
 exports.checkedCanAccessRoom = checkedCanAccessRoom;

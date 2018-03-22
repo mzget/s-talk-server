@@ -42,7 +42,7 @@ export class AccountService {
             const userSession = JSON.parse(online) as UserSession;
             return Promise.resolve(userSession);
         }
-        else if (online instanceof UserSession) {
+        else if ((online as UserSession).uid) {
             return Promise.resolve(online);
         } else {
             const errMsg = "Specific uid is not online.";

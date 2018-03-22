@@ -38,14 +38,10 @@ export async function getRoom(roomId: string) {
     return p;
 }
 
-export function checkedCanAccessRoom(room: Room, userId: string, callback: (err: Error, res: boolean) => void) {
-    let result: boolean = false;
+export function checkedCanAccessRoom(room: Room, userId: string, callback: (err: Error | undefined, res: boolean) => void) {
+    let result = false;
 
-    result = room.members.some((value) => {
-        if (value._id === userId) {
-            return true;
-        }
-    });
+    result = room.members.some((value, id, arr) => value._id === userId);
 
-    callback(null, result);
+    callback(undefined, result);
 }
