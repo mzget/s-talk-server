@@ -52,7 +52,6 @@ jobs:
       # deploy the image
       - run: docker push mzget/stalk-platform-dev
 
-
   deploy:
     machine: true
     steps: 
@@ -74,15 +73,15 @@ workflows:
   build-deploy:
     jobs:
       - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
-      - deploy-dev:
-          requires:
-            - build
-          filters:
-            branches:
-              only: develop
+      # - deploy:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only: master
+      # - deploy-dev:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         only: develop
