@@ -14,7 +14,7 @@ export interface IUserDict {
 };
 
 export class UserManager {
-    private static _instance: UserManager = null;
+    private static _instance: UserManager;
     private userDataAccess: UserDataAccessService = new UserDataAccessService();
 
     constructor() {

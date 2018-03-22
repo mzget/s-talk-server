@@ -4,13 +4,11 @@ const mongodb = require("mongodb");
 const async = require("async");
 const MDb = require("../db/dbClient");
 const Room = require("../model/Room");
-const UserManager_1 = require("./UserManager");
 const ObjectID = mongodb.ObjectID;
 const dbClient = MDb.DbController.DbClient.GetInstance();
 const MongoClient = mongodb.MongoClient;
 class ChatRoomManager {
     constructor() {
-        this.userManager = UserManager_1.UserManager.getInstance();
         this.roomDAL = new RoomDataAccess();
         if (ChatRoomManager._Instance) {
             console.warn("Error: Instantiation failed: Use SingletonDemo.getInstance() instead of new.");
@@ -249,12 +247,8 @@ class ChatRoomManager {
         });
     }
 }
-ChatRoomManager._Instance = null;
 exports.ChatRoomManager = ChatRoomManager;
 class RoomDataAccess {
-    constructor() {
-        this.userManager = UserManager_1.UserManager.getInstance();
-    }
     findProjectBaseGroups(userId, callback) {
         dbClient.FindDocuments(MDb.DbController.roomColl, function (res) {
             callback(null, res);
