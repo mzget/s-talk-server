@@ -35,13 +35,14 @@ export class AccountService {
 
         return await results;
     }
+
     public async getOnlineUser(userId: string) {
         const online = await hgetAsync(ONLINE_USER, userId);
         if (typeof online == "string") {
             const userSession = JSON.parse(online) as UserSession;
             return Promise.resolve(userSession);
         }
-        else if (online instanceof UserSession) {
+        else if (online && (online as UserSession).uid) {
             return Promise.resolve(online);
         } else {
             const errMsg = "Specific uid is not online.";
@@ -251,7 +252,7 @@ export class AccountService {
     /**
      * Remove records for the specified user and channel pair
      */
-    public removeRecord = function (service, uid, channelName) {
+    public removeRecord(service, uid, channelName) {
         delete service.channelMap[uid][channelName];
         //    if (utils.size(service.channelMap[uid])) {
         //        return;
@@ -264,7 +265,7 @@ export class AccountService {
     /**
      * Clear all records of the user
      */
-    public clearRecords = function (service, uid) {
+    public clearRecords(service, uid) {
         delete service.channelMap[uid];
 
         const record = service.uidMap[uid];

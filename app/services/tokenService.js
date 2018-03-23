@@ -21,7 +21,7 @@ class TokenService {
             // verifies secret and checks exp
             jwt.verify(token, this.secret, function (err, decoded) {
                 if (err) {
-                    callback(err, null);
+                    callback(err, undefined);
                 }
                 else {
                     // if everything is good, save to request for use in other routes
@@ -32,7 +32,7 @@ class TokenService {
         else {
             // if there is no token
             // return an error
-            callback(new Error("There is no token provide."), null);
+            callback(new Error("There is no token provide."), undefined);
         }
     }
 }

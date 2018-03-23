@@ -8,70 +8,57 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const request = require("request");
-const rp = require("request-promise-native");
+const fetch = require("isomorphic-fetch");
 const config_1 = require("../../config/config");
-function pushByUids(_message, appKey) {
+function pushByUids(message, appKey) {
     return __awaiter(this, void 0, void 0, function* () {
-        let webhook = config_1.getWebhook(appKey);
-        let p = yield new Promise((resolve, rejected) => {
-            let options = {
-                url: `${webhook.onPushByUids}`,
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "cache-control": "no-cache",
-                    "x-api-key": `${webhook.apikey}`
-                },
-                body: JSON.stringify({
-                    message: _message
-                })
-            };
-            function callback(error, response, body) {
-                if (error) {
-                    console.warn(`problem with request: ${error}`, response);
-                    rejected(error);
-                }
-                else if (!error && response.statusCode == 200) {
-                    let data = JSON.parse(body);
-                    if (data.result) {
-                        resolve(data.result);
-                    }
-                    else {
-                        rejected(data);
-                    }
-                }
-                else {
-                    console.warn("saveMessage: ", response.statusCode, response.statusMessage);
-                    rejected(response);
-                }
+        const webhook = config_1.getWebhook(appKey);
+        if (webhook) {
+            try {
+                const url = `${webhook.onPushByUids}`;
+                const options = {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "cache-control": "no-cache",
+                        "x-api-key": `${webhook.apikey}`,
+                    },
+                    body: JSON.stringify({
+                        message,
+                    }),
+                };
+                const response = yield fetch(url, options);
+                const data = yield response.json();
+                return data.result;
             }
-            request(options, callback);
-        });
-        return p;
+            catch (ex) {
+                return Promise.reject(ex.message);
+            }
+        }
     });
 }
 exports.pushByUids = pushByUids;
-function chat(_message, room) {
+function chat(message, room) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            let options = {
-                url: `${config_1.Config.api.chat}/chat`,
+            const url = `${config_1.Config.api.chat}/chat`;
+            const options = {
                 headers: {
                     "Content-Type": "application/json",
                     "cache-control": "no-cache",
-                    "x-api-key": `${config_1.Config.api.apikey}`
+                    "x-api-key": `${config_1.Config.api.apikey}`,
                 },
                 body: JSON.stringify({
-                    message: _message,
-                    room: room
-                })
+                    message,
+                    room,
+                }),
             };
-            let data = yield rp.post(options);
+            const response = yield fetch(url, options);
+            const data = yield response.json();
             return data.result;
         }
         catch (ex) {
-            throw new Error(ex.message);
+            return Promise.reject(ex.message);
         }
     });
 }

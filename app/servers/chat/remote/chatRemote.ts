@@ -1,39 +1,42 @@
-﻿import User = require("../../../model/User");
-let channelService;
+// Please keep in mind.
+// Remote server cannot write in es6 class.
+
+
+import ChannelService from "../../../util/ChannelService";
+import { UserSession } from "../../../model/User";
+
+let channelService: ChannelService;
 
 module.exports = function (app) {
-    console.info("instanctiate ChatRemote.");
     return new ChatRemote(app);
 };
 
 const ChatRemote = function (app) {
+    //@ts-ignore
     this.app = app;
-    channelService = app.get("channelService");
+    channelService = app.get('channelService');
 };
 
-const remote = ChatRemote.prototype;
-
 /**
-* Add user into chat channel.
-* @param {String} uid unique id for user
-* @param {String} sid server id
-* @param {String} name channel name
-* @param {boolean} flag channel parameter
-*/
-remote.add = function (user: User.UserSession, sid, rid, flag, cb) {
-    let channel = channelService.getChannel(rid, flag);
-    let username = user.username;
+ * Add user into chat channel.
+ *
+ * @param {String} uid unique id for user
+ * @param {String} sid server id
+ * @param {String} name channel name
+ * @param {boolean} flag channel parameter
+ *
+ */
+ChatRemote.prototype.add = function (user: UserSession, sid, name, flag, cb) {
+    let channel = channelService.getChannel(name, flag);
     let uid = user.uid;
 
-    console.log("chatRemote.add : user %s to room %s", user.username, rid);
+    console.log("chatRemote.add : user %s to room %s", user, name);
 
     if (!!channel) {
         let param = {
-            route: "onAdd",
-            user: user
+            route: "onAdd", user: user
         };
-        channel.pushMessage(param);
-
+        channel.pushMessage(param.route, param.user);
         channel.add(uid, sid);
     }
 
@@ -41,17 +44,16 @@ remote.add = function (user: User.UserSession, sid, rid, flag, cb) {
 };
 
 /**
-* Get user from chat channel.
-*
-* @param {Object} opts parameters for request
-* @param {String} name channel name
-* @param {boolean} flag channel parameter
-* @return {Array} users uids in channel
-*
-*/
-
-remote.getUsers = function (name, flag) {
-    let users = [];
+ * Get user from chat channel.
+ *
+ * @param {Object} opts parameters for request
+ * @param {String} name channel name
+ * @param {boolean} flag channel parameter
+ * @return {Array} users uids in channel
+ *
+ */
+ChatRemote.prototype.get = function (name, flag) {
+    let users = new Array();
     let channel = channelService.getChannel(name, flag);
     if (!!channel) {
         users = channel.getMembers();
@@ -64,19 +66,17 @@ remote.getUsers = function (name, flag) {
 };
 
 /**
-* Kick user out chat channel.
-* When user leave room. Server will update lastAccessTime of left room for them.
-* Then server return roomAccess data of left room to them.
-*
-* @param {String} uid unique id for user
-* @param {String} sid server id
-* @param {String} name channel name
-*/
-remote.kick = function (user: User.UserTransaction, sid, rid, cb: Function) {
-    cb();
-    if (!rid) { return; }
+ * Kick user out chat channel.
+ *
+ * @param {String} uid unique id for user
+ * @param {String} sid server id
+ * @param {String} name channel name
+ *
+ */
+ChatRemote.prototype.kick = function (user: UserSession, sid, name, cb) {
+    if (!name) { return; }
 
-    let channel = channelService.getChannel(rid, false);
+    let channel = channelService.getChannel(name, false);
     // <!-- when user leave channel.
     if (!!channel) {
         let username = user.username;
@@ -86,9 +86,10 @@ remote.kick = function (user: User.UserTransaction, sid, rid, cb: Function) {
         console.log("user %s leave channel ", user);
 
         let param = {
-            route: "onLeave",
-            user: user
+            route: "onLeave", user: user
         };
-        channel.pushMessage(param);
+        channel.pushMessage(param.route, param.user);
     }
+
+    if (cb) cb();
 };

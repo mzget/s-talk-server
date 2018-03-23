@@ -1432,8 +1432,6 @@ bin/Microsoft.NodejsTools.WebRole.dll
 .settings/tasks.json
 obj/Debug/SpartanTalk-node.njsproj.FileListAbsolute.txt
 .settings/launch.json
-app/controller/ChatRoomManager.js.map
-app/controller/UserManager.js.map
 *.map
 obj/
 .vs/stalk-node-server/v14/.suo

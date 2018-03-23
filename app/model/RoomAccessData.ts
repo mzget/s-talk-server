@@ -1,4 +1,4 @@
-﻿export default class RoomAccessData {
+﻿export default interface RoomAccessData {
     roomId: string;
     accessTime: Date;
 };

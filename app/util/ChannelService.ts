@@ -3,6 +3,15 @@ export interface IUserGroup {
     sid: string;
 }
 
+export interface Channel {
+    add: (uid, sid) => boolean;
+    leave: (uid, sid) => boolean;
+    getMembers: () => any[];
+    getMember: (uid) => any;
+    destroy: () => void;
+    pushMessage: (route, msg, opts?, cb?) => void;
+}
+
 interface IChannelService {
     /**
      * ChannelService.prototype.createChannel()
@@ -12,7 +21,7 @@ interface IChannelService {
 
     Create channel with name.
      */
-    createChannel: (name: string) => void;
+    createChannel: (name: string) => Channel;
 
     /**
      * ChannelService.prototype.getChannel()
@@ -23,7 +32,7 @@ interface IChannelService {
 
     Get channel by name.
      */
-    getChannel: (name, create) => void;
+    getChannel: (name, create) => Channel;
 
     /**
      * ChannelService.prototype.destroyChannel()

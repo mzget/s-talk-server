@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
-const User_1 = require("../model/User");
 const RedisClient_1 = require("./RedisClient");
 const dispatcher = require("../util/dispatcher");
 exports.ONLINE_USER = "online_user";
@@ -37,29 +36,6 @@ class AccountService {
          */
         this.checkDuplicate = function (service, uid, channelName) {
             return !!service.channelMap[uid] && !!service.channelMap[uid][channelName];
-        };
-        /**
-         * Remove records for the specified user and channel pair
-         */
-        this.removeRecord = function (service, uid, channelName) {
-            delete service.channelMap[uid][channelName];
-            //    if (utils.size(service.channelMap[uid])) {
-            //        return;
-            //    }
-            // if user not in any channel then clear his records
-            this.clearRecords(service, uid);
-        };
-        /**
-         * Clear all records of the user
-         */
-        this.clearRecords = function (service, uid) {
-            delete service.channelMap[uid];
-            const record = service.uidMap[uid];
-            if (!record) {
-                return;
-            }
-            delete service.uidMap[uid];
-            delete service.nameMap[record.name];
         };
         /**
          * Get the connector server id assosiated with the uid
@@ -100,7 +76,7 @@ class AccountService {
                 const userSession = JSON.parse(online);
                 return Promise.resolve(userSession);
             }
-            else if (online instanceof User_1.UserSession) {
+            else if (online && online.uid) {
                 return Promise.resolve(online);
             }
             else {
@@ -262,6 +238,31 @@ class AccountService {
         }
         //        this.app.get('channelService').pushMessageByUids(Event.chat, msg, [{ uid: record.uid, sid: record.sid }], cb);
     }
+    /**
+     * Remove records for the specified user and channel pair
+     */
+    removeRecord(service, uid, channelName) {
+        delete service.channelMap[uid][channelName];
+        //    if (utils.size(service.channelMap[uid])) {
+        //        return;
+        //    }
+        // if user not in any channel then clear his records
+        this.clearRecords(service, uid);
+    }
+    ;
+    /**
+     * Clear all records of the user
+     */
+    clearRecords(service, uid) {
+        delete service.channelMap[uid];
+        const record = service.uidMap[uid];
+        if (!record) {
+            return;
+        }
+        delete service.uidMap[uid];
+        delete service.nameMap[record.name];
+    }
+    ;
     removeAllKeys() {
         RedisClient_1.default.flushall();
     }
