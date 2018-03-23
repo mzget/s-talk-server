@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
-const chatroomService = require("../../../services/chatroomService");
 const Joi = require("joi");
 const joiObj = require("joi-objectid");
 Joi["objectId"] = joiObj(Joi);
@@ -183,51 +182,31 @@ class EntryHandler {
         const self = this;
         const token = msg.token;
         const rid = msg.rid;
-        const uname = msg.username;
         const uid = session.uid;
         if (!uid) {
             const errMsg = "session.uid is empty or null.!";
             next(null, { code: Code_1.default.FAIL, message: errMsg });
             return;
         }
-        if (!rid || !msg.username) {
-            next(null, { code: Code_1.default.FAIL, message: "rid or username is null." });
+        if (!rid) {
+            next(null, { code: Code_1.default.FAIL, message: "rid is missing." });
             return;
         }
         const timeOutId = setTimeout(() => {
             next(null, { code: Code_1.default.RequestTimeout, message: "enterRoom timeout" });
             return;
         }, config_1.Config.timeout);
-        chatroomService.getRoom(rid).then((room) => {
-            console.log("getRoom", room);
-            chatroomService.checkedCanAccessRoom(room, uid, (err, res) => {
-                console.log("checkedCanAccessRoom: ", res);
-                if (err || res === false) {
-                    clearTimeout(timeOutId);
-                    next(null, {
-                        code: Code_1.default.FAIL,
-                        message: "cannot access your request room. may be you are not a member or leaved room!",
-                    });
-                }
-                else {
-                    session.set("rid", rid);
-                    session.push("rid", (error) => {
-                        if (error) {
-                            console.error("set rid for session service failed! error is : %j", error.stack);
-                        }
-                    });
-                    const onlineUser = {};
-                    onlineUser.username = uname;
-                    onlineUser.uid = uid;
-                    self.addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
-                        clearTimeout(timeOutId);
-                        next(null, { code: Code_1.default.OK, data: room });
-                    });
-                }
-            });
-        }).catch((err) => {
+        session.set("rid", rid);
+        session.push("rid", (error) => {
+            if (error) {
+                console.error("set rid for session service failed! error is : %j", error.stack);
+            }
+        });
+        const onlineUser = {};
+        onlineUser.uid = uid;
+        self.addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
             clearTimeout(timeOutId);
-            next(null, { code: Code_1.default.FAIL, message: JSON.stringify(err) });
+            next(null, { code: Code_1.default.OK, data: rid });
         });
     }
     /**

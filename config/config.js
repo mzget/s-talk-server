@@ -23,6 +23,12 @@ hooks.set("jc212224", {
     apikey: "jc212224",
     onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
 });
+hooks.set("chitchat", {
+    appname: "chitchat",
+    appId: "chitchat",
+    apikey: "chitchat1234",
+    onPushByUids: "http://chitchats.ga:9000/api/message/pushByUids",
+});
 hooks.set("ooca", {
     appname: "ooca",
     appId: "ooca",

@@ -3,7 +3,7 @@ import dispatcher from "./dispatcher";
 /**
  * routeUtil
  */
-const chatRoute =  (session, msg, app, cb) => {
+const chatRoute = (session, msg, app, cb) => {
   const chatServers = app.getServersByType("chat");
   const rid = session.get("rid") || "global";
 
