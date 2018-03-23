@@ -38,6 +38,7 @@ class EntryHandler {
 		this.app = app;
 		channelService = app.get("channelService");
 		accountService = app.get("accountService");
+		const sessionService = app.get('sessionService');
 	}
 
 	public login(msg, session, next) {
@@ -516,8 +517,7 @@ class EntryHandler {
 
 		function pushNewOnline() {
 			accountService.getOnlineUserByAppId(appId).then((userSessions: UserSession[]) => {
-				console.log("add to onlineUsers list : ", userSession.username);
-				console.log("onlines by app-id", appId, userSessions.length);
+				console.log("onlines by app-id", appId, userSessions.length, userSession.username);
 
 				const uids = withoutUser(getUsersGroup(userSessions), session.uid);
 				channelService.pushMessageByUids(param.route, param.data, uids);
@@ -540,21 +540,24 @@ class EntryHandler {
  *
  */
 function onUserLeave(app, session) {
-	console.warn("Leave session", session);
 	if (!session || !session.uid) {
 		return;
 	}
+	console.warn("Leave session", session.uid, app.get("serverId"));
 
-	const userTransaction = accountService.getUserTransaction(session.uid);
-
-	app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
+	const rid = session.get("rid");
+	if (rid) {
+		const userTransaction = accountService.getUserTransaction(session.uid);
+		app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), rid, null);
+	}
 
 	closeSession(app, session, null);
 };
 
+async function closeSession(app, session, next) {
+	try {
+		const user = await accountService.getOnlineUser(session.uid) as UserSession;
 
-function closeSession(app, session, next) {
-	accountService.getOnlineUser(session.uid).then((user: UserSession) => {
 		console.log("logged out Success", user);
 
 		const param = {
@@ -562,19 +565,23 @@ function closeSession(app, session, next) {
 			data: user,
 		};
 
-		accountService.getOnlineUserByAppId(session.get(X_APP_ID)).then((userSessions: UserSession[]) => {
-			console.log("online by app-id", userSessions.length);
+		const appId = session.get(X_APP_ID);
+		const userSessions = await accountService.getOnlineUserByAppId(appId) as UserSession[];
 
-			const uids = withoutUser(getUsersGroup(userSessions), session.uid);
-			channelService.pushMessageByUids(param.route, param.data, uids);
-		}).catch(console.warn);
+		console.log("onlines by app-id", appId, userSessions.length);
+
+		const uids = withoutUser(getUsersGroup(userSessions), session.uid);
+		channelService.pushMessageByUids(param.route, param.data, uids);
 
 		// !-- log user out.
 		// Don't care what result of callback.
 		accountService.removeOnlineUser(session.uid);
-	}).catch(console.warn);
+	}
+	catch (ex) {
+		console.warn(ex.message);
+	}
 
-	if (next !== null) {
+	if (next) {
 		next();
 	}
 };

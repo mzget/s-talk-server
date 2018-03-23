@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+let channelService;
 module.exports = function (app) {
     return new ChatRemote(app);
 };
 class ChatRemote {
     constructor(app) {
         this.app = app;
-        this.channelService = app.get("channelService");
+        channelService = app.get("channelService");
     }
     /**
     * Add user into chat channel.
@@ -16,7 +17,7 @@ class ChatRemote {
     * @param {boolean} flag channel parameter
     */
     add(user, sid, rid, flag, cb) {
-        let channel = this.channelService.getChannel(rid, flag);
+        let channel = channelService.getChannel(rid, flag);
         let username = user.username;
         let uid = user.uid;
         console.log("chatRemote.add : user %s to room %s", user.username, rid);
@@ -41,7 +42,7 @@ class ChatRemote {
     */
     getUsers(name, flag) {
         let users = new Array();
-        let channel = this.channelService.getChannel(name, flag);
+        let channel = channelService.getChannel(name, flag);
         if (!!channel) {
             users = channel.getMembers();
             console.warn("Heavy operation.!!! channel members: ", users);
@@ -61,11 +62,10 @@ class ChatRemote {
     * @param {String} name channel name
     */
     kick(user, sid, rid, cb) {
-        cb();
         if (!rid) {
             return;
         }
-        let channel = this.channelService.getChannel(rid, false);
+        let channel = channelService.getChannel(rid, false);
         // <!-- when user leave channel.
         if (!!channel) {
             let username = user.username;
@@ -77,6 +77,8 @@ class ChatRemote {
             };
             channel.pushMessage(param.route, param.user);
         }
+        if (cb)
+            cb();
     }
 }
 ;

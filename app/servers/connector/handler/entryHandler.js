@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
@@ -21,6 +29,7 @@ class EntryHandler {
         this.app = app;
         channelService = app.get("channelService");
         accountService = app.get("accountService");
+        const sessionService = app.get('sessionService');
     }
     login(msg, session, next) {
         const self = this;
@@ -438,8 +447,7 @@ class EntryHandler {
         };
         function pushNewOnline() {
             accountService.getOnlineUserByAppId(appId).then((userSessions) => {
-                console.log("add to onlineUsers list : ", userSession.username);
-                console.log("onlines by app-id", appId, userSessions.length);
+                console.log("onlines by app-id", appId, userSessions.length, userSession.username);
                 const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
                 channelService.pushMessageByUids(param.route, param.data, uids);
             }).catch(console.warn);
@@ -458,33 +466,42 @@ class EntryHandler {
  *
  */
 function onUserLeave(app, session) {
-    console.warn("Leave session", session);
     if (!session || !session.uid) {
         return;
     }
-    const userTransaction = accountService.getUserTransaction(session.uid);
-    app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), session.get("rid"), null);
+    console.warn("Leave session", session.uid, app.get("serverId"));
+    const rid = session.get("rid");
+    if (rid) {
+        const userTransaction = accountService.getUserTransaction(session.uid);
+        app.rpc.chat.chatRemote.kick(session, userTransaction, app.get("serverId"), rid, null);
+    }
     closeSession(app, session, null);
 }
 ;
 function closeSession(app, session, next) {
-    accountService.getOnlineUser(session.uid).then((user) => {
-        console.log("logged out Success", user);
-        const param = {
-            route: Code_1.default.sharedEvents.onUserLogout,
-            data: user,
-        };
-        accountService.getOnlineUserByAppId(session.get(Const_1.X_APP_ID)).then((userSessions) => {
-            console.log("online by app-id", userSessions.length);
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const user = yield accountService.getOnlineUser(session.uid);
+            console.log("logged out Success", user);
+            const param = {
+                route: Code_1.default.sharedEvents.onUserLogout,
+                data: user,
+            };
+            const appId = session.get(Const_1.X_APP_ID);
+            const userSessions = yield accountService.getOnlineUserByAppId(appId);
+            console.log("onlines by app-id", appId, userSessions.length);
             const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
             channelService.pushMessageByUids(param.route, param.data, uids);
-        }).catch(console.warn);
-        // !-- log user out.
-        // Don't care what result of callback.
-        accountService.removeOnlineUser(session.uid);
-    }).catch(console.warn);
-    if (next !== null) {
-        next();
-    }
+            // !-- log user out.
+            // Don't care what result of callback.
+            accountService.removeOnlineUser(session.uid);
+        }
+        catch (ex) {
+            console.warn(ex.message);
+        }
+        if (next) {
+            next();
+        }
+    });
 }
 ;

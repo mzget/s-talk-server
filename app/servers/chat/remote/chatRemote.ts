@@ -2,17 +2,18 @@
 
 import ChannelService from "../../../util/ChannelService";
 
+let channelService: ChannelService;
+
 module.exports = function (app) {
     return new ChatRemote(app);
 };
 
 class ChatRemote {
     app: any;
-    channelService: ChannelService;
 
     constructor(app) {
         this.app = app;
-        this.channelService = app.get("channelService");
+        channelService = app.get("channelService");
     }
 
 
@@ -24,7 +25,7 @@ class ChatRemote {
     * @param {boolean} flag channel parameter
     */
     add(user: User.UserSession, sid, rid, flag, cb) {
-        let channel = this.channelService.getChannel(rid, flag);
+        let channel = channelService.getChannel(rid, flag);
         let username = user.username;
         let uid = user.uid;
 
@@ -52,7 +53,7 @@ class ChatRemote {
     */
     getUsers(name, flag) {
         let users = new Array();
-        let channel = this.channelService.getChannel(name, flag);
+        let channel = channelService.getChannel(name, flag);
         if (!!channel) {
             users = channel.getMembers();
             console.warn("Heavy operation.!!! channel members: ", users);
@@ -73,10 +74,9 @@ class ChatRemote {
     * @param {String} name channel name
     */
     kick(user: User.UserTransaction, sid, rid, cb: Function) {
-        cb();
         if (!rid) { return; }
 
-        let channel = this.channelService.getChannel(rid, false);
+        let channel = channelService.getChannel(rid, false);
         // <!-- when user leave channel.
         if (!!channel) {
             let username = user.username;
@@ -90,5 +90,7 @@ class ChatRemote {
             };
             channel.pushMessage(param.route, param.user);
         }
+
+        if (cb) cb();
     }
 };
