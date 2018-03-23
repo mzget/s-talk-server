@@ -22,164 +22,178 @@ let channelService: ChannelService;
 let accountService: AccountService;
 
 module.exports = function (app) {
-    return new Handler(app);
+    return new ChatHandler(app);
 };
 
-const Handler = function (app) {
-    console.info("ChatHandler construc...");
-    this.app = app;
-    channelService = this.app.get("channelService");
-    accountService = this.app.get("accountService");
-};
+class ChatHandler {
+    app: any;
 
-const handler = Handler.prototype;
+    constructor(app) {
+        this.app = app;
+        channelService = this.app.get("channelService");
+        accountService = this.app.get("accountService");
+    };
 
-/**
- * Send messages to users
- *
- * @param {Object} msg message from client
- * @param {Object} session
- * @param  {Function} next next stemp callback
- */
-handler.send = function (msg, session, next) {
-    let self = this;
-    let rid = session.get("rid");
-    let client_uuid = msg.uuid;
-    let msg_target = msg.target;
 
-    if (!rid) {
-        const errMsg = "rid is invalid please check.";
-        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
-    }
+    /**
+     * Send messages to users
+     *
+     * @param {Object} msg message from client
+     * @param {Object} session
+     * @param  {Function} next next stemp callback
+     */
+    send(msg, session, next) {
+        let self = this;
+        let rid = session.get("rid");
+        let client_uuid = msg.uuid;
+        let msg_target = msg.target;
 
-    let timeout_id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
-    }, Config.timeout);
-
-    chatroomService.getRoom(rid).then((room: Room) => {
-        console.log("getRoom value: ", room);
-
-        if (!room.members) {
-            const errMsg = "Room no have a members.";
-            next(null, { code: Code.FAIL, message: errMsg });
-            clearTimeout(timeout_id);
-            return;
+        if (!rid) {
+            const errMsg = "rid is invalid please check.";
+            return next(null, { code: Code.FAIL, message: errMsg, body: msg });
         }
-        else {
-            delete msg.__route__;
-            delete msg.uuid;
-            delete msg.status;
 
-            let _msg = { ...msg } as Message;
+        let timeout_id = setTimeout(function () {
+            next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+        }, Config.timeout);
 
-            messageService.pushByUids(_msg, "").then(value => {
-                // <!-- send callback to user who send chat msg.
-                let params = {
-                    uuid: client_uuid,
-                    status: "sent",
-                    resultMsg: value
-                };
-                next(null, { code: Code.OK, data: params });
-                pushMessage(self.app, session, room, value, client_uuid, msg_target);
+        chatroomService.getRoom(rid).then((room: Room) => {
+            console.log("getRoom value: ", room);
+
+            if (!room.members) {
+                const errMsg = "Room no have a members.";
+                next(null, { code: Code.FAIL, message: errMsg });
                 clearTimeout(timeout_id);
-            }).catch(err => {
-                next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
-                clearTimeout(timeout_id);
-            });
-        }
-    }).catch(err => {
-        clearTimeout(timeout_id);
-        next(null, { code: Code.FAIL, message: err.toString() });
-    });
-};
+                return;
+            }
+            else {
+                delete msg.__route__;
+                delete msg.uuid;
+                delete msg.status;
 
-handler.chat = function (msg, session, next) {
-    let self = this;
-    let rid = session.get("rid");
-    let client_uuid = msg.uuid;
-    let msg_target = msg.target;
+                let _msg = { ...msg } as Message;
 
-
-    if (!rid) {
-        const errMsg = "rid is invalid please check.";
-        return next(null, { code: Code.FAIL, message: errMsg, body: msg });
-    }
-
-    let timeout_id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
-    }, Config.timeout);
-
-    delete msg.__route__;
-    delete msg.uuid;
-    delete msg.status;
-
-    let _msg = { ...msg } as Message;
-    messageService.chat(_msg, rid).then(value => {
-        // <!-- send callback to user who send chat msg.
-        let params = {
-            uuid: client_uuid,
-            status: "sent",
-            resultMsg: value
-        };
-        clearTimeout(timeout_id);
-        next(null, { code: Code.OK, data: params });
-
-        chatroomService.getRoom(rid).then(room => {
-            pushMessage(self.app, session, room, value, client_uuid, msg_target);
+                messageService.pushByUids(_msg, "").then(value => {
+                    // <!-- send callback to user who send chat msg.
+                    let params = {
+                        uuid: client_uuid,
+                        status: "sent",
+                        resultMsg: value
+                    };
+                    next(null, { code: Code.OK, data: params });
+                    pushMessage(self.app, session, room, value, client_uuid, msg_target);
+                    clearTimeout(timeout_id);
+                }).catch(err => {
+                    next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+                    clearTimeout(timeout_id);
+                });
+            }
         }).catch(err => {
+            clearTimeout(timeout_id);
+            next(null, { code: Code.FAIL, message: err.toString() });
+        });
+    };
+
+
+
+    chat(msg, session, next) {
+        let self = this;
+        let rid = session.get("rid");
+        let client_uuid = msg.uuid;
+        let msg_target = msg.target;
+
+        if (!rid) {
+            const errMsg = "rid is invalid please check.";
+            return next(null, { code: Code.FAIL, message: errMsg, body: msg });
+        }
+
+        let timeout_id = setTimeout(function () {
+            next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+        }, Config.timeout);
+
+        delete msg.__route__;
+        delete msg.uuid;
+        delete msg.status;
+
+        let _msg = { ...msg } as Message;
+        messageService.chat(_msg, rid).then(value => {
+            // <!-- send callback to user who send chat msg.
+            let params = {
+                uuid: client_uuid,
+                status: "sent",
+                resultMsg: value
+            };
+            clearTimeout(timeout_id);
+            next(null, { code: Code.OK, data: params });
+
+            chatroomService.getRoom(rid).then(room => {
+                pushMessage(self.app, session, room, value, client_uuid, msg_target);
+            }).catch(err => {
+                next(null, { code: Code.FAIL, message: err.message });
+            });
+        }).catch(err => {
+            clearTimeout(timeout_id);
             next(null, { code: Code.FAIL, message: err.message });
         });
-    }).catch(err => {
-        clearTimeout(timeout_id);
-        next(null, { code: Code.FAIL, message: err.message });
-    });
-};
-
-handler.pushByUids = function (msg, session, next) {
-    let self = this;
-
-    let schema = {
-        "x-api-key": Joi.string().optional(),
-        "api-version": Joi.string().optional(),
-        "data": Joi.any().required(),
-        "__route__": Joi.any()
     };
-    const result = Joi.validate(msg, schema);
-    if (result.error) {
-        return next(null, { code: Code.FAIL, message: result.error });
-    }
 
-    let timeout_id = setTimeout(function () {
-        next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
-    }, Config.timeout);
 
-    delete msg.__route__;
-    delete msg.data.uuid;
-    delete msg.data.status;
+    pushByUids(msg, session, next) {
+        let self = this;
 
-    let client_uuid = msg.data.uuid;
-    // let targets = msg.data.target as Array<string>;
-    let apiVersion = msg["api-version"];
-    let appKey = msg["x-api-key"];
-    let _msg = msg.data as Message;
-
-    messageService.pushByUids(_msg, appKey).then(resultMsg => {
-        // <!-- send callback to user who send chat msg.
-        let params = {
-            uuid: client_uuid,
-            status: "sent",
-            resultMsg: resultMsg
+        let schema = {
+            "x-api-key": Joi.string().optional(),
+            "api-version": Joi.string().optional(),
+            "data": Joi.any().required(),
+            "__route__": Joi.any()
         };
-        next(null, { code: Code.OK, data: params });
+        const result = Joi.validate(msg, schema);
+        if (result.error) {
+            return next(null, { code: Code.FAIL, message: result.error });
+        }
 
-        let onChat = withApiVersion(parseFloat(apiVersion))(resultMsg);
-        pushToTarget(self.app, session, onChat, client_uuid);
-        clearTimeout(timeout_id);
-    }).catch(err => {
-        next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
-        clearTimeout(timeout_id);
-    });
-};
+        let timeout_id = setTimeout(function () {
+            next(null, { code: Code.RequestTimeout, message: "send message timeout..." });
+        }, Config.timeout);
+
+        delete msg.__route__;
+        delete msg.data.uuid;
+        delete msg.data.status;
+
+        let client_uuid = msg.data.uuid;
+        // let targets = msg.data.target as Array<string>;
+        let apiVersion = msg["api-version"];
+        let appKey = msg["x-api-key"];
+        let _msg = msg.data as Message;
+
+        messageService.pushByUids(_msg, appKey).then(resultMsg => {
+            // <!-- send callback to user who send chat msg.
+            let params = {
+                uuid: client_uuid,
+                status: "sent",
+                resultMsg: resultMsg
+            };
+            next(null, { code: Code.OK, data: params });
+
+            let onChat = withApiVersion(parseFloat(apiVersion))(resultMsg);
+            pushToTarget(self.app, session, onChat, client_uuid);
+            clearTimeout(timeout_id);
+        }).catch(err => {
+            next(null, { code: Code.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+            clearTimeout(timeout_id);
+        });
+    };
+
+    getSyncDateTime(msg, session, next) {
+        let date: Date = new Date();
+        let param = {
+            code: Code.OK,
+            data: date
+        };
+
+        next(null, param);
+    };
+}
 
 function withApiVersion(apiVersion: number = 0.1) {
     return (message: Message) => {
@@ -336,16 +350,6 @@ function pushMessage(app, session, room: Room, message: Message, clientUUID: str
     });
 }
 
-handler.getSyncDateTime = function (msg, session, next) {
-    let date: Date = new Date();
-    let param = {
-        code: Code.OK,
-        data: date
-    };
-
-    next(null, param);
-};
-
 /**
 * Get older message for chat room.
 */
@@ -483,7 +487,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
         async.map(offlineMembers, function iterator(item, result: (err, obj: string) => void) {
             result(null, item);
         }, function done(err, results) {
-            targetMemberWhoSubscribeRoom = results.slice();
+            targetMemberWhoSubscribeRoom = (<string[]>results).slice();
 
             let promise = new Promise(function (resolve, reject) {
                 // <!-- Query all deviceTokens for each members.
@@ -498,16 +502,16 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
                                     resultCb(null, token);
                                 }, function done(err, results) {
                                     if (!!err) {
-                                        cb(err, null);
+                                        cb(err, undefined);
                                     }
                                     else {
-                                        targetDevices = results.slice();
-                                        cb(null, null);
+                                        targetDevices = (<string[]>results).slice();
+                                        cb(undefined, undefined);
                                     }
                                 });
                             }
                             else {
-                                cb(null, null);
+                                cb(undefined, undefined);
                             }
                         }, function done(err, results) {
                             if (err) {
