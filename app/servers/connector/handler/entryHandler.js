@@ -57,7 +57,7 @@ class EntryHandler {
                 session.set(Const_1.X_APP_ID, appId);
                 session.set(Const_1.X_API_KEY, apiKey);
                 session.pushAll(() => { console.log("PushAll new session"); });
-                session.on("closed", self.onUserLeave.bind(null, self.app));
+                session.on("closed", self.onUserLeave.bind(self, self.app));
                 // channelService.broadcast("connector", param.route, param.data);
                 self.addOnlineUser(self.app, session, msg.user);
                 next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });

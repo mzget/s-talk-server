@@ -83,7 +83,7 @@ class EntryHandler {
 				session.set(X_APP_ID, appId);
 				session.set(X_API_KEY, apiKey);
 				session.pushAll(() => { console.log("PushAll new session"); });
-				session.on("closed", self.onUserLeave.bind(null, self.app));
+				session.on("closed", self.onUserLeave.bind(self, self.app));
 
 				// channelService.broadcast("connector", param.route, param.data);
 
