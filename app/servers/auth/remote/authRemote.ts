@@ -3,7 +3,7 @@ import Code from "../../../../shared/Code";
 
 import User, { UserSession, IOnlineUser, UserTransaction } from "../../../model/User";
 import { Room } from "../../../model/Room";
-import IChannelService, { IUserGroup } from "../../../util/ChannelService";
+import IChannelService, { IUserGroup } from "../../../utils/ChannelService";
 import { AccountService } from "../../../services/accountService";
 import * as chatroomService from "../../../services/chatroomService";
 

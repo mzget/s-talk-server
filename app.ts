@@ -2,7 +2,7 @@
 import mongodb = require("mongodb");
 import * as fs from "fs";
 import * as path from "path";
-import routeUtil from "./app/util/routeUtil";
+import routeUtil from "./app/utils/routeUtil";
 import { AccountService } from "./app/services/accountService";
 
 import webserver from "./webserver";

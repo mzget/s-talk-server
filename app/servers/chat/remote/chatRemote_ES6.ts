@@ -1,6 +1,6 @@
 ﻿import User = require("../../../model/User");
 
-import ChannelService from "../../../util/ChannelService";
+import ChannelService from "../../../utils/ChannelService";
 
 let channelService: ChannelService;
 

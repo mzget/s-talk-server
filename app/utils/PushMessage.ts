@@ -5,7 +5,7 @@ import Code from "../../shared/Code";
 import { X_APP_ID } from "../Const";
 
 import { AccountService } from "../services/accountService";
-import { getUsersGroup } from "../util/ChannelHelper";
+import { getUsersGroup } from "../utils/ChannelHelper";
 
 export interface IPushMessage {
     event: string;
@@ -63,6 +63,7 @@ export function pushMessage(app, session, body: IPushMessage) {
             // <!-- Push message to off line users via push-notification.
             if (!!offlines && offlines.length > 0) {
                 // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                console.warn("offline user need for push-notification implementation.", offlines);
             }
 
             return { param, uids };

@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const Code_1 = require("../../shared/Code");
 const Const_1 = require("../Const");
-const ChannelHelper_1 = require("../util/ChannelHelper");
+const ChannelHelper_1 = require("../utils/ChannelHelper");
 function pushMessage(app, session, body) {
     return (accountService) => __awaiter(this, void 0, void 0, function* () {
         // @ Try to push message to others.
@@ -55,6 +55,7 @@ function pushMessage(app, session, body) {
             // <!-- Push message to off line users via push-notification.
             if (!!offlines && offlines.length > 0) {
                 // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                console.warn("offline user need for push-notification implementation.", offlines);
             }
             return { param, uids };
         }

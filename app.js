@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const pomelo = require("pomelo");
 const fs = require("fs");
 const path = require("path");
-const routeUtil_1 = require("./app/util/routeUtil");
+const routeUtil_1 = require("./app/utils/routeUtil");
 const accountService_1 = require("./app/services/accountService");
 const webserver_1 = require("./webserver");
 process.on("uncaughtException", (err) => {

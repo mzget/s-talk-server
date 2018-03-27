@@ -2,7 +2,6 @@
 import User = require("../../../model/User");
 import { Room, RoomStatus, RoomType } from "../../../model/Room";
 import TokenService from "../../../services/tokenService";
-import * as chatroomService from "../../../services/chatroomService";
 
 import Joi = require("joi");
 import joiObj = require("joi-objectid");
@@ -15,8 +14,8 @@ import { appInfo, Config } from "../../../../config/config";
 import { X_API_KEY, X_API_VERSION, X_APP_ID, } from "../../../Const";
 import { UserSession, UserTransaction } from "../../../model/User";
 import { AccountService } from "../../../services/accountService";
-import { getUsersGroup, withoutUser } from "../../../util/ChannelHelper";
-import ChannelService, { IUserGroup } from "../../../util/ChannelService";
+import { getUsersGroup, withoutUser } from "../../../utils/ChannelHelper";
+import ChannelService, { IUserGroup } from "../../../utils/ChannelService";
 const tokenService = new TokenService();
 let channelService: ChannelService;
 let accountService: AccountService;
@@ -86,7 +85,7 @@ class EntryHandler {
 
 				// channelService.broadcast("connector", param.route, param.data);
 
-				self.addOnlineUser(self.app, session, msg.user);
+				addOnlineUser(self.app, session, msg.user);
 				next(null, { code: Code.OK, data: { success: true, token: encode } });
 			}
 		});
@@ -247,7 +246,7 @@ class EntryHandler {
 		const onlineUser = {} as UserSession;
 		onlineUser.uid = uid;
 
-		self.addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
+		addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
 			clearTimeout(timeOutId);
 			next(null, { code: Code.OK, data: rid });
 		});
@@ -469,45 +468,6 @@ class EntryHandler {
 
 		next(null, { code: Code.OK });
 	}
-
-	addOnlineUser(app, session, user: IUserData) {
-		const self = this;
-
-		const userSession = {} as UserSession;
-		const userTransaction = {} as UserTransaction;
-		const appId = session.get(X_APP_ID);
-
-		userSession.uid = user._id;
-		userSession.username = user.username;
-		userSession.serverId = session.frontendId;
-		userSession.applicationId = appId;
-		userSession.payload = user.payload;
-
-		userTransaction.uid = user._id;
-		userTransaction.username = user.username;
-
-		accountService.addOnlineUser(userSession, pushNewOnline);
-		accountService.addUserTransaction(userTransaction);
-
-		const param = {
-			route: Code.sharedEvents.onUserLogin,
-			data: userTransaction,
-		};
-
-		function pushNewOnline() {
-			accountService.getOnlineUserByAppId(appId).then((userSessions: UserSession[]) => {
-				console.log("onlines by app-id", appId, userSessions.length, userSession.username);
-
-				const uids = withoutUser(getUsersGroup(userSessions), session.uid);
-				channelService.pushMessageByUids(param.route, param.data, uids);
-			}).catch(console.warn);
-		}
-	}
-
-	addChatUser(app, session, user: User.UserSession, sid, rid, next) {
-		// put user into channel
-		app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
-	};
 }
 
 /**
@@ -561,4 +521,42 @@ async function closeSession(app, session, next) {
 	if (next) {
 		next();
 	}
+};
+
+
+function addOnlineUser(app, session, user: IUserData) {
+	const userSession = {} as UserSession;
+	const userTransaction = {} as UserTransaction;
+	const appId = session.get(X_APP_ID);
+
+	userSession.uid = user._id;
+	userSession.username = user.username;
+	userSession.serverId = session.frontendId;
+	userSession.applicationId = appId;
+	userSession.payload = user.payload;
+
+	userTransaction.uid = user._id;
+	userTransaction.username = user.username;
+
+	accountService.addOnlineUser(userSession, pushNewOnline);
+	accountService.addUserTransaction(userTransaction);
+
+	const param = {
+		route: Code.sharedEvents.onUserLogin,
+		data: userTransaction,
+	};
+
+	function pushNewOnline() {
+		accountService.getOnlineUserByAppId(appId).then((userSessions: UserSession[]) => {
+			console.log("onlines by app-id", appId, userSessions.length, userSession.username);
+
+			const uids = withoutUser(getUsersGroup(userSessions), session.uid);
+			channelService.pushMessageByUids(param.route, param.data, uids);
+		}).catch(console.warn);
+	}
+}
+
+function addChatUser(app, session, user: User.UserSession, sid, rid, next) {
+	// put user into channel
+	app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 };

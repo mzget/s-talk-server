@@ -16,4 +16,5 @@ const chatRoute = (session, msg, app, cb) => {
 
   cb(null, res.id);
 };
+
 export default chatRoute;
