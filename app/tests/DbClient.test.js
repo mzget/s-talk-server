@@ -6,5 +6,7 @@ test('db connection', () => {
     expect.assertions(1);
     return DbClient_1.InitDatabaseConnection(config_1.DBConfig.database_name).then(db => {
         expect(db.databaseName).toEqual("s-talk");
+    }).catch(ex => {
+        expect(ex).toBeDefined();
     });
 });

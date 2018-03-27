@@ -20,9 +20,9 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">68.57% </span>
+        <span class="strong">57.14% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>24/35</span>
+        <span class='fraction'>20/35</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -35,9 +35,9 @@
         <span class='fraction'>7/13</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">72.41% </span>
+        <span class="strong">58.62% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>21/29</span>
+        <span class='fraction'>17/29</span>
       </div>
     </div>
     <p class="quiet">
@@ -94,8 +94,8 @@
 <a name='L46'></a><a href='#L46'>46</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -116,31 +116,31 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
 var __awaiter = (this &amp;&amp; this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { <span class="cstat-no" title="statement not covered" >reject(e); </span>} }
-        function <span class="fstat-no" title="function not covered" >rejected(</span>value) { <span class="cstat-no" title="statement not covered" >try { <span class="cstat-no" title="statement not covered" >step(generator["throw"](value)); </span>} catch (e) { <span class="cstat-no" title="statement not covered" >reject(e); </span>} </span>}
+        function <span class="fstat-no" title="function not covered" >fulfilled(</span>value) { <span class="cstat-no" title="statement not covered" >try { <span class="cstat-no" title="statement not covered" >step(generator.next(value)); </span>} catch (e) { <span class="cstat-no" title="statement not covered" >reject(e); </span>} </span>}
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { <span class="cstat-no" title="statement not covered" >reject(e); </span>} }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
@@ -161,24 +161,24 @@ exports.InitDatabaseConnection = (dbname) =&gt; __awaiter(this, void 0, void 0, 
             socketTimeoutMS: 60000,
         };
         const client = yield MongoClient.connect(config_1.DBConfig.mongo_uri, opt);
-        appDB = client.db(dbname);
-        appDB.on("close", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
+<span class="cstat-no" title="statement not covered" >        appDB = client.db(dbname);</span>
+<span class="cstat-no" title="statement not covered" >        appDB.on("close", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            console.error("close", err);</span>
         });
-        appDB.on("error", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
+<span class="cstat-no" title="statement not covered" >        appDB.on("error", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            console.error("error", err);</span>
         });
-        appDB.on("timeout", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
+<span class="cstat-no" title="statement not covered" >        appDB.on("timeout", <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            console.error("timeout", err);</span>
         });
-        appDB.on("reconnect", <span class="fstat-no" title="function not covered" >(s</span>erver) =&gt; {
+<span class="cstat-no" title="statement not covered" >        appDB.on("reconnect", <span class="fstat-no" title="function not covered" >(s</span>erver) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >            console.log("reconnect", server);</span>
         });
-        return Promise.resolve(appDB);
+<span class="cstat-no" title="statement not covered" >        return Promise.resolve(appDB);</span>
     }
     catch (ex) {
-<span class="cstat-no" title="statement not covered" >        console.warn("DB connect", ex);</span>
-<span class="cstat-no" title="statement not covered" >        return Promise.reject(ex.message);</span>
+        console.warn("DB connect", ex);
+        return Promise.reject(ex.message);
     }
 });
 &nbsp;</pre></td></tr>
@@ -187,7 +187,7 @@ exports.InitDatabaseConnection = (dbname) =&gt; __awaiter(this, void 0, void 0, 
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Sun Mar 25 2018 06:01:28 GMT+0700 (+07)
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Tue Mar 27 2018 11:21:12 GMT+0700 (+07)
 </div>
 </div>
 <script src="../prettify.js"></script>
