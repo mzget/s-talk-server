@@ -68,7 +68,7 @@ class EntryHandler {
                 session.pushAll(() => { console.log("PushAll new session"); });
                 session.on("closed", onUserLeave.bind(null, self.app));
                 // channelService.broadcast("connector", param.route, param.data);
-                self.addOnlineUser(self.app, session, msg.user);
+                addOnlineUser(self.app, session, msg.user);
                 next(null, { code: Code_1.default.OK, data: { success: true, token: encode } });
             }
         });
@@ -204,7 +204,7 @@ class EntryHandler {
         });
         const onlineUser = {};
         onlineUser.uid = uid;
-        self.addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
+        addChatUser(self.app, session, onlineUser, self.app.get("serverId"), rid, () => {
             clearTimeout(timeOutId);
             next(null, { code: Code_1.default.OK, data: rid });
         });
@@ -406,37 +406,6 @@ class EntryHandler {
         });
         next(null, { code: Code_1.default.OK });
     }
-    addOnlineUser(app, session, user) {
-        const self = this;
-        const userSession = {};
-        const userTransaction = {};
-        const appId = session.get(Const_1.X_APP_ID);
-        userSession.uid = user._id;
-        userSession.username = user.username;
-        userSession.serverId = session.frontendId;
-        userSession.applicationId = appId;
-        userSession.payload = user.payload;
-        userTransaction.uid = user._id;
-        userTransaction.username = user.username;
-        accountService.addOnlineUser(userSession, pushNewOnline);
-        accountService.addUserTransaction(userTransaction);
-        const param = {
-            route: Code_1.default.sharedEvents.onUserLogin,
-            data: userTransaction,
-        };
-        function pushNewOnline() {
-            accountService.getOnlineUserByAppId(appId).then((userSessions) => {
-                console.log("onlines by app-id", appId, userSessions.length, userSession.username);
-                const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
-                channelService.pushMessageByUids(param.route, param.data, uids);
-            }).catch(console.warn);
-        }
-    }
-    addChatUser(app, session, user, sid, rid, next) {
-        // put user into channel
-        app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
-    }
-    ;
 }
 /**
  * User log out handler
@@ -482,5 +451,35 @@ function closeSession(app, session, next) {
             next();
         }
     });
+}
+;
+function addOnlineUser(app, session, user) {
+    const userSession = {};
+    const userTransaction = {};
+    const appId = session.get(Const_1.X_APP_ID);
+    userSession.uid = user._id;
+    userSession.username = user.username;
+    userSession.serverId = session.frontendId;
+    userSession.applicationId = appId;
+    userSession.payload = user.payload;
+    userTransaction.uid = user._id;
+    userTransaction.username = user.username;
+    accountService.addOnlineUser(userSession, pushNewOnline);
+    accountService.addUserTransaction(userTransaction);
+    const param = {
+        route: Code_1.default.sharedEvents.onUserLogin,
+        data: userTransaction,
+    };
+    function pushNewOnline() {
+        accountService.getOnlineUserByAppId(appId).then((userSessions) => {
+            console.log("onlines by app-id", appId, userSessions.length, userSession.username);
+            const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
+            channelService.pushMessageByUids(param.route, param.data, uids);
+        }).catch(console.warn);
+    }
+}
+function addChatUser(app, session, user, sid, rid, next) {
+    // put user into channel
+    app.rpc.chat.chatRemote.add(session, user, sid, rid, true, next);
 }
 ;
