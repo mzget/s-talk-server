@@ -1,7 +1,7 @@
 import async = require("async");
 
-import ChannelService from "../../../util/ChannelService";
-import { getUsersGroup } from "../../../util/ChannelHelper";
+import ChannelService from "../../../utils/ChannelService";
+import { getUsersGroup } from "../../../utils/ChannelHelper";
 import Code, { SessionInfo } from "../../../../shared/Code";
 import { X_APP_ID } from "../../../Const";
 import User, { UserSession } from "../../../model/User";

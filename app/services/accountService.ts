@@ -3,7 +3,7 @@ import User, { UserSession, UserTransaction } from "../model/User";
 import Room = require("../model/Room");
 import redisClient, { hgetAsync, hgetallAsync } from "./RedisClient";
 
-const dispatcher = require("../util/dispatcher");
+import dispatcher from "../utils/dispatcher";
 
 export const ONLINE_USER = "online_user";
 export const TRANSACTION_USER = "transaction_user";
@@ -281,7 +281,7 @@ export class AccountService {
      * Get the connector server id assosiated with the uid
      */
     public getSidByUid = function (uid, app) {
-        const connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
+        const connector = dispatcher(uid, app.getServersByType("connector"));
         if (connector) {
             return connector.id;
         }

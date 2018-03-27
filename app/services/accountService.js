@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../shared/Code");
 const RedisClient_1 = require("./RedisClient");
-const dispatcher = require("../util/dispatcher");
+const dispatcher_1 = require("../utils/dispatcher");
 exports.ONLINE_USER = "online_user";
 exports.TRANSACTION_USER = "transaction_user";
 class AccountService {
@@ -41,7 +41,7 @@ class AccountService {
          * Get the connector server id assosiated with the uid
          */
         this.getSidByUid = function (uid, app) {
-            const connector = dispatcher.dispatch(uid, app.getServersByType("connector"));
+            const connector = dispatcher_1.default(uid, app.getServersByType("connector"));
             if (connector) {
                 return connector.id;
             }

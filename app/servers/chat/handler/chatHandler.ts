@@ -2,7 +2,6 @@
 import { Room, RoomStatus, RoomType } from "../../../model/Room";
 import { Message } from "../../../model/Message";
 import Code from "../../../../shared/Code";
-import MPushService = require("../../../services/ParsePushService");
 import * as chatroomService from "../../../services/chatroomService";
 import * as messageService from "../../../services/messageService";
 import * as userService from "../../../services/userService";
@@ -15,9 +14,8 @@ import async = require("async");
 import Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 
-import ChannelService from "../../../util/ChannelService";
+import ChannelService from "../../../utils/ChannelService";
 import { Config } from "../../../../config/config";
-const pushService = new MPushService.ParsePushService();
 let channelService: ChannelService;
 let accountService: AccountService;
 
@@ -526,7 +524,7 @@ function simplePushNotification(app: any, session: any, offlineMembers: Array<st
                     });
             }).then(function onfulfill(value) {
                 console.warn("Push", targetDevices, alertMessage);
-                pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+                console.warn("offline user need for push-notification implementation.", targetMemberWhoSubscribeRoom);
             }).catch(function onRejected(err) {
                 console.error("push to target deviceTokens fail.", err);
             });

@@ -18,7 +18,7 @@ export default class TokenService {
 	/**
 	 * reture token decoded.
 	 */
-	public ensureAuthorized(token, callback: (err: any, data: { success: boolean, decoded: any } | undefined) => void) {
+	public ensureAuthorized(token: string, callback: (err: any, data: { success: boolean, decoded: any } | undefined) => void) {
 		// decode token
 		if (token) {
 			// verifies secret and checks exp
