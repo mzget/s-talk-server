@@ -55,6 +55,7 @@ function pushMessage(app, session, body) {
             // <!-- Push message to off line users via push-notification.
             if (!!offlines && offlines.length > 0) {
                 // simplePushNotification(app, session, offlineMembers, room, message.sender);
+                console.warn("offline user need for push-notification implementation.", offlines);
             }
             return { param, uids };
         }
