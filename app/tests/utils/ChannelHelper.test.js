@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const ChannelHelper_1 = require("../../util/ChannelHelper");
+const ChannelHelper_1 = require("../../utils/ChannelHelper");
 test('test getUserGroup from empty array.', () => {
     expect(ChannelHelper_1.getUsersGroup([])).toEqual([]);
 });

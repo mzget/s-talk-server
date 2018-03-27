@@ -1,6 +1,6 @@
 import Code from "../../../../shared/Code";
 import TokenService from "../../../services/tokenService";
-import dispatcher from "../../../util/dispatcher";
+import dispatcher from "../../../utils/dispatcher";
 import { Config, appInfo } from "../../../../config/config";
 import { X_API_KEY, X_APP_ID } from "../../../Const";
 import Joi = require("joi");

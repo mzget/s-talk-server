@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1522133416859" clover="3.2.0">
-  <project timestamp="1522133416859" name="All files">
-    <metrics statements="127" coveredstatements="80" conditionals="31" coveredconditionals="15" methods="41" coveredmethods="17" elements="199" coveredelements="112" complexity="0" loc="127" ncloc="127" packages="6" files="7" classes="7">
+<coverage generated="1522138615142" clover="3.2.0">
+  <project timestamp="1522138615142" name="All files">
+    <metrics statements="128" coveredstatements="80" conditionals="31" coveredconditionals="15" methods="41" coveredmethods="17" elements="200" coveredelements="112" complexity="0" loc="128" ncloc="128" packages="5" files="7" classes="7">
       <package name="app">
         <metrics statements="34" coveredstatements="22" conditionals="9" coveredconditionals="9" methods="13" coveredmethods="7"/>
         <file name="Const.js" path="/Users/nattapon/Projects/stalk/stalk-node-server/app/Const.js">
@@ -65,9 +65,9 @@
           <line num="39" count="1" type="stmt"/>
         </file>
       </package>
-      <package name="app.util">
-        <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="4"/>
-        <file name="ChannelHelper.js" path="/Users/nattapon/Projects/stalk/stalk-node-server/app/util/ChannelHelper.js">
+      <package name="app.utils">
+        <metrics statements="46" coveredstatements="17" conditionals="17" coveredconditionals="3" methods="19" coveredmethods="5"/>
+        <file name="ChannelHelper.js" path="/Users/nattapon/Projects/stalk/stalk-node-server/app/utils/ChannelHelper.js">
           <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="4"/>
           <line num="2" count="2" type="stmt"/>
           <line num="4" count="2" type="stmt"/>
@@ -79,11 +79,8 @@
           <line num="14" count="2" type="stmt"/>
           <line num="15" count="2" type="stmt"/>
         </file>
-      </package>
-      <package name="app.utils">
-        <metrics statements="36" coveredstatements="8" conditionals="17" coveredconditionals="3" methods="15" coveredmethods="1"/>
         <file name="PushMessage.js" path="/Users/nattapon/Projects/stalk/stalk-node-server/app/utils/PushMessage.js">
-          <metrics statements="36" coveredstatements="8" conditionals="17" coveredconditionals="3" methods="15" coveredmethods="1"/>
+          <metrics statements="37" coveredstatements="8" conditionals="17" coveredconditionals="3" methods="15" coveredmethods="1"/>
           <line num="2" count="1" type="cond" truecount="3" falsecount="0"/>
           <line num="3" count="0" type="cond" truecount="0" falsecount="2"/>
           <line num="4" count="0" type="stmt"/>
@@ -118,8 +115,9 @@
           <line num="52" count="0" type="stmt"/>
           <line num="53" count="0" type="stmt"/>
           <line num="56" count="0" type="cond" truecount="0" falsecount="4"/>
-          <line num="59" count="0" type="stmt"/>
-          <line num="63" count="1" type="stmt"/>
+          <line num="58" count="0" type="stmt"/>
+          <line num="60" count="0" type="stmt"/>
+          <line num="64" count="1" type="stmt"/>
         </file>
       </package>
       <package name="config">

@@ -5,7 +5,7 @@ import Code from "../../shared/Code";
 import { X_APP_ID } from "../Const";
 
 import { AccountService } from "../services/accountService";
-import { getUsersGroup } from "../util/ChannelHelper";
+import { getUsersGroup } from "../utils/ChannelHelper";
 
 export interface IPushMessage {
     event: string;

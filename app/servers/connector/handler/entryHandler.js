@@ -16,7 +16,7 @@ Joi["objectId"] = joiObj(Joi);
 const ValidationSchema_1 = require("../../../utils/ValidationSchema");
 const config_1 = require("../../../../config/config");
 const Const_1 = require("../../../Const");
-const ChannelHelper_1 = require("../../../util/ChannelHelper");
+const ChannelHelper_1 = require("../../../utils/ChannelHelper");
 const tokenService = new tokenService_1.default();
 let channelService;
 let accountService;

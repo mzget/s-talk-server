@@ -1,5 +1,5 @@
 import { UserSession } from "../../model/User";
-import { getUsersGroup, withoutUser } from "../../util/ChannelHelper";
+import { getUsersGroup, withoutUser } from "../../utils/ChannelHelper";
 
 test('test getUserGroup from empty array.', () => {
     expect(getUsersGroup([])).toEqual([]);

@@ -11,7 +11,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const async = require("async");
 const Code_1 = require("../../shared/Code");
 const Const_1 = require("../Const");
-const ChannelHelper_1 = require("../util/ChannelHelper");
+const ChannelHelper_1 = require("../utils/ChannelHelper");
 function pushMessage(app, session, body) {
     return (accountService) => __awaiter(this, void 0, void 0, function* () {
         // @ Try to push message to others.

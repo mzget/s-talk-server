@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
-const MPushService = require("../../../services/ParsePushService");
 const chatroomService = require("../../../services/chatroomService");
 const messageService = require("../../../services/messageService");
 const userService = require("../../../services/userService");
@@ -9,7 +8,6 @@ const async = require("async");
 const Joi = require("joi");
 Joi["objectId"] = require("joi-objectid")(Joi);
 const config_1 = require("../../../../config/config");
-const pushService = new MPushService.ParsePushService();
 let channelService;
 let accountService;
 module.exports = function (app) {
@@ -468,7 +466,7 @@ function simplePushNotification(app, session, offlineMembers, room, sender) {
                 });
             }).then(function onfulfill(value) {
                 console.warn("Push", targetDevices, alertMessage);
-                pushService.sendPushToTargetDevices(targetDevices, alertMessage);
+                console.warn("offline user need for push-notification implementation.", targetMemberWhoSubscribeRoom);
             }).catch(function onRejected(err) {
                 console.error("push to target deviceTokens fail.", err);
             });

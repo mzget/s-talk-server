@@ -2,7 +2,7 @@
 // Remote server cannot write in es6 class.
 
 
-import ChannelService from "../../../util/ChannelService";
+import ChannelService from "../../../utils/ChannelService";
 import { UserSession } from "../../../model/User";
 
 let channelService: ChannelService;

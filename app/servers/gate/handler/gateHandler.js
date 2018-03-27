@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Code_1 = require("../../../../shared/Code");
 const tokenService_1 = require("../../../services/tokenService");
-const dispatcher_1 = require("../../../util/dispatcher");
+const dispatcher_1 = require("../../../utils/dispatcher");
 const config_1 = require("../../../../config/config");
 const Const_1 = require("../../../Const");
 const Joi = require("joi");
