@@ -21,7 +21,7 @@ function pushByUids(message, appKey) {
                     headers: {
                         "Content-Type": "application/json",
                         "cache-control": "no-cache",
-                        "x-api-key": `${webhook.apikey}`,
+                        "x-api-key": `${webhook.webhookKey}`,
                     },
                     body: JSON.stringify({
                         message,

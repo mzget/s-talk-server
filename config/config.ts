@@ -9,6 +9,7 @@ interface IStalkHookApi {
   appId: string;
   apikey: string;
   onPushByUids: string;
+  webhookKey: string;
 }
 const hooks = new Map<string, IStalkHookApi>();
 hooks.set("alcohol1234", {
@@ -16,36 +17,42 @@ hooks.set("alcohol1234", {
   appId: "",
   apikey: "alcohol1234",
   onPushByUids: "https://chitchats.ga:8999/api/message/pushByUids",
+  webhookKey: ""
 });
 hooks.set("survey1234", {
   appname: "survey",
   appId: "",
   apikey: "survey1234",
   onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
+  webhookKey: ""
 });
 hooks.set("jccommerce", {
   appname: "jc",
   appId: "jccommerce",
   apikey: "jc212224",
   onPushByUids: "http://119.59.110.214:9000/api/message/pushByUids",
+  webhookKey: "jc-x-secret",
 });
 hooks.set("chitchat", {
   appname: "chitchat",
   appId: "chitchat",
   apikey: "chitchat1234",
   onPushByUids: "http://chitchats.ga:9000/api/message/pushByUids",
+  webhookKey: ""
 });
 hooks.set("ooca", {
   appname: "ooca",
   appId: "ooca",
   apikey: "ooca1234",
   onPushByUids: "",
+  webhookKey: ""
 });
 hooks.set("ooca-dev", {
   appname: "ooca-dev",
   appId: "ooca-dev",
   apikey: "ooca1234",
   onPushByUids: "",
+  webhookKey: ""
 });
 const hookByAppKey = (appKey: string) => {
   let result = undefined as IStalkHookApi | undefined;

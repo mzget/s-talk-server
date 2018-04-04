@@ -14,7 +14,7 @@ export async function pushByUids(message: Message, appKey: string) {
                 headers: {
                     "Content-Type": "application/json",
                     "cache-control": "no-cache",
-                    "x-api-key": `${webhook.apikey}`,
+                    "x-api-key": `${webhook.webhookKey}`,
                 },
                 body: JSON.stringify({
                     message,
