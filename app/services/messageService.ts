@@ -20,9 +20,11 @@ export async function pushByUids(message: Message, appKey: string) {
                     message,
                 }),
             };
+            console.log("options", url, options);
 
             const response = await fetch(url, options);
             const data = await response.json();
+            console.log("JSON", data);
             return data.result;
         } catch (ex) {
             return Promise.reject(ex.message);

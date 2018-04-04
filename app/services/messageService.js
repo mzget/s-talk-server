@@ -27,8 +27,10 @@ function pushByUids(message, appKey) {
                         message,
                     }),
                 };
+                console.log("options", url, options);
                 const response = yield fetch(url, options);
                 const data = yield response.json();
+                console.log("JSON", data);
                 return data.result;
             }
             catch (ex) {
