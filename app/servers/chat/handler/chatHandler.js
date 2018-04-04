@@ -144,7 +144,7 @@ class ChatHandler {
             pushToTarget(self.app, session, onChat, client_uuid);
             clearTimeout(timeout_id);
         }).catch(err => {
-            next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature." });
+            next(null, { code: Code_1.default.FAIL, message: "AddChatRecord fail please implement resend message feature.", errors: err.message });
             clearTimeout(timeout_id);
         });
     }
