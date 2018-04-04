@@ -13,7 +13,6 @@ const config_1 = require("../../config/config");
 function pushByUids(message, appKey) {
     return __awaiter(this, void 0, void 0, function* () {
         const webhook = config_1.getWebhook(appKey);
-        console.log("getWebhook", appKey, webhook);
         if (webhook) {
             try {
                 const url = `${webhook.onPushByUids}`;
@@ -28,10 +27,8 @@ function pushByUids(message, appKey) {
                         message,
                     }),
                 };
-                console.log("options", url, options);
                 const response = yield fetch(url, options);
                 const data = yield response.json();
-                console.log("JSON", data);
                 return data.result;
             }
             catch (ex) {
