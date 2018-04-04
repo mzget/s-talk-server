@@ -28,6 +28,9 @@ export async function pushByUids(message: Message, appKey: string) {
             return Promise.reject(ex.message);
         }
     }
+    else {
+        console.error("No webhook provided");
+    }
 }
 
 export async function chat(message: Message, room: string) {

@@ -2,7 +2,7 @@ import express = require("express");
 const path = require("path");
 const router = express.Router();
 
-import { Config, getWebhook, appInfo } from "../../config/config";
+import { Config, appInfo } from "../../config/config";
 import { ApiResponse, ApiStatus } from "../utils/ApiUtils";
 import { AccountService } from "../../app/services/accountService";
 

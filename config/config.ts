@@ -47,9 +47,22 @@ hooks.set("ooca-dev", {
   apikey: "ooca1234",
   onPushByUids: "",
 });
-const getHookApi = (appKey: string) => {
-  return hooks.get(appKey);
+const hookByAppKey = (appKey: string) => {
+  let result = undefined as IStalkHookApi | undefined;
+  hooks.forEach((value, key, map) => {
+    value.apikey == appKey;
+    result = value;
+  });
+
+  return result;
 };
+export function getWebhook(appKey: string = "alcohol1234") {
+  const webhook = hookByAppKey(appKey);
+  return webhook;
+}
+export function appInfo(appId: string) {
+  return hooks.get(appId);
+}
 
 const devConfig = {
   appIds: ["chitchat1234", "alcohol1234", "survey1234", "ooca", "ooca-dev", "jc212224"],
@@ -82,14 +95,6 @@ function getConfig() {
   // console.log(process.env.NODE_ENV, conf.chatDB);
 
   return devConfig;
-}
-
-export function getWebhook(appKey: string = "alcohol1234") {
-  const webhook = getHookApi(appKey);
-  return webhook;
-}
-export function appInfo(appId: string) {
-  return hooks.get(appId);
 }
 
 export const Config = getConfig();

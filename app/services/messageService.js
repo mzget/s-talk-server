@@ -35,6 +35,9 @@ function pushByUids(message, appKey) {
                 return Promise.reject(ex.message);
             }
         }
+        else {
+            console.error("No webhook provided");
+        }
     });
 }
 exports.pushByUids = pushByUids;

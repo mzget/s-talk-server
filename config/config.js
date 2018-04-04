@@ -41,9 +41,23 @@ hooks.set("ooca-dev", {
     apikey: "ooca1234",
     onPushByUids: "",
 });
-const getHookApi = (appKey) => {
-    return hooks.get(appKey);
+const hookByAppKey = (appKey) => {
+    let result = undefined;
+    hooks.forEach((value, key, map) => {
+        value.apikey == appKey;
+        result = value;
+    });
+    return result;
 };
+function getWebhook(appKey = "alcohol1234") {
+    const webhook = hookByAppKey(appKey);
+    return webhook;
+}
+exports.getWebhook = getWebhook;
+function appInfo(appId) {
+    return hooks.get(appId);
+}
+exports.appInfo = appInfo;
 const devConfig = {
     appIds: ["chitchat1234", "alcohol1234", "survey1234", "ooca", "ooca-dev", "jc212224"],
     api: {
@@ -73,15 +87,6 @@ function getConfig() {
     // console.log(process.env.NODE_ENV, conf.chatDB);
     return devConfig;
 }
-function getWebhook(appKey = "alcohol1234") {
-    const webhook = getHookApi(appKey);
-    return webhook;
-}
-exports.getWebhook = getWebhook;
-function appInfo(appId) {
-    return hooks.get(appId);
-}
-exports.appInfo = appInfo;
 exports.Config = getConfig();
 exports.DBConfig = {
     mongo_uri: database.mongo_uri,
