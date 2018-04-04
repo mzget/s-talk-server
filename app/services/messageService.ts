@@ -6,6 +6,8 @@ import { Message } from "../model/Message";
 
 export async function pushByUids(message: Message, appKey: string) {
     const webhook = getWebhook(appKey);
+
+    console.log("getWebhook", appKey, webhook);
     if (webhook) {
         try {
             const url = `${webhook.onPushByUids}`;
@@ -27,7 +29,7 @@ export async function pushByUids(message: Message, appKey: string) {
             console.log("JSON", data);
             return data.result;
         } catch (ex) {
-            return Promise.reject(ex.message);
+            return Promise.reject(ex);
         }
     }
     else {
