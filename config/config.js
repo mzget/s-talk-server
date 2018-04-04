@@ -44,8 +44,9 @@ hooks.set("ooca-dev", {
 const hookByAppKey = (appKey) => {
     let result = undefined;
     hooks.forEach((value, key, map) => {
-        value.apikey == appKey;
-        result = value;
+        if (value.apikey == appKey) {
+            result = value;
+        }
     });
     return result;
 };

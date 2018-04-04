@@ -50,8 +50,9 @@ hooks.set("ooca-dev", {
 const hookByAppKey = (appKey: string) => {
   let result = undefined as IStalkHookApi | undefined;
   hooks.forEach((value, key, map) => {
-    value.apikey == appKey;
-    result = value;
+    if (value.apikey == appKey) {
+      result = value;
+    }
   });
 
   return result;
