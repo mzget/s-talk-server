@@ -54,7 +54,6 @@ class EntryHandler {
         if (app.apikey !== apiKey) {
             return next(null, { code: Code_1.default.FAIL, message: "authorized key fail." });
         }
-        console.log("Login", user);
         tokenService.signToken(user, (err, encode) => {
             if (err) {
                 return next(null, { code: Code_1.default.FAIL, message: err });
@@ -65,7 +64,7 @@ class EntryHandler {
                 session.bind(user._id);
                 session.set(Const_1.X_APP_ID, appId);
                 session.set(Const_1.X_API_KEY, apiKey);
-                session.pushAll(() => { console.log("PushAll new session"); });
+                session.pushAll(() => { console.log("PushAll new session", user); });
                 session.on("closed", onUserLeave.bind(null, self.app));
                 // channelService.broadcast("connector", param.route, param.data);
                 addOnlineUser(self.app, session, msg.user);
@@ -417,7 +416,7 @@ function onUserLeave(app, session) {
     if (!session || !session.uid) {
         return;
     }
-    console.warn("Leave session", session.uid, app.get("serverId"));
+    console.log("Leave session", session.uid, session.get(Const_1.X_APP_ID));
     const rid = session.get("rid");
     if (rid) {
         const userTransaction = accountService.getUserTransaction(session.uid);
@@ -428,24 +427,20 @@ function onUserLeave(app, session) {
 ;
 function closeSession(app, session, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
+        if (session && session.uid) {
             const user = yield accountService.getOnlineUser(session.uid);
-            console.log("logged out Success", user);
             const param = {
                 route: Code_1.default.sharedEvents.onUserLogout,
                 data: user,
             };
             const appId = session.get(Const_1.X_APP_ID);
             const userSessions = yield accountService.getOnlineUserByAppId(appId);
-            console.log("onlines by app-id", appId, userSessions.length);
             const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
             channelService.pushMessageByUids(param.route, param.data, uids);
             // !-- log user out.
             // Don't care what result of callback.
             accountService.removeOnlineUser(session.uid);
-        }
-        catch (ex) {
-            console.warn(ex.message);
+            console.log("Logged out success", appId, user);
         }
         if (next) {
             next();

@@ -69,7 +69,6 @@ class EntryHandler {
 			return next(null, { code: Code.FAIL, message: "authorized key fail." });
 		}
 
-		console.log("Login", user);
 		tokenService.signToken(user, (err, encode) => {
 			if (err) {
 				return next(null, { code: Code.FAIL, message: err });
@@ -80,7 +79,7 @@ class EntryHandler {
 				session.bind(user._id);
 				session.set(X_APP_ID, appId);
 				session.set(X_API_KEY, apiKey);
-				session.pushAll(() => { console.log("PushAll new session"); });
+				session.pushAll(() => { console.log("PushAll new session", user); });
 				session.on("closed", onUserLeave.bind(null, self.app));
 
 				// channelService.broadcast("connector", param.route, param.data);
@@ -480,7 +479,7 @@ function onUserLeave(app, session) {
 	if (!session || !session.uid) {
 		return;
 	}
-	console.warn("Leave session", session.uid, app.get("serverId"));
+	console.log("Leave session", session.uid, session.get(X_APP_ID));
 
 	const rid = session.get("rid");
 	if (rid) {
@@ -492,10 +491,8 @@ function onUserLeave(app, session) {
 };
 
 async function closeSession(app, session, next) {
-	try {
+	if (session && session.uid) {
 		const user = await accountService.getOnlineUser(session.uid) as UserSession;
-
-		console.log("logged out Success", user);
 
 		const param = {
 			route: Code.sharedEvents.onUserLogout,
@@ -505,17 +502,14 @@ async function closeSession(app, session, next) {
 		const appId = session.get(X_APP_ID);
 		const userSessions = await accountService.getOnlineUserByAppId(appId) as UserSession[];
 
-		console.log("onlines by app-id", appId, userSessions.length);
-
 		const uids = withoutUser(getUsersGroup(userSessions), session.uid);
 		channelService.pushMessageByUids(param.route, param.data, uids);
 
 		// !-- log user out.
 		// Don't care what result of callback.
 		accountService.removeOnlineUser(session.uid);
-	}
-	catch (ex) {
-		console.warn(ex.message);
+
+		console.log("Logged out success", appId, user);
 	}
 
 	if (next) {

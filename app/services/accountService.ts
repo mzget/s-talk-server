@@ -69,7 +69,7 @@ export class AccountService {
 
     public addOnlineUser(user: UserSession, callback: Function) {
         redisClient.hmset(ONLINE_USER, user.uid, JSON.stringify(user), (err, reply) => {
-            console.warn("set onlineUser", err, reply);
+            console.log("set onlineUser", err, reply);
 
             callback();
         });
@@ -86,7 +86,7 @@ export class AccountService {
     }
     public removeOnlineUser(userId: string) {
         redisClient.hdel(ONLINE_USER, userId, (err, reply) => {
-            console.warn("del onlineUser", err, reply);
+            console.log("del onlineUser", err, reply);
         });
     }
 
@@ -105,7 +105,7 @@ export class AccountService {
 
     addUserTransaction(userTransac: UserTransaction) {
         redisClient.hmset(TRANSACTION_USER, userTransac.uid, JSON.stringify(userTransac), (err, reply) => {
-            console.warn("set transaction_user", err, reply);
+            console.log("set transaction_user", err, reply);
         });
     }
 
