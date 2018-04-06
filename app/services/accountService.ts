@@ -36,7 +36,7 @@ export class AccountService {
         return await results;
     }
 
-    public async getOnlineUser(userId: string) {
+    public async getOnlineUser(userId: string): Promise<UserSession> {
         const online = await hgetAsync(ONLINE_USER, userId);
         if (typeof online == "string") {
             const userSession = JSON.parse(online) as UserSession;

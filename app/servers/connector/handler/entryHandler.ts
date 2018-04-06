@@ -492,24 +492,29 @@ function onUserLeave(app, session) {
 
 async function closeSession(app, session, next) {
 	if (session && session.uid) {
-		const user = await accountService.getOnlineUser(session.uid) as UserSession;
+		try {
+			const user = await accountService.getOnlineUser(session.uid) as UserSession;
 
-		const param = {
-			route: Code.sharedEvents.onUserLogout,
-			data: user,
-		};
+			const param = {
+				route: Code.sharedEvents.onUserLogout,
+				data: user,
+			};
 
-		const appId = session.get(X_APP_ID);
-		const userSessions = await accountService.getOnlineUserByAppId(appId) as UserSession[];
+			const appId = session.get(X_APP_ID);
+			const userSessions = await accountService.getOnlineUserByAppId(appId) as UserSession[];
 
-		const uids = withoutUser(getUsersGroup(userSessions), session.uid);
-		channelService.pushMessageByUids(param.route, param.data, uids);
+			const uids = withoutUser(getUsersGroup(userSessions), session.uid);
+			channelService.pushMessageByUids(param.route, param.data, uids);
 
-		// !-- log user out.
-		// Don't care what result of callback.
-		accountService.removeOnlineUser(session.uid);
+			// !-- log user out.
+			// Don't care what result of callback.
+			accountService.removeOnlineUser(session.uid);
 
-		console.log("Logged out success", appId, user);
+			console.log("Logged out success", appId, user);
+		}
+		catch (ex) {
+			console.log("Logged out session.uid", session.uid);
+		}
 	}
 
 	if (next) {

@@ -428,19 +428,24 @@ function onUserLeave(app, session) {
 function closeSession(app, session, next) {
     return __awaiter(this, void 0, void 0, function* () {
         if (session && session.uid) {
-            const user = yield accountService.getOnlineUser(session.uid);
-            const param = {
-                route: Code_1.default.sharedEvents.onUserLogout,
-                data: user,
-            };
-            const appId = session.get(Const_1.X_APP_ID);
-            const userSessions = yield accountService.getOnlineUserByAppId(appId);
-            const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
-            channelService.pushMessageByUids(param.route, param.data, uids);
-            // !-- log user out.
-            // Don't care what result of callback.
-            accountService.removeOnlineUser(session.uid);
-            console.log("Logged out success", appId, user);
+            try {
+                const user = yield accountService.getOnlineUser(session.uid);
+                const param = {
+                    route: Code_1.default.sharedEvents.onUserLogout,
+                    data: user,
+                };
+                const appId = session.get(Const_1.X_APP_ID);
+                const userSessions = yield accountService.getOnlineUserByAppId(appId);
+                const uids = ChannelHelper_1.withoutUser(ChannelHelper_1.getUsersGroup(userSessions), session.uid);
+                channelService.pushMessageByUids(param.route, param.data, uids);
+                // !-- log user out.
+                // Don't care what result of callback.
+                accountService.removeOnlineUser(session.uid);
+                console.log("Logged out success", appId, user);
+            }
+            catch (ex) {
+                console.log("Logged out session.uid", session.uid);
+            }
         }
         if (next) {
             next();
