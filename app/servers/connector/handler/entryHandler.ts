@@ -91,7 +91,7 @@ class EntryHandler {
 	}
 
 	public logout(msg, session, next) {
-		closeSession(this.app, session, null);
+		console.log("logout", msg);
 		next();
 	}
 
