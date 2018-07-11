@@ -51,7 +51,7 @@ hooks.set("jobtobgun", {
     appname: "jobtobgun",
     appId: "jobtobgun",
     apikey: "jobtobgun1234",
-    onPushByUids: "",
+    onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
     webhookKey: ""
 });
 const hookByAppKey = (appKey) => {
