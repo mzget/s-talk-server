@@ -59,7 +59,7 @@ hooks.set("jobtobgun", {
   appId: "jobtobgun",
   apikey: "jobtobgun1234",
   onPushByUids: "http://chitchats.ga:8998/api/message/pushByUids",
-  webhookKey: ""
+  webhookKey: "jc-x-secret"
 });
 const hookByAppKey = (appKey: string) => {
   let result = undefined as IStalkHookApi | undefined;
