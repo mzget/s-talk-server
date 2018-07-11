@@ -36,8 +36,8 @@
     "@types/ramda": "^0.24.18",
     "@types/redis": "^2.8.6",
     "jest": "^22.4.3",
-    "ts-jest": "^22.4.2",
-    "typescript": "^2.8.1"
+    "ts-jest": "^22.4.6",
+    "typescript": "^2.9.2"
   },
   "description": "A simple chat room experiment using pomelo framework and html5. The chat server currently runs on nodejs v0.8, and should run fine on the latest stable as well.It requires the following npm libraries: - pomelo - crc",
   "repository": {
