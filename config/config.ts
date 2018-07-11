@@ -54,6 +54,13 @@ hooks.set("ooca-dev", {
   onPushByUids: "",
   webhookKey: ""
 });
+hooks.set("jobtobgun", {
+  appname: "jobtobgun",
+  appId: "jobtobgun",
+  apikey: "jobtobgun1234",
+  onPushByUids: "",
+  webhookKey: ""
+});
 const hookByAppKey = (appKey: string) => {
   let result = undefined as IStalkHookApi | undefined;
   hooks.forEach((value, key, map) => {
